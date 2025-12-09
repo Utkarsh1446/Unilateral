@@ -6,6 +6,8 @@ import { ethers } from 'ethers';
 import { createMarketRequest, getCreatorByWallet } from '../lib/api';
 import { getContract, CONTRACTS, ABIS } from '../lib/contracts';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 export function CreateMarketPage() {
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export function CreateMarketPage() {
       setStatus('Getting creation signature...');
       // 2. Get Creation Signature
       // We need to import getCreationSignature from api.ts (ensure it's exported)
-      const sigRes = await fetch(`http://localhost:3001/markets/creation-signature`, {
+      const sigRes = await fetch(`${API_URL}/markets/creation-signature`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

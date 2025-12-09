@@ -6,6 +6,8 @@ import { ethers } from 'ethers';
 import { checkVolumeEligibility, getCreatorOnboardingSignature, createCreatorProfile, verifyTwitter } from '../lib/api';
 import { getContract, CONTRACTS, ABIS } from '../lib/contracts';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 export function BecomeCreatorPage() {
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(null);
@@ -240,7 +242,7 @@ export function BecomeCreatorPage() {
                   onClick={() => {
                     if (!account) return;
                     setEligibilityCheck({ loading: true });
-                    window.location.href = `http://localhost:3001/creators/auth/twitter?walletAddress=${account}`;
+                    window.location.href = `${API_URL}/creators/auth/twitter?walletAddress=${account}`;
                   }}
                   disabled={eligibilityCheck.loading || !account}
                   style={{

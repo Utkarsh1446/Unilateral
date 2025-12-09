@@ -6,6 +6,8 @@ import { getContract, ABIS, CONTRACTS } from '../lib/contracts';
 import { CheckCircle, XCircle, AlertCircle, Loader2, Gavel, CheckSquare, ShieldX, TrendingUp, Users, BarChart3, Clock, Activity, ExternalLink } from 'lucide-react';
 import { ethers } from 'ethers';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 // Admin wallet whitelist - only these wallets can access the admin panel
 const ADMIN_WALLETS = [
     "0x9f4c1f7eaa0b729b798f81be84b25fdf9f66a0bf"
@@ -92,7 +94,7 @@ export function AdminPage() {
 
     const fetchPlatformStats = async () => {
         try {
-            const res = await fetch('http://localhost:3001/admin/stats');
+            const res = await fetch(`${API_URL}/admin/stats`);
             const data = await res.json();
             setPlatformStats(data);
         } catch (e) {
@@ -232,7 +234,7 @@ export function AdminPage() {
             }
 
             if (marketAddress) {
-                await fetch(`http://localhost:3001/markets/${id}/address`, {
+                await fetch(`${API_URL}/markets/${id}/address`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contractAddress: marketAddress })
@@ -316,7 +318,7 @@ export function AdminPage() {
             await tx.wait();
 
             // Update backend
-            await fetch(`http://localhost:3001/admin/markets/${marketId}/resolve`, {
+            await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ outcome: marketStates[marketId]?.proposedOutcome || 0, adminWallet: account })

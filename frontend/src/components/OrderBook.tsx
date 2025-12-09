@@ -4,6 +4,8 @@ import { getContract, ABIS, CONTRACTS } from '../lib/contracts';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 interface Order {
     id: number;
     maker: string;
@@ -37,7 +39,7 @@ const updatePositionBackend = async (
         return;
     }
     try {
-        await fetch(`http://localhost:3001/markets/${marketId}/position`, {
+        await fetch(`${API_URL}/markets/${marketId}/position`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userAddress, outcomeIndex, amountChange, price })
@@ -150,7 +152,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
 
                     const tradeVolume = Number(ethers.formatUnits(cost, 6));
                     try {
-                        await fetch('http://localhost:3001/markets/volume/update', {
+                        await fetch(`${API_URL}/markets/volume/update`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contractAddress: marketAddress, tradeVolume })
@@ -179,7 +181,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
 
                     const sellValue = Number(ethers.formatUnits((amountWei * priceWei) / 1000000n, 6));
                     try {
-                        await fetch('http://localhost:3001/markets/volume/update', {
+                        await fetch(`${API_URL}/markets/volume/update`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contractAddress: marketAddress, tradeVolume: sellValue })
@@ -252,7 +254,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
 
                     // Update volume
                     try {
-                        await fetch('http://localhost:3001/markets/volume/update', {
+                        await fetch(`${API_URL}/markets/volume/update`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contractAddress: marketAddress, tradeVolume: totalCost })
@@ -278,7 +280,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
 
                     // Update volume
                     try {
-                        await fetch('http://localhost:3001/markets/volume/update', {
+                        await fetch(`${API_URL}/markets/volume/update`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contractAddress: marketAddress, tradeVolume: totalCost })
