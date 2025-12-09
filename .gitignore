@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Build outputs
+dist/
+build/
+.next/
+
+# Database
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Hardhat
+artifacts/
+cache/
+typechain-types/
+
+# Testing
+coverage/

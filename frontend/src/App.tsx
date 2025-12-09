@@ -1,0 +1,34 @@
+import { Navbar } from './components/Navbar';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import HomePage from './pages/HomePage';
+import { MarketPage } from './pages/MarketPage';
+import { CreatorPage } from './pages/CreatorPage';
+import { MarketsPage } from './pages/MarketsPage';
+import { CreatorsPage } from './pages/CreatorsPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { CreateMarketPage } from './pages/CreateMarketPage';
+import { BecomeCreatorPage } from './pages/BecomeCreatorPage';
+import { AdminPage } from './pages/AdminPage';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen bg-background pb-16 md:pb-0">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/markets" element={<MarketsPage />} />
+          <Route path="/creators" element={<CreatorsPage />} />
+          <Route path="/market/:id" element={<MarketPage />} />
+          <Route path="/creator/:id" element={<CreatorPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/create-market" element={<CreateMarketPage />} />
+          <Route path="/become-creator" element={<BecomeCreatorPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Routes>
+        <MobileBottomNav />
+      </div>
+    </BrowserRouter>
+  );
+}

@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  wallet_address String   @unique
+  twitter_handle String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  creator Creator?
+}
+
+model Creator {
+  id                  String    @id @default(uuid())
+  user_id             String    @unique
+  twitter_handle      String    @unique
+  twitter_id          String?   @unique
+  display_name        String?
+  profile_image       String?
+  follower_count      Int?
+  engagement_rate     Decimal?
+  qualified           Boolean   @default(false)
+  qualified_at        DateTime?
+  stake_paid          Boolean   @default(false)
+  stake_returned      Boolean   @default(false)
+  total_market_volume Decimal   @default(0)
+  shares_unlocked     Boolean   @default(false)
+  shares_unlocked_at  DateTime?
+  contract_address    String?
+  total_shares        Int       @default(0)
+  status              String    @default("pending") // pending, approved, suspended
+  
+  // Twitter OAuth fields
+  twitter_access_token  String?
+  twitter_refresh_token String?
+  twitter_user_id       String?
+  
+  // Admin approval fields
+  approval_status     String    @default("pending") // pending, approved, rejected
+  approved_by         String?
+  approved_at         DateTime?
+  
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  user           User                  @relation(fields: [user_id], references: [id])
+  markets        OpinionMarket[]
+  shares         CreatorShare?
+  volumeTracking CreatorVolumeTracking[]
+}
+
+model CreatorShare {
+  id               String   @id @default(uuid())
+  creator_id       String   @unique
+  contract_address String   @unique
+  total_supply     Int      @default(0)
+  current_price    Decimal  @default(0)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  creator      Creator            @relation(fields: [creator_id], references: [id])
+  transactions ShareTransaction[]
+}
+
+model ShareTransaction {
+  id               String   @id @default(uuid())
+  share_id         String
+  user_address     String
+  type             String   // BUY, SELL
+  amount           Int
+  price            Decimal
+  total_cost       Decimal
+  fee_amount       Decimal
+  transaction_hash String
+  block_number     Int
+  created_at       DateTime @default(now())
+
+  share CreatorShare @relation(fields: [share_id], references: [id])
+}
+
+model OpinionMarket {
+  id               String   @id @default(uuid())
+  creator_id       String
+  question_id      String   @unique
+  condition_id     String?  @unique
+  question         String
+  description      String
+  category         String
+  image_url        String?   // New field for market image
+  contract_address String?   // Restored field
+  deadline         DateTime
+  initial_liquidity Decimal
+  creation_fee     Decimal  @default(0)
+  volume           Decimal  @default(0)
+  resolved         Boolean  @default(false)
+  outcome          Int?     // 0 or 1
+  
+  approval_status  String   @default("pending") // pending, approved, rejected
+  rejection_reason String?
+
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  creator   Creator          @relation(fields: [creator_id], references: [id])
+  outcomes  MarketOutcome[]
+  positions MarketPosition[]
+}
+
+model MarketOutcome {
+  id            String  @id @default(uuid())
+  market_id     String
+  index         Int
+  name          String
+  probability   Decimal @default(0.5)
+  current_price Decimal @default(0.5)
+
+  market OpinionMarket @relation(fields: [market_id], references: [id])
+}
+
+model MarketPosition {
+  id            String   @id @default(uuid())
+  market_id     String
+  user_address  String
+  outcome_index Int
+  amount        Decimal
+  avg_price     Decimal
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  market OpinionMarket @relation(fields: [market_id], references: [id])
+}
+
+model CreatorVolumeTracking {
+  id         String   @id @default(uuid())
+  creator_id String
+  volume     Decimal
+  timestamp  DateTime @default(now())
+
+  creator Creator @relation(fields: [creator_id], references: [id])
+}
