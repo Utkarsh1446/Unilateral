@@ -6,6 +6,8 @@ import { WalletConnectPopup } from './WalletConnectPopup';
 import { ethers } from 'ethers';
 import { CONTRACTS, ABIS, getContract } from '../lib/contracts';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 export function Navbar() {
   const [account, setAccount] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -36,7 +38,7 @@ export function Navbar() {
 
   const checkAdminStatus = async (address: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:3001/admin/stats?walletAddress=${address}`, {
+      const response = await fetch(`${API_URL}/admin/stats?walletAddress=${address}`, {
         headers: { 'x-wallet-address': address }
       });
       setIsAdmin(response.ok);
