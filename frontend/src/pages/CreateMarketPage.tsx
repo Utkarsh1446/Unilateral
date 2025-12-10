@@ -42,7 +42,7 @@ export function CreateMarketPage() {
 
         // Check if user is a creator
         const creatorData = await getCreatorByWallet(walletAddress);
-        setIsCreator(creatorData && creatorData.creator ? true : false);
+        setIsCreator(creatorData && creatorData.isCreator === true);
       } else {
         setIsCreator(false);
       }
