@@ -25,6 +25,7 @@ export function CreatorPage() {
   const [userShareBalance, setUserShareBalance] = useState("0");
   const [holdersCount, setHoldersCount] = useState(0);
   const [recentTxns, setRecentTxns] = useState<{ type: string, amount: string, price: string, time: string, address: string }[]>([]);
+  const [priceHistory, setPriceHistory] = useState<{ date: string, price: number, timestamp: number }[]>([]);
   const [balance, setBalance] = useState("0"); // USDC Balance
   const [allowance, setAllowance] = useState<bigint>(0n);
   const [approving, setApproving] = useState(false);
@@ -117,8 +118,8 @@ export function CreatorPage() {
         console.log(`Holders: ${count} from ${logs.length} events`);
         setHoldersCount(count > 0 ? count : (parseFloat(ethers.formatEther(supply)) > 0 ? 1 : 0));
 
-        // Extract recent transactions from logs
-        const txns = logs.slice(-10).reverse().map((log) => {
+        // Extract recent transactions from logs with timestamps and build price history
+        const txnPromises = logs.slice(-20).map(async (log) => {
           const args = (log as any).args;
           const from = String(args[0]).toLowerCase();
           const to = String(args[1]).toLowerCase();
@@ -128,15 +129,75 @@ export function CreatorPage() {
           const isSell = to === zeroAddr;
           const addr = isBuy ? to : from;
 
+          // Get block timestamp for this transaction
+          let timestamp = Date.now();
+          try {
+            const block = await (log as any).getBlock();
+            timestamp = block.timestamp * 1000;
+          } catch (e) {
+            console.warn("Could not get block timestamp");
+          }
+
           return {
             type: isBuy ? 'Buy' : (isSell ? 'Sell' : 'Transfer'),
             amount: ethers.formatEther(value),
             price: '-',
-            time: 'Recent',
-            address: addr.slice(0, 6) + '...' + addr.slice(-4)
+            time: new Date(timestamp).toLocaleDateString(),
+            address: addr.slice(0, 6) + '...' + addr.slice(-4),
+            timestamp
           };
         });
-        setRecentTxns(txns);
+
+        const txnsWithTime = await Promise.all(txnPromises);
+        const sortedTxns = txnsWithTime.sort((a, b) => b.timestamp - a.timestamp);
+        setRecentTxns(sortedTxns.slice(0, 10));
+
+        // Build price history for chart (price at each transaction time)
+        // Calculate price based on supply at that point using bonding curve formula
+        const pricePoints: { date: string, price: number, timestamp: number }[] = [];
+        let runningSupply = 0n;
+
+        // Sort by timestamp ascending for building history
+        const sortedForHistory = [...txnsWithTime].sort((a, b) => a.timestamp - b.timestamp);
+
+        // Add initial point
+        if (sortedForHistory.length > 0) {
+          pricePoints.push({
+            date: new Date(sortedForHistory[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            price: 1.00, // Initial price
+            timestamp: sortedForHistory[0].timestamp
+          });
+        }
+
+        for (const txn of sortedForHistory) {
+          const amount = BigInt(Math.floor(parseFloat(txn.amount) * 1e18));
+          if (txn.type === 'Buy') {
+            runningSupply += amount;
+          } else if (txn.type === 'Sell') {
+            runningSupply = runningSupply > amount ? runningSupply - amount : 0n;
+          }
+
+          // Calculate price based on bonding curve: price = 1 + (supply^2 / 1400)
+          const supplyNum = parseFloat(ethers.formatEther(runningSupply));
+          const price = 1 + (supplyNum * supplyNum) / 1400;
+
+          pricePoints.push({
+            date: new Date(txn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            price: parseFloat(price.toFixed(2)),
+            timestamp: txn.timestamp
+          });
+        }
+
+        // If no transactions, show current state
+        if (pricePoints.length === 0) {
+          const now = Date.now();
+          pricePoints.push(
+            { date: 'Start', price: 1.00, timestamp: now - 3600000 },
+            { date: 'Now', price: parseFloat((1 + (supplyNum * supplyNum) / 1400).toFixed(2)), timestamp: now }
+          );
+        }
+
+        setPriceHistory(pricePoints);
       } catch (e) {
         console.warn("Could not count holders:", e);
         // Fallback: if supply > 0, at least 1 holder
@@ -237,22 +298,13 @@ export function CreatorPage() {
 
   const calculateCost = () => estimatedCost;
 
-  // Generate bonding curve with multiple data points
-  const currentPrice = parseFloat(sharePrice) || 1.0;
+  // priceHistory is now set from loadShareData with time-based data
+  // If empty, generate fallback
   const supplyNum = parseFloat(shareSupply) || 0;
-  const priceHistory = [];
-
-  // Generate 10 points along the bonding curve up to current supply
-  const maxSupply = Math.max(supplyNum, 10); // At least show 10 tokens on curve
-  for (let i = 0; i <= 10; i++) {
-    const s = (maxSupply / 10) * i;
-    // Bonding curve formula: price = 1 + (supply^2 / 1400)
-    const price = 1 + (s * s) / 1400;
-    priceHistory.push({
-      date: i === 0 ? '0' : `${Math.round(s)}`,
-      price: parseFloat(price.toFixed(2))
-    });
-  }
+  const chartData = priceHistory.length > 0 ? priceHistory : [
+    { date: 'Start', price: 1.00, timestamp: Date.now() - 3600000 },
+    { date: 'Now', price: parseFloat((1 + (supplyNum * supplyNum) / 1400).toFixed(2)), timestamp: Date.now() }
+  ];
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
   if (!creator) return <div className="text-center py-20">Creator not found</div>;
@@ -353,7 +405,7 @@ export function CreatorPage() {
                 {/* Line Chart */}
                 <div className="h-64 mb-6">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={priceHistory}>
+                    <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.05)" vertical={false} />
                       <XAxis
                         dataKey="date"
