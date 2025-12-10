@@ -67,15 +67,63 @@ export class CreatorsService {
 
     async findAll() {
         const creators = await this.prisma.creator.findMany({
-            include: { markets: true }
+            include: {
+                markets: true,
+                shares: {
+                    include: {
+                        transactions: true
+                    }
+                }
+            }
         });
 
-        return creators.map(creator => ({
-            ...creator,
-            total_market_volume: creator.markets.reduce((sum, market) => {
+        return creators.map(creator => {
+            // Calculate total market volume
+            const total_market_volume = creator.markets.reduce((sum, market) => {
                 return sum + (Number(market.volume) || 0);
-            }, 0)
-        }));
+            }, 0);
+
+            // Get share price from bonding curve or shares table
+            const share_price = creator.shares?.current_price
+                ? Number(creator.shares.current_price).toFixed(2)
+                : '1.00';
+
+            // Calculate unique holders from share transactions
+            let holders_count = 0;
+            if (creator.shares?.transactions) {
+                const balances = new Map<string, number>();
+                for (const tx of creator.shares.transactions) {
+                    const addr = tx.user_address.toLowerCase();
+                    const current = balances.get(addr) || 0;
+                    if (tx.type === 'BUY') {
+                        balances.set(addr, current + tx.amount);
+                    } else if (tx.type === 'SELL') {
+                        balances.set(addr, current - tx.amount);
+                    }
+                }
+                // Count addresses with positive balance
+                balances.forEach((bal) => { if (bal > 0) holders_count++; });
+            }
+
+            return {
+                id: creator.id,
+                user_id: creator.user_id,
+                twitter_handle: creator.twitter_handle,
+                display_name: creator.display_name || creator.twitter_handle,
+                profile_image: creator.profile_image,
+                follower_count: creator.follower_count || 0,
+                engagement_rate: creator.engagement_rate?.toString() || '0',
+                total_market_volume,
+                total_shares: creator.total_shares,
+                share_price,
+                holders_count,
+                dividend_rate: 0.38, // 0.38% dividend rate
+                contract_address: creator.contract_address,
+                status: creator.status,
+                approval_status: creator.approval_status,
+                created_at: creator.created_at
+            };
+        });
     }
 
     async findOne(id: string) {
