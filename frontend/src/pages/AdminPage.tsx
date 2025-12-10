@@ -296,18 +296,29 @@ export function AdminPage() {
             const proposeTx = await market.proposeResolution(parseInt(resolutionOutcome));
             await proposeTx.wait();
 
-            // Step 2: Immediately Finalize (no dispute window)
-            const finalizeTx = await market.finalizeResolution();
-            await finalizeTx.wait();
+            // Step 2: Try to immediately finalize (works for new contracts without dispute window)
+            let finalized = false;
+            try {
+                const finalizeTx = await market.finalizeResolution();
+                await finalizeTx.wait();
+                finalized = true;
 
-            // Step 3: Update backend
-            await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ outcome: parseInt(resolutionOutcome), adminWallet: account })
-            });
+                // Step 3: Update backend
+                await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ outcome: parseInt(resolutionOutcome), adminWallet: account })
+                });
+            } catch (finalizeErr: any) {
+                console.log('Finalize failed (likely old contract with dispute window):', finalizeErr.message);
+            }
 
-            alert("Market Resolved! Users can now claim winnings.");
+            if (finalized) {
+                alert("Market Resolved! Users can now claim winnings.");
+            } else {
+                alert("Resolution Proposed! This is an older market with a 6-hour dispute window. Please come back later to finalize.");
+            }
+
             setResolutionOutcome('');
             setSelectedMarket(null);
             fetchMarkets();
