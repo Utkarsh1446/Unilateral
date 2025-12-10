@@ -4,6 +4,8 @@ import { CreatorsService } from './creators.service';
 import { TwitterOAuthService } from '../twitter/twitter-oauth.service';
 import { TwitterScraperService } from '../twitter/twitter-scraper.service';
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
 @Controller('creators')
 export class CreatorsController {
     constructor(
@@ -67,7 +69,7 @@ export class CreatorsController {
             console.log('Eligible:', eligible);
 
             // Redirect to frontend with combined data
-            const redirectUrl = `http://localhost:3000/become-creator?` +
+            const redirectUrl = `${FRONTEND_URL}/become-creator?` +
                 `username=${user.username}&` +
                 `name=${encodeURIComponent(user.name)}&` +
                 `profileImage=${encodeURIComponent(user.profile_image_url)}&` +
@@ -81,7 +83,7 @@ export class CreatorsController {
             return res.redirect(redirectUrl);
         } catch (error) {
             console.error('Twitter OAuth error:', error);
-            return res.redirect(`http://localhost:3000/become-creator?error=auth_failed`);
+            return res.redirect(`${FRONTEND_URL}/become-creator?error=auth_failed`);
         }
     }
 
