@@ -581,11 +581,7 @@ export function MarketPage() {
       } else {
       }
 
-      // Calculate volume from events to ensure consistency
-      const totalVolume = results.reduce((acc, r) => acc + parseFloat(r!.trade.amountIn), 0);
-      if (totalVolume > 0) {
-        setMarket(prev => prev ? { ...prev, volume: totalVolume.toFixed(2) } : null);
-      }
+      // Volume is now managed by the backend - removed client-side recalculation to prevent flickering
     } catch (err) { console.error(err); }
   };
 
