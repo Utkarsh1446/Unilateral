@@ -13,32 +13,71 @@ export class CreatorsService {
     ) { }
 
     async createProfile(data: any) {
-        // Create user if doesn't exist
-        const user = await this.prisma.user.upsert({
-            where: { wallet_address: data.walletAddress.toLowerCase() },
-            update: {
-                twitter_handle: data.twitterHandle,
-            },
-            create: {
-                wallet_address: data.walletAddress.toLowerCase(),
-                twitter_handle: data.twitterHandle,
-            },
-        });
+        console.log('[CreateProfile] Received data:', JSON.stringify(data, null, 2));
 
-        // Create creator profile
-        return this.prisma.creator.create({
-            data: {
-                user_id: user.id,
-                twitter_handle: data.twitterHandle,
-                display_name: data.display_name || data.twitterHandle,
-                profile_image: data.profile_image,
-                contract_address: data.shareContractAddress || null,
-                twitter_access_token: data.twitterAccessToken,
-                twitter_refresh_token: data.twitterRefreshToken,
-                qualified: true,
-                qualified_at: new Date(),
-            },
-        });
+        // Validate required fields
+        if (!data.walletAddress) {
+            throw new Error('walletAddress is required');
+        }
+        if (!data.twitterHandle) {
+            throw new Error('twitterHandle is required');
+        }
+
+        try {
+            // Create user if doesn't exist
+            console.log('[CreateProfile] Creating/upserting user...');
+            const user = await this.prisma.user.upsert({
+                where: { wallet_address: data.walletAddress.toLowerCase() },
+                update: {
+                    twitter_handle: data.twitterHandle,
+                },
+                create: {
+                    wallet_address: data.walletAddress.toLowerCase(),
+                    twitter_handle: data.twitterHandle,
+                },
+            });
+            console.log('[CreateProfile] User created/updated:', user.id);
+
+            // Check if creator already exists for this user
+            const existingCreator = await this.prisma.creator.findFirst({
+                where: { user_id: user.id }
+            });
+            if (existingCreator) {
+                console.log('[CreateProfile] Creator already exists, returning existing');
+                return existingCreator;
+            }
+
+            // Check if twitter_handle already used by another creator
+            const handleInUse = await this.prisma.creator.findFirst({
+                where: { twitter_handle: data.twitterHandle }
+            });
+            if (handleInUse) {
+                console.log('[CreateProfile] Twitter handle already in use by:', handleInUse.user_id);
+                throw new Error(`Twitter handle @${data.twitterHandle} is already registered to another account`);
+            }
+
+            // Create creator profile
+            console.log('[CreateProfile] Creating creator profile...');
+            const creator = await this.prisma.creator.create({
+                data: {
+                    user_id: user.id,
+                    twitter_handle: data.twitterHandle,
+                    display_name: data.display_name || data.twitterHandle,
+                    profile_image: data.profile_image || null,
+                    contract_address: data.shareContractAddress || null,
+                    twitter_access_token: data.twitterAccessToken || null,
+                    twitter_refresh_token: data.twitterRefreshToken || null,
+                    qualified: true,
+                    qualified_at: new Date(),
+                },
+            });
+            console.log('[CreateProfile] Creator created successfully:', creator.id);
+            return creator;
+        } catch (error: any) {
+            console.error('[CreateProfile] Error:', error.message);
+            console.error('[CreateProfile] Full error:', error);
+            throw error;
+        }
     }
 
     async createShareForWallet(walletAddress: string, name: string, symbol: string) {
