@@ -43,7 +43,7 @@ contract OpinionMarket is ERC1155Holder {
     bool public resolved;
     
     uint256 public resolutionTimestamp;
-    uint256 public constant DISPUTE_WINDOW = 6 hours;
+    uint256 public constant DISPUTE_WINDOW = 0; // Removed dispute window - immediate finalization
     
     uint256 public proposedOutcome;
     

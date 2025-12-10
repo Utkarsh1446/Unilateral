@@ -292,15 +292,28 @@ export function AdminPage() {
             const signer = await provider.getSigner();
             const market = getContract(contractAddress, ABIS.OpinionMarket, signer);
 
-            const tx = await market.proposeResolution(parseInt(resolutionOutcome));
-            await tx.wait();
-            alert("Resolution Proposed! 6-hour dispute window started.");
+            // Step 1: Propose Resolution
+            const proposeTx = await market.proposeResolution(parseInt(resolutionOutcome));
+            await proposeTx.wait();
+
+            // Step 2: Immediately Finalize (no dispute window)
+            const finalizeTx = await market.finalizeResolution();
+            await finalizeTx.wait();
+
+            // Step 3: Update backend
+            await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ outcome: parseInt(resolutionOutcome), adminWallet: account })
+            });
+
+            alert("Market Resolved! Users can now claim winnings.");
             setResolutionOutcome('');
             setSelectedMarket(null);
             fetchMarkets();
         } catch (e: any) {
             console.error(e);
-            alert(e.message || "Failed to propose resolution");
+            alert(e.message || "Failed to resolve market");
         } finally {
             setActionLoading(null);
         }
@@ -348,15 +361,9 @@ export function AdminPage() {
                     </span>
 
                     {state.state === MarketState.ResolutionProposed && (
-                        <>
-                            <span className="text-xs text-muted-foreground">
-                                Proposed: <strong>{state.proposedOutcome === 0 ? 'YES' : 'NO'}</strong>
-                            </span>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                Dispute window: <strong className={state.canFinalize ? 'text-green-600' : 'text-yellow-600'}>{state.timeRemaining}</strong>
-                            </span>
-                        </>
+                        <span className="text-xs text-muted-foreground">
+                            Resolution in progress...
+                        </span>
                     )}
 
                     {state.state === MarketState.Resolved && (
@@ -403,25 +410,17 @@ export function AdminPage() {
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold"
                     >
                         <Gavel className="w-4 h-4" />
-                        Propose Resolution
+                        Resolve Market
                     </button>
                 );
             }
 
             if (state.state === MarketState.ResolutionProposed) {
                 return (
-                    <button
-                        onClick={() => handleFinalizeResolution(market.id, market.contract_address)}
-                        disabled={!state.canFinalize || actionLoading === market.id}
-                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-bold ${state.canFinalize
-                            ? 'bg-purple-600 text-white hover:bg-purple-700'
-                            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            }`}
-                        title={!state.canFinalize ? `Wait for dispute window (${state.timeRemaining})` : 'Finalize resolution'}
-                    >
-                        {actionLoading === market.id ? <Loader2 className="animate-spin w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                        {state.canFinalize ? 'Finalize' : `Wait ${state.timeRemaining}`}
-                    </button>
+                    <span className="text-xs text-yellow-600 font-medium flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Processing...
+                    </span>
                 );
             }
 
