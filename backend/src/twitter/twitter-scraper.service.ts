@@ -119,8 +119,8 @@ export class TwitterScraperService {
             // This allows onboarding to proceed - can manually verify later
             console.log('Returning fallback metrics for @' + username);
             return {
-                followers: 100, // Default to eligible
-                engagementRate: 2.0,
+                followers: 10, // Minimum to be eligible
+                engagementRate: 1.0, // Minimum 1% engagement
                 username,
                 name: username,
                 profileImage: ''
