@@ -7,11 +7,15 @@ import { getCreators } from '../lib/api';
 interface Creator {
   id: string;
   twitter_handle: string;
+  display_name?: string;
+  profile_image?: string;
   follower_count: number;
   engagement_rate: string;
   total_market_volume: string;
   total_shares: number;
-  // Add other fields if backend provides them
+  share_price?: string;
+  holders_count?: number;
+  dividend_rate?: number;
 }
 
 export function CreatorsPage() {
@@ -40,20 +44,20 @@ export function CreatorsPage() {
   const fetchCreators = async () => {
     try {
       const data = await getCreators();
-      // Map backend data to UI structure
       const mapped = data.map((c: Creator) => ({
         id: c.id,
         handle: c.twitter_handle,
-        name: c.twitter_handle, // Use handle as name for now
+        name: c.display_name || c.twitter_handle,
         avatar: c.twitter_handle.substring(0, 2).toUpperCase(),
-        bio: `Creator on Guessly. Engagement: ${parseFloat(c.engagement_rate).toFixed(1)}%`,
-        sharePrice: (Math.random() * 10 + 5).toFixed(2), // Mock price for now
-        priceChange: (Math.random() * 20 - 10).toFixed(1), // Mock change
-        totalVolume: `$${parseFloat(c.total_market_volume).toLocaleString()}`,
-        holders: c.follower_count,
-        activeMarkets: Math.floor(Math.random() * 10), // Mock active markets
+        profileImage: c.profile_image,
+        sharePrice: c.share_price || '1.00',
+        priceChange: (Math.random() * 20 - 10).toFixed(1), // TODO: Calculate from actual data
+        totalVolume: `$${parseFloat(c.total_market_volume || '0').toLocaleString()}`,
+        holders: c.holders_count || 0,
+        dividend: c.dividend_rate || 0.38, // Default dividend rate
+        activeMarkets: 0, // Will be fetched separately if needed
         verified: true,
-        category: 'Crypto', // Default category
+        category: 'Crypto',
       }));
       setCreators(mapped);
     } catch (err) {
@@ -65,13 +69,8 @@ export function CreatorsPage() {
 
   const filteredCreators = creators.filter(creator => {
     const matchesSearch = creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      creator.handle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      creator.bio.toLowerCase().includes(searchQuery.toLowerCase());
+      creator.handle.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All Creators' || creator.category === selectedCategory;
-
-    // Only show creators with some volume or explicit verification, or just all for now but maybe user meant active ones?
-    // Let's filter out those with 0 volume if that's what "all shares" implies (empty ones)
-    // const hasActivity = parseFloat(creator.totalVolume.replace(/[^0-9.-]+/g, '')) > 0;
 
     return matchesSearch && matchesCategory;
   });
@@ -208,7 +207,7 @@ export function CreatorsPage() {
                         className="block bg-background rounded-2xl border-2 border-foreground/20 p-2 hover:shadow-lg hover:border-foreground/40 transition-all group active:scale-[0.98]"
                       >
                         {/* Inner Card */}
-                        <div className="border border-foreground/10 rounded-xl p-3 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 min-h-[280px] flex flex-col">
+                        <div className="border border-foreground/10 rounded-xl p-4 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 min-h-[260px] flex flex-col">
                           {/* Category Badge - Top Right */}
                           <div className="flex justify-end mb-2">
                             <div className="px-1.5 py-0.5 bg-background/80 border border-foreground/10 rounded text-[8px] uppercase tracking-wider" style={{ fontWeight: 600 }}>
@@ -220,7 +219,20 @@ export function CreatorsPage() {
                           <div className="flex-1 flex items-center justify-center mb-3">
                             <div className="relative">
                               <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-foreground/20 group-hover:scale-105 transition-transform bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                                <span className="text-2xl font-bold text-foreground/50">{creator.avatar}</span>
+                                {creator.profileImage ? (
+                                  <img
+                                    src={creator.profileImage.replace('_normal', '')}
+                                    alt={creator.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <span className={`text-2xl font-bold text-foreground/50 ${creator.profileImage ? 'hidden' : ''}`}>
+                                  {creator.avatar}
+                                </span>
                               </div>
                               {creator.verified && (
                                 <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-background">
@@ -233,20 +245,11 @@ export function CreatorsPage() {
                           {/* Name Section */}
                           <div className="text-center mb-3">
                             <h3 className="text-base mb-0.5" style={{ fontWeight: 700 }}>{creator.name}</h3>
-                            <div className="text-xs text-muted-foreground mb-2">@{creator.handle}</div>
-                            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed px-2">
-                              {creator.bio}
-                            </p>
+                            <div className="text-xs text-muted-foreground">@{creator.handle}</div>
                           </div>
 
-                          {/* Stats Bar */}
+                          {/* Stats Bar - Holders, Price, Dividend */}
                           <div className="grid grid-cols-3 gap-2 mb-2.5 pb-2.5 border-b border-foreground/10">
-                            <div className="text-center">
-                              <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
-                                Markets
-                              </div>
-                              <div className="text-xs" style={{ fontWeight: 700 }}>{creator.activeMarkets}</div>
-                            </div>
                             <div className="text-center">
                               <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
                                 Holders
@@ -255,13 +258,19 @@ export function CreatorsPage() {
                             </div>
                             <div className="text-center">
                               <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
-                                Volume
+                                Price
                               </div>
-                              <div className="text-xs" style={{ fontWeight: 700 }}>{creator.totalVolume}</div>
+                              <div className="text-xs" style={{ fontWeight: 700 }}>${creator.sharePrice}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
+                                Dividend
+                              </div>
+                              <div className="text-xs" style={{ fontWeight: 700 }}>{creator.dividend}%</div>
                             </div>
                           </div>
 
-                          {/* Price - Bottom */}
+                          {/* Price Change - Bottom */}
                           <div className="bg-background/80 border border-foreground/10 rounded-lg p-2">
                             <div className="flex items-center justify-between">
                               <div>
