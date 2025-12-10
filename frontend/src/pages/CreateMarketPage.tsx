@@ -12,6 +12,7 @@ export function CreateMarketPage() {
   const navigate = useNavigate();
   const [account, setAccount] = useState<string | null>(null);
   const [isCreator, setIsCreator] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
   const [question, setQuestion] = useState('');
   const [description, setDescription] = useState('');
@@ -43,6 +44,16 @@ export function CreateMarketPage() {
         // Check if user is a creator
         const creatorData = await getCreatorByWallet(walletAddress);
         setIsCreator(creatorData && creatorData.isCreator === true);
+
+        // Also check if user is admin
+        try {
+          const adminResponse = await fetch(`${API_URL}/admin/stats?walletAddress=${walletAddress}`, {
+            headers: { 'x-wallet-address': walletAddress }
+          });
+          setIsAdmin(adminResponse.ok);
+        } catch {
+          setIsAdmin(false);
+        }
       } else {
         setIsCreator(false);
       }
@@ -176,8 +187,8 @@ export function CreateMarketPage() {
     );
   }
 
-  // Show eligibility popup for non-creators
-  if (isCreator === false) {
+  // Show eligibility popup for non-creators AND non-admins
+  if (isCreator === false && !isAdmin) {
     return (
       <>
         <div className="min-h-screen flex items-center justify-center bg-muted/20 px-4">
