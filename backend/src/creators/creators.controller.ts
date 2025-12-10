@@ -109,16 +109,30 @@ export class CreatorsController {
     }
 
     @Post('create')
-    async createProfile(@Body() body: {
-        walletAddress: string,
-        twitterHandle: string,
-        shareContractAddress?: string,
-        twitterAccessToken?: string,
-        twitterRefreshToken?: string,
-        display_name?: string,
-        profile_image?: string
-    }) {
-        return this.creatorsService.createProfile(body);
+    async createProfile(
+        @Body() body: {
+            walletAddress: string,
+            twitterHandle: string,
+            shareContractAddress?: string,
+            twitterAccessToken?: string,
+            twitterRefreshToken?: string,
+            display_name?: string,
+            profile_image?: string
+        },
+        @Res() res: Response
+    ) {
+        console.log('[Controller] Create profile request:', JSON.stringify(body, null, 2));
+        try {
+            const result = await this.creatorsService.createProfile(body);
+            return res.status(HttpStatus.CREATED).json(result);
+        } catch (error: any) {
+            console.error('[Controller] Create profile error:', error.message);
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                error: true,
+                message: error.message || 'Failed to create profile',
+                details: error.code || null
+            });
+        }
     }
 
     // Admin-only: Create creator share without Twitter verification
