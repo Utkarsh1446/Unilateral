@@ -7,6 +7,8 @@ import { ethers } from 'ethers';
 import { CONTRACTS, ABIS, getContract } from '../lib/contracts';
 import { fetchLogsWithChunking } from '../lib/ethereum';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 interface CreatorDashboardData {
   isCreator: boolean;
   creatorId?: string;
@@ -67,7 +69,7 @@ export function ProfilePage() {
       const name = `${creatorDashboard.twitterHandle} Shares`;
       const symbol = `$${creatorDashboard.twitterHandle?.toUpperCase().slice(0, 4) || 'CSHARE'}`;
 
-      const sigRes = await fetch('http://127.0.0.1:3001/creators/onboarding-signature', {
+      const sigRes = await fetch(`${API_URL}/creators/onboarding-signature`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -119,7 +121,7 @@ export function ProfilePage() {
         console.log("Updating backend with Creator Share at:", shareAddress);
 
         // Update backend with share address
-        const updateRes = await fetch('http://127.0.0.1:3001/creators/update-share', {
+        const updateRes = await fetch(`${API_URL}/creators/update-share`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -176,7 +178,7 @@ export function ProfilePage() {
     if (!account) return;
     setLoadingDashboard(true);
     try {
-      const res = await fetch(`http://127.0.0.1:3001/creators/dashboard/${account}`);
+      const res = await fetch(`${API_URL}/creators/dashboard/${account}`);
       if (res.ok) {
         const data = await res.json();
         setCreatorDashboard(data);
@@ -201,7 +203,7 @@ export function ProfilePage() {
 
     try {
       // Fetch all markets from backend
-      const res = await fetch(`http://127.0.0.1:3001/markets`);
+      const res = await fetch(`${API_URL}/markets`);
       const markets = await res.json();
 
       if (!markets || markets.length === 0) {
@@ -322,7 +324,7 @@ export function ProfilePage() {
 
     try {
       // Fetch all creator shares from backend
-      const res = await fetch(`http://127.0.0.1:3001/creators/holdings/${account}`);
+      const res = await fetch(`${API_URL}/creators/holdings/${account}`);
       if (!res.ok) throw new Error("Failed to fetch holdings");
 
       const sharesData = await res.json();
@@ -804,8 +806,8 @@ export function ProfilePage() {
                   <div
                     key={position.id + '-' + position.outcomeIndex}
                     className={`bg-background rounded-2xl border-2 p-5 transition-all ${position.isWinner
-                        ? 'border-green-500 bg-green-50/50'
-                        : 'border-foreground/30 opacity-60'
+                      ? 'border-green-500 bg-green-50/50'
+                      : 'border-foreground/30 opacity-60'
                       }`}
                   >
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">

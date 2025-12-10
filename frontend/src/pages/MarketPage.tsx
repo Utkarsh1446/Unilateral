@@ -8,6 +8,8 @@ import { toast, Toaster } from 'sonner';
 import { CONTRACTS, ABIS, getContract } from '../lib/contracts';
 import { OrderBook } from '../components/OrderBook';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 interface MarketData {
   id: string;
   question: string;
@@ -114,7 +116,7 @@ export function MarketPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
-      const res = await fetch(`http://127.0.0.1:3001/markets/${id}`, {
+      const res = await fetch(`${API_URL}/markets/${id}`, {
         cache: 'no-cache',
         signal: controller.signal
       });
