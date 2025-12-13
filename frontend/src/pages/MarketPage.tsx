@@ -1,5 +1,5 @@
 import { Footer } from '../components/Footer';
-import { Share2, ArrowLeft, ChevronDown, Loader2, CheckCircle, XCircle, Users } from 'lucide-react';
+import { Share2, ArrowLeft, ChevronDown, Loader2, CheckCircle, XCircle, Users, TrendingUp, TrendingDown } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -74,6 +74,15 @@ export function MarketPage() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [recentTrades, setRecentTrades] = useState<TradeEvent[]>([]);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [priceChange, setPriceChange] = useState(0);
+
+  useEffect(() => {
+    if (chartData.length > 0) {
+      const startPrice = chartData[0].YES; // Or calculate 24h change dynamically
+      const endPrice = chartData[chartData.length - 1].YES;
+      setPriceChange(parseFloat((endPrice - startPrice).toFixed(1)));
+    }
+  }, [chartData]);
 
   useEffect(() => {
     checkConnection();
@@ -522,7 +531,7 @@ export function MarketPage() {
       // Sort by timestamp descending
       results.sort((a, b) => b!.trade.timestamp - a!.trade.timestamp);
 
-      setRecentTrades(results.map(r => r!.trade));
+      setRecentTrades(results.map(r => r!.trade as TradeEvent));
 
       // Chart data: sort ascending
       const chartPoints = results.map(r => r!.chartPoint).sort((a, b) => a.timestamp - b.timestamp);
@@ -571,6 +580,23 @@ export function MarketPage() {
 
       // Volume is now managed by the backend - removed client-side recalculation to prevent flickering
     } catch (err) { console.error(err); }
+  };
+
+  const [timeRange, setTimeRange] = useState<'1H' | '1D' | '1W' | 'ALL'>('ALL');
+
+  const getFilteredData = () => {
+    if (timeRange === 'ALL') return chartData;
+    if (chartData.length === 0) return [];
+
+    const now = Date.now();
+    const ranges = {
+      '1H': 60 * 60 * 1000,
+      '1D': 24 * 60 * 60 * 1000,
+      '1W': 7 * 24 * 60 * 60 * 1000
+    };
+
+    const cutoff = now - ranges[timeRange];
+    return chartData.filter(p => p.timestamp >= cutoff);
   };
 
   if (loadingMarket) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
@@ -677,8 +703,14 @@ export function MarketPage() {
                 <div className="p-4">
                   <div className="flex gap-4 items-start">
                     {/* Market Icon */}
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center text-xl font-bold text-gray-400 border border-gray-200/50">
-                      {market.description?.charAt(0) || "M"}
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-200/50">
+                      {market.image_url ? (
+                        <img src={market.image_url} alt={market.question} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xl font-bold text-gray-400">
+                          {market.description?.charAt(0) || "M"}
+                        </div>
+                      )}
                     </div>
 
                     {/* Title & Meta */}
@@ -718,23 +750,38 @@ export function MarketPage() {
                 </div>
 
                 {/* Chart Section */}
-                <div className="p-4 min-h-[300px]">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="p-6 md:p-8 min-h-[300px]">
+                  <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                        <span className="text-sm font-medium text-gray-900">Yes {yesPrice}%</span>
+                      <div className="text-3xl font-bold text-gray-900">
+                        {currentPrice}%
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                        <span className="text-sm font-medium text-gray-900">No {noPrice}%</span>
+                      <div className={`text-sm font-semibold flex items-center ${priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {priceChange >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                        {Math.abs(priceChange)}% Today
                       </div>
+                    </div>
+
+                    {/* Time Filters */}
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                      {['1H', '1D', '1W', 'ALL'].map((range) => (
+                        <button
+                          key={range}
+                          onClick={() => setTimeRange(range as any)}
+                          className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${timeRange === range
+                            ? 'bg-white text-gray-900 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                          {range}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
                   <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData.length > 0 ? chartData : [
+                      <LineChart data={getFilteredData().length > 0 ? getFilteredData() : [
                         { date: 'Created', YES: 50, NO: 50 },
                         { date: 'Now', YES: yesPrice, NO: noPrice }
                       ]}>

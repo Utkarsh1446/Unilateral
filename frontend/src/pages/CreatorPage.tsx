@@ -189,6 +189,33 @@ export function CreatorPage() {
     }
   };
 
+  const [timeRange, setTimeRange] = useState<'1H' | '1D' | '1W' | 'ALL'>('ALL');
+
+  const getFilteredData = () => {
+    if (timeRange === 'ALL') return priceHistory;
+    if (priceHistory.length === 0) return [];
+
+    const now = Date.now();
+    const ranges = {
+      '1H': 60 * 60 * 1000,
+      '1D': 24 * 60 * 60 * 1000,
+      '1W': 7 * 24 * 60 * 60 * 1000
+    };
+
+    const cutoff = now - ranges[timeRange];
+    // Filter points and also ensure we don't return an empty chart if no points match
+    // Ideally we want at least one point before the cutoff to draw the line correctly
+    const filtered = priceHistory.filter(p => p.timestamp >= cutoff);
+
+    // If we have data but filtered is empty (e.g. no trades in last hour), 
+    // we should show the last known price as a flat line or the single latest point.
+    // For now, let's just return filtered or if empty, the last point.
+    if (filtered.length === 0 && priceHistory.length > 0) {
+      return [priceHistory[priceHistory.length - 1]];
+    }
+    return filtered;
+  };
+
   const calculatePrice = (supplyBigInt: bigint) => {
     const supplyNum = parseFloat(ethers.formatEther(supplyBigInt));
     // Price = 1 + (supply^2 / 1400)
@@ -342,13 +369,31 @@ export function CreatorPage() {
               {/* Chart Section */}
               <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-semibold text-gray-900">Price History</h3>
-                  <div className="text-2xl font-bold text-gray-900">${sharePrice}</div>
+                  <div className="flex items-center gap-4">
+                    <h3 className="font-semibold text-gray-900">Price History</h3>
+                    <div className="text-2xl font-bold text-gray-900">${sharePrice}</div>
+                  </div>
+
+                  {/* Time Filters */}
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    {['1H', '1D', '1W', 'ALL'].map((range) => (
+                      <button
+                        key={range}
+                        onClick={() => setTimeRange(range as any)}
+                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${timeRange === range
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                      >
+                        {range}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={priceHistory}>
+                    <LineChart data={getFilteredData()}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                       <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} minTickGap={30} />
                       <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} domain={['auto', 'auto']} />
