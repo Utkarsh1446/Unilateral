@@ -322,8 +322,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
                 <button
                     onClick={() => setSide('buy')}
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${side === 'buy'
-                        ? 'bg-white text-gray-900 shadow-sm'
+                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${side === 'buy'
+                        ? 'bg-green-100 text-green-700 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
@@ -331,8 +331,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 </button>
                 <button
                     onClick={() => setSide('sell')}
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${side === 'sell'
-                        ? 'bg-white text-gray-900 shadow-sm'
+                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${side === 'sell'
+                        ? 'bg-red-100 text-red-700 shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
@@ -345,7 +345,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 <button
                     onClick={() => setOutcome(0)}
                     className={`flex-1 py-2 px-2 rounded-lg font-medium text-sm flex justify-between items-center transition-all border ${outcome === 0
-                        ? 'bg-gray-50 border-gray-200 text-gray-900 ring-1 ring-gray-200'
+                        ? 'bg-green-50 border-green-200 text-green-700 ring-1 ring-green-200'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
                         }`}
                 >
@@ -355,7 +355,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 <button
                     onClick={() => setOutcome(1)}
                     className={`flex-1 py-2 px-2 rounded-lg font-medium text-sm flex justify-between items-center transition-all border ${outcome === 1
-                        ? 'bg-gray-50 border-gray-200 text-gray-900 ring-1 ring-gray-200'
+                        ? 'bg-red-50 border-red-200 text-red-700 ring-1 ring-red-200'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
                         }`}
                 >
@@ -368,8 +368,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             <div className="flex gap-2 mb-3">
                 <button
                     onClick={() => setOrderType('limit')}
-                    className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${orderType === 'limit'
-                        ? 'bg-white text-gray-900 border border-gray-200 shadow-sm'
+                    className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${orderType === 'limit'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                         : 'bg-gray-100 text-gray-500 hover:text-gray-700'
                         }`}
                 >
@@ -377,8 +377,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 </button>
                 <button
                     onClick={() => setOrderType('market')}
-                    className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${orderType === 'market'
-                        ? 'bg-white text-gray-900 border border-gray-200 shadow-sm'
+                    className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${orderType === 'market'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                         : 'bg-gray-100 text-gray-500 hover:text-gray-700'
                         }`}
                 >
@@ -391,28 +391,20 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 {orderType === 'limit' && (
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Limit Price</label>
-                        <div className="flex items-center border border-gray-200 rounded-lg p-1 bg-gray-50 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <button
-                                onClick={() => {
-                                    const current = parseFloat(limitPrice) || 0.5;
-                                    setLimitPrice(Math.max(0.01, current - 0.01).toFixed(2));
-                                }}
-                                className="p-2 hover:bg-white rounded-md text-gray-500 shadow-sm transition-all"
-                            >
-                                <Minus className="w-4 h-4" />
-                            </button>
-                            <div className="flex-1 text-center font-bold text-gray-900 text-lg">
-                                {((parseFloat(limitPrice) || 0) * 100).toFixed(0)}¢
+                        <div className="relative">
+                            <input
+                                type="number"
+                                value={limitPrice}
+                                onChange={(e) => setLimitPrice(e.target.value)}
+                                className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-right pr-20"
+                                placeholder="0.50"
+                                step="0.01"
+                                min="0"
+                                max="1"
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">USDC</span>
                             </div>
-                            <button
-                                onClick={() => {
-                                    const current = parseFloat(limitPrice) || 0.5;
-                                    setLimitPrice(Math.min(0.99, current + 0.01).toFixed(2));
-                                }}
-                                className="p-2 hover:bg-white rounded-md text-gray-500 shadow-sm transition-all"
-                            >
-                                <Plus className="w-4 h-4" />
-                            </button>
                         </div>
                     </div>
                 )}
@@ -426,7 +418,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-right pr-16"
+                            className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-right pr-24"
                             placeholder="0"
                         />
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
