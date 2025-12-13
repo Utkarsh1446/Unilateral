@@ -30,6 +30,7 @@ export class MarketsController {
             body.category,
             new Date(body.deadline),
             body.creatorId,
+            body.imageUrl
         );
     }
 
