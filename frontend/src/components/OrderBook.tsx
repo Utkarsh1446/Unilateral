@@ -396,7 +396,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                                 type="number"
                                 value={limitPrice}
                                 onChange={(e) => setLimitPrice(e.target.value)}
-                                className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-right pr-20"
+                                className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-left pr-20"
                                 placeholder="0.50"
                                 step="0.01"
                                 min="0"
@@ -418,7 +418,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-right pr-24"
+                            className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-left pr-24"
                             placeholder="0"
                         />
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
