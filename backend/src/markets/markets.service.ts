@@ -101,7 +101,7 @@ export class MarketsService {
             creatorId = creator.id;
         }
 
-        return this.prisma.opinionMarket.create({
+        const market = await this.prisma.opinionMarket.create({
             data: {
                 question_id: ethers.keccak256(ethers.toUtf8Bytes(question + Date.now())), // Temporary ID
                 question,
@@ -115,6 +115,28 @@ export class MarketsService {
                 approval_status: isAdmin ? 'approved' : 'pending' // Auto-approve for Admin
             }
         });
+
+        // Create default outcomes (Yes/No) with 50% probability
+        await this.prisma.marketOutcome.createMany({
+            data: [
+                {
+                    market_id: market.id,
+                    index: 0,
+                    name: 'Yes',
+                    probability: 0.5,
+                    current_price: 0.5
+                },
+                {
+                    market_id: market.id,
+                    index: 1,
+                    name: 'No',
+                    probability: 0.5,
+                    current_price: 0.5
+                }
+            ]
+        });
+
+        return market;
     }
 
     async approveMarket(id: string, adminId: string) {

@@ -775,7 +775,7 @@ export function MarketPage() {
                         </div>
 
                         <div className="flex items-center gap-1.5">
-                          <span className="text-gray-400 font-medium">${parseFloat(market.totalVolume || "0").toLocaleString()} Vol.</span>
+                          <span className="text-gray-400 font-medium">${parseFloat(market.volume || "0").toLocaleString()} Vol.</span>
                         </div>
 
                         <div className="flex items-center gap-1.5">
