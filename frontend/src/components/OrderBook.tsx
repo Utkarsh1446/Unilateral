@@ -461,7 +461,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                     onClick={handlePlaceOrder}
                     disabled={placingOrder || !amount || parseFloat(amount) <= 0}
                     className={`w-full py-3 rounded-xl text-white font-semibold text-sm shadow-lg transition-all ${placingOrder || !amount || parseFloat(amount) <= 0
-                        ? 'bg-muted cursor-not-allowed text-muted-foreground'
+                        ? side === 'buy' ? 'bg-green-600/50 cursor-not-allowed text-white/50' : 'bg-red-600/50 cursor-not-allowed text-white/50'
                         : side === 'buy'
                             ? 'bg-green-600 hover:bg-green-700'
                             : 'bg-red-600 hover:bg-red-700'

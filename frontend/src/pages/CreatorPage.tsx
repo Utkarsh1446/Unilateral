@@ -471,9 +471,9 @@ export function CreatorPage() {
               <div className="bg-background rounded-xl border border-foreground/10 p-6">
                 <h3 className="heading-section mb-6">Active Markets</h3>
 
-                {markets.length > 0 ? (
+                {markets.filter(m => !m.resolved && m.status === 'approved').length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {markets.map((market, idx) => (
+                    {markets.filter(m => !m.resolved && m.status === 'approved').map((market, idx) => (
                       <MarketCard key={idx} {...market} />
                     ))}
                   </div>

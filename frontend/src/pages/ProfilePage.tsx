@@ -247,6 +247,11 @@ export function ProfilePage() {
             const balanceNum = Number(ethers.formatUnits(balance, 6));
 
             if (balanceNum > 0.01) { // Only show positions with meaningful balance
+              // Find outcome price
+              const outcomeData = market.outcomes?.find((o: any) => o.index === outcomeIndex);
+              const marketPrice = outcomeData ? Number(outcomeData.current_price) : 0.50;
+              const currentVal = balanceNum * marketPrice;
+
               const positionData = {
                 id: market.id,
                 question: market.question,
@@ -254,10 +259,10 @@ export function ProfilePage() {
                 outcomeIndex,
                 shares: balanceNum.toFixed(2),
                 sharesRaw: balanceNum,
-                avgPrice: '50.0¢',
-                currentPrice: '50.0¢',
-                value: `$${(balanceNum * 0.50).toFixed(2)}`,
-                gain: '+0.0%',
+                avgPrice: '50.0¢', // Needs historical trade data for accuracy
+                currentPrice: `${(marketPrice * 100).toFixed(1)}¢`,
+                value: `$${currentVal.toFixed(2)}`,
+                gain: '+0.0%', // Needs cost basis
                 contractAddress: market.contract_address,
                 conditionId,
                 collateralAddress,
@@ -270,8 +275,7 @@ export function ProfilePage() {
               if (isResolved) {
                 resolvedPositionsList.push(positionData);
               } else {
-                const value = balanceNum * 0.50;
-                totalVal += value;
+                totalVal += currentVal;
                 activePositions.push(positionData);
               }
             }
@@ -416,12 +420,13 @@ export function ProfilePage() {
       const signer = await provider.getSigner();
       const shareContract = getContract(shareAddress, ABIS.CreatorShare, signer);
 
+      // Fetch pending amount BEFORE claiming
+      const pending = await shareContract.pendingDividends(account);
+      const pendingFormatted = parseFloat(ethers.formatUnits(pending, 6)).toFixed(2);
+      setClaimedAmount(`$${pendingFormatted}`);
+
       const tx = await shareContract.claimDividends();
       await tx.wait();
-
-      const pending = await shareContract.pendingDividends(account); // Should be 0 now, but maybe fetch before claim to show amount?
-      // Actually we want to show what was claimed.
-      // For simplicity, we just show success.
 
       setClaimState('success');
       fetchShareHoldings(); // Refresh

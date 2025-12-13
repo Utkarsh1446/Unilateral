@@ -1,5 +1,5 @@
 import { Footer } from '../components/Footer';
-import { ArrowLeft, CheckCircle, XCircle, Loader2, UserX } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Loader2, UserX, Upload, Image as ImageIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
@@ -169,6 +169,21 @@ export function CreateMarketPage() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert("Image too large. Max 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSuccessClose = () => {
     setShowSuccessPopup(false);
     navigate('/profile'); // Redirect to profile to see pending requests
@@ -269,17 +284,37 @@ export function CreateMarketPage() {
                 <p className="text-xs text-muted-foreground mt-2">Clear resolution criteria build trust with traders</p>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div className="mb-6">
-                <label className="block text-sm mb-2" style={{ fontWeight: 600 }}>Image URL (Optional)</label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-foreground/10 rounded-xl focus:border-foreground/30 outline-none transition-colors"
-                  placeholder="https://example.com/image.png"
-                />
-                <p className="text-xs text-muted-foreground mt-2">Add an image to represent your market</p>
+                <label className="block text-sm mb-2" style={{ fontWeight: 600 }}>Market Image</label>
+                <div className="border border-foreground/10 rounded-xl p-4 border-dashed relative hover:bg-muted/10 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center justify-center gap-2 text-center py-4">
+                    {imageUrl ? (
+                      <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden">
+                        <img src={imageUrl} alt="Market preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <p className="text-white font-medium">Click to change</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                          <Upload className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Click to upload image</p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Category */}
@@ -305,7 +340,7 @@ export function CreateMarketPage() {
                   type="datetime-local"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-foreground/10 rounded-xl focus:border-foreground/30 outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-background border border-foreground/10 rounded-xl focus:border-foreground/30 outline-none transition-colors min-h-[50px]"
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-2">When should trading close for this market?</p>
