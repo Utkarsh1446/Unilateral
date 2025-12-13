@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export async function checkEligibility(handle: string) {
     const res = await fetch(`${API_URL}/creators/check-eligibility`, {
@@ -157,6 +157,14 @@ export async function getMarkets() {
         cache: 'no-cache'
     });
     if (!res.ok) throw new Error("Failed to fetch markets");
+    return res.json();
+}
+
+export async function getMarket(id: string) {
+    const res = await fetch(`${API_URL}/markets/${id}`, {
+        cache: 'no-cache'
+    });
+    if (!res.ok) throw new Error("Failed to fetch market");
     return res.json();
 }
 

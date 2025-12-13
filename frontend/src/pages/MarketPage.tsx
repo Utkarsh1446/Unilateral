@@ -1,5 +1,5 @@
 import { Footer } from '../components/Footer';
-import { Share2, ArrowLeft, ChevronDown, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Share2, ArrowLeft, ChevronDown, Loader2, CheckCircle, XCircle, Users } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -7,8 +7,7 @@ import { ethers } from 'ethers';
 import { toast, Toaster } from 'sonner';
 import { CONTRACTS, ABIS, getContract } from '../lib/contracts';
 import { OrderBook } from '../components/OrderBook';
-
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+import { getMarket } from '../lib/api';
 
 interface MarketData {
   id: string;
@@ -78,8 +77,8 @@ export function MarketPage() {
 
   useEffect(() => {
     checkConnection();
-    fetchMarket();
-    const interval = setInterval(fetchMarket, 5000);
+    fetchMarketData();
+    const interval = setInterval(fetchMarketData, 5000);
     return () => clearInterval(interval);
   }, [id]);
 
@@ -111,24 +110,13 @@ export function MarketPage() {
     }
   };
 
-  const fetchMarket = async () => {
+  const fetchMarketData = async () => {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-      const res = await fetch(`${API_URL}/markets/${id}`, {
-        cache: 'no-cache',
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (!res.ok) throw new Error("Failed to fetch market");
-      const data = await res.json();
+      if (!id) return;
+      const data = await getMarket(id);
       setMarket(data);
     } catch (err) {
       console.error("Fetch market error:", err);
-      // If error, maybe show error state or retry?
-      // For now, just stop loading so user sees "Market not found" or empty state instead of spinner
     } finally {
       setLoadingMarket(false);
     }
@@ -616,7 +604,7 @@ export function MarketPage() {
       await tx.wait();
 
       toast.success("Market Resolved!", { id: toastId });
-      fetchMarket();
+      fetchMarketData();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Resolution failed", { id: toastId });
@@ -681,139 +669,177 @@ export function MarketPage() {
             Go Back
           </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Main Content - Left Side */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Chart Section */}
             <div className="lg:col-span-2">
-              <div className="bg-background rounded-xl border border-foreground/10 p-4 md:p-6">
-                {/* Title and Meta */}
-                <div className="mb-4 md:mb-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <h1 className="text-xl md:text-2xl leading-tight" style={{ fontWeight: 500 }}>
-                      {market.question}
-                    </h1>
-                    <div className="flex gap-2">
-                      {/* Resolve button moved to Admin Panel */}
-                      {canClaim && (
-                        <button
-                          onClick={handleClaim}
-                          className="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          Claim Winnings
-                        </button>
-                      )}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                {/* Header Section */}
+                <div className="p-4">
+                  <div className="flex gap-4 items-start">
+                    {/* Market Icon */}
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center text-xl font-bold text-gray-400 border border-gray-200/50">
+                      {market.description?.charAt(0) || "M"}
+                    </div>
+
+                    {/* Title & Meta */}
+                    <div className="flex-1">
+                      <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight mb-2">
+                        {market.description}
+                      </h1>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs md:text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          {!market.resolved ? (
+                            <span className="flex items-center gap-1.5 text-green-600 font-medium">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                              </span>
+                              Active
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-gray-500 font-medium">
+                              <CheckCircle className="w-4 h-4" />
+                              Resolved
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-gray-400 font-medium">${parseFloat(market.totalVolume || "0").toLocaleString()} Vol.</span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-gray-400">Ends {market.deadline ? new Date(market.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "N/A"}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {!market.resolved && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-700 text-xs border border-green-600/20">
-                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                        Active
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 text-foreground text-xs border border-foreground/10">
-                      {market.category || "General"}
-                    </span>
-                    <button className="text-muted-foreground hover:text-foreground transition-colors">
-                      <Share2 className="w-4 h-4" />
-                    </button>
+                </div>
+
+                {/* Chart Section */}
+                <div className="p-4 min-h-[300px]">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                        <span className="text-sm font-medium text-gray-900">Yes {yesPrice}%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span className="text-sm font-medium text-gray-900">No {noPrice}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData.length > 0 ? chartData : [
+                        { date: 'Created', YES: 50, NO: 50 },
+                        { date: 'Now', YES: yesPrice, NO: noPrice }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                        <XAxis
+                          dataKey="date"
+                          stroke="#9ca3af"
+                          style={{ fontSize: '12px' }}
+                          axisLine={false}
+                          tickLine={false}
+                          tickMargin={10}
+                        />
+                        <YAxis
+                          stroke="#9ca3af"
+                          style={{ fontSize: '12px' }}
+                          domain={[0, 100]}
+                          orientation="right"
+                          axisLine={false}
+                          tickLine={false}
+                          tickFormatter={(value) => `${value}%`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#fff',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                          }}
+                        />
+                        <Line
+                          type="basis"
+                          dataKey="YES"
+                          stroke="#2563eb"
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls
+                        />
+                        <Line
+                          type="basis"
+                          dataKey="NO"
+                          stroke="#10b981"
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
 
-                {/* Stats Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-foreground/10">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">Total Volume</div>
-                    <div style={{ fontWeight: 600 }}>${market.volume}</div>
+                {/* Outcome Rows (Polymarket Style) */}
+                <div className="pt-2">
+                  <div className="grid grid-cols-12 px-4 py-2 bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider rounded-t-lg">
+                    <div className="col-span-6 md:col-span-7">Outcome</div>
+                    <div className="col-span-3 md:col-span-2 text-right">% Chance</div>
+                    <div className="col-span-3 text-right">Price</div>
                   </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">Ends In</div>
-                    <div style={{ fontWeight: 600 }}>{market.deadline ? new Date(market.deadline).toLocaleDateString() : "N/A"}</div>
+
+                  {/* YES Outcome */}
+                  <div className="grid grid-cols-12 px-4 py-2.5 items-center hover:bg-gray-50 transition-colors">
+                    <div className="col-span-6 md:col-span-7 flex items-center gap-3">
+                      <div className="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-[10px]">A</div>
+                      <span className="font-semibold text-gray-900 text-sm">YES</span>
+                    </div>
+                    <div className="col-span-3 md:col-span-2 text-right font-medium text-gray-900">
+                      {yesPrice}%
+                    </div>
+                    <div className="col-span-3 text-right">
+                      <button className="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded transition-colors border border-green-200">
+                        {yesPrice}¢
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">Winning Odds</div>
-                    <div className="text-green-600" style={{ fontWeight: 600 }}>YES: {yesPrice}%</div>
-                    {yesPrice >= 99 && <div className="text-[10px] text-red-500">Low Liquidity</div>}
+
+                  {/* NO Outcome */}
+                  <div className="grid grid-cols-12 px-4 py-2.5 items-center hover:bg-gray-50 transition-colors">
+                    <div className="col-span-6 md:col-span-7 flex items-center gap-3">
+                      <div className="w-6 h-6 rounded bg-green-100 text-green-600 flex items-center justify-center font-bold text-[10px]">B</div>
+                      <span className="font-semibold text-gray-900 text-sm">NO</span>
+                    </div>
+                    <div className="col-span-3 md:col-span-2 text-right font-medium text-gray-900">
+                      {noPrice}%
+                    </div>
+                    <div className="col-span-3 text-right">
+                      <button className="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold rounded transition-colors border border-green-200">
+                        {noPrice}¢
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Chart */}
-                <div className="h-64 md:h-80 mb-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData.length > 0 ? chartData : [
-                      { date: 'Created', YES: 50, NO: 50 },
-                      { date: 'Now', YES: yesPrice, NO: noPrice }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.05)" vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        stroke="hsl(var(--muted-foreground))"
-                        style={{ fontSize: '11px' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        style={{ fontSize: '11px' }}
-                        domain={[0, 100]}
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(value) => `${value}%`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--foreground) / 0.1)',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        formatter={(value: number) => `${value}%`}
-                      />
-                      <Line
-                        type="linear"
-                        dataKey="YES"
-                        stroke="#3b82f6"
-                        strokeWidth={2.5}
-                        dot={false}
-                        connectNulls
-                        activeDot={{ r: 4, fill: '#3b82f6' }}
-                      />
-                      <Line
-                        type="linear"
-                        dataKey="NO"
-                        stroke="#10b981"
-                        strokeWidth={2.5}
-                        dot={false}
-                        connectNulls
-                        activeDot={{ r: 4, fill: '#10b981' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Legend */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-600/20">
-                    <span className="text-xs text-blue-700" style={{ fontWeight: 600 }}>YES: {yesPrice}%</span>
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-600/20">
-                    <span className="text-xs text-green-700" style={{ fontWeight: 600 }}>NO: {noPrice}%</span>
-                  </div>
-                </div>
-
-                {/* Resolution Rules - Collapsible */}
-                <div className="border-t border-foreground/10 pt-6">
+                {/* Resolution Rules Accordion */}
+                <div className="p-4 bg-gray-50/30">
                   <button
                     onClick={() => setShowResolution(!showResolution)}
-                    className="flex items-center justify-between w-full text-left mb-3"
+                    className="flex items-center gap-2 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors uppercase tracking-wide"
                   >
-                    <span style={{ fontWeight: 600 }}>Resolution Rules</span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showResolution ? 'rotate-180' : ''}`} />
+                    Resolution Rules
+                    <ChevronDown className={`w-3 h-3 transition-transform ${showResolution ? 'rotate-180' : ''}`} />
                   </button>
                   {showResolution && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <div className="mt-3 text-sm text-gray-600 leading-relaxed bg-white p-4 rounded-lg border border-gray-100">
                       {market.description}
-                    </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -821,13 +847,13 @@ export function MarketPage() {
 
             {/* Right Sidebar - Trading Panel */}
             <div className="lg:col-span-1">
-              <div className="bg-background rounded-xl border border-foreground/10 p-4 md:p-5 lg:sticky lg:top-6 space-y-6 relative">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 lg:sticky lg:top-6 space-y-4 relative shadow-lg">
 
                 {(isMarketExpired || market.resolved) && (
-                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl border border-foreground/10">
+                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl border border-gray-200">
                     <div className="text-center p-6">
-                      <h3 className="text-xl font-bold mb-2">Market Ended</h3>
-                      <p className="text-muted-foreground text-sm mb-4">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">Market Ended</h3>
+                      <p className="text-gray-500 text-sm mb-4">
                         {market.resolved ? "This market has been resolved." : "Trading is closed. Waiting for resolution."}
                       </p>
                       {canClaim && (
@@ -863,153 +889,157 @@ export function MarketPage() {
           </div>
 
           {/* User Activity Section */}
-          <div className="mt-4 md:mt-6 bg-background rounded-xl border border-foreground/10 overflow-hidden lg:w-[calc(66.666%-0.75rem)]">
-            {/* Tabs - Scrollable on mobile */}
-            <div className="flex items-center gap-0 border-b border-foreground/10 bg-muted/30 overflow-x-auto scrollbar-hide">
-              {['Position', 'Transactions'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab.toLowerCase())}
-                  className={`flex-shrink-0 px-4 md:px-6 py-3 md:py-3.5 text-xs md:text-sm transition-all relative ${activeTab === tab.toLowerCase()
-                    ? 'bg-background text-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                    }`}
-                  style={{ fontWeight: activeTab === tab.toLowerCase() ? 600 : 500 }}
-                >
-                  {tab}
-                  {activeTab === tab.toLowerCase() && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                {/* Tabs - Scrollable on mobile */}
+                <div className="flex items-center gap-0 bg-gray-50 overflow-x-auto scrollbar-hide">
+                  {['Position', 'Transactions'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab.toLowerCase())}
+                      className={`flex-shrink-0 px-4 py-2.5 text-xs md:text-sm transition-all relative ${activeTab === tab.toLowerCase()
+                        ? 'bg-white text-gray-900 font-semibold'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                        }`}
+                      style={{ fontWeight: activeTab === tab.toLowerCase() ? 600 : 500 }}
+                    >
+                      {tab}
+                      {activeTab === tab.toLowerCase() && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"></div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto -mx-px">
+                  {/* Position Tab */}
+                  {activeTab === 'position' && (
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-100 bg-gray-50/50">
+                          <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">
+                            Outcome
+                          </th>
+                          <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">
+                            Shares
+                          </th>
+                          <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">
+                            Current Price
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs border border-green-200 font-semibold">
+                              YES
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{positions[0]}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{yesPrice}¢</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-xs border border-red-200 font-semibold">
+                              NO
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{positions[1]}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{noPrice}¢</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   )}
-                </button>
-              ))}
-            </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto -mx-px">
-              {/* Position Tab */}
-              {activeTab === 'position' && (
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-foreground/10 bg-muted/20">
-                      <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs text-muted-foreground whitespace-nowrap" style={{ fontWeight: 500 }}>
-                        Outcome
-                      </th>
-                      <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs text-muted-foreground whitespace-nowrap" style={{ fontWeight: 500 }}>
-                        Shares
-                      </th>
-                      <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs text-muted-foreground whitespace-nowrap" style={{ fontWeight: 500 }}>
-                        Current Price
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-foreground/10 hover:bg-muted/10 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-700 text-xs border border-green-600/20" style={{ fontWeight: 600 }}>
-                          YES
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm" style={{ fontWeight: 500 }}>{positions[0]}</td>
-                      <td className="px-6 py-4 text-sm" style={{ fontWeight: 500 }}>{yesPrice}¢</td>
-                    </tr>
-                    <tr className="hover:bg-muted/10 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-700 text-xs border border-red-600/20" style={{ fontWeight: 600 }}>
-                          NO
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm" style={{ fontWeight: 500 }}>{positions[1]}</td>
-                      <td className="px-6 py-4 text-sm" style={{ fontWeight: 500 }}>{noPrice}¢</td>
-                    </tr>
-                  </tbody>
-                </table>
-              )}
-
-              {/* Transactions Tab */}
-              {activeTab === 'transactions' && (
-                <>
-                  {/* Filter Tabs */}
-                  <div className="flex gap-1 p-2 border-b border-foreground/10 bg-muted/10">
-                    {(['all', 'yes', 'no', 'buy', 'sell'] as const).map((filter) => (
-                      <button
-                        key={filter}
-                        onClick={() => setTxFilter(filter)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${txFilter === filter
-                          ? filter === 'yes' ? 'bg-green-600 text-white'
-                            : filter === 'no' ? 'bg-red-600 text-white'
-                              : filter === 'buy' ? 'bg-green-500/20 text-green-700 border border-green-600/30'
-                                : filter === 'sell' ? 'bg-red-500/20 text-red-700 border border-red-600/30'
-                                  : 'bg-foreground text-background'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                          }`}
-                      >
-                        {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-foreground/10 bg-muted/20">
-                        <th className="px-6 py-3 text-left text-xs text-muted-foreground" style={{ fontWeight: 500 }}>
-                          Type
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs text-muted-foreground" style={{ fontWeight: 500 }}>
-                          Outcome
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs text-muted-foreground" style={{ fontWeight: 500 }}>
-                          Amount In
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs text-muted-foreground" style={{ fontWeight: 500 }}>
-                          Amount Out
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs text-muted-foreground" style={{ fontWeight: 500 }}>
-                          Date
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentTrades
-                        .filter((trade: TradeEvent) => {
-                          if (txFilter === 'all') return true;
-                          if (txFilter === 'yes') return trade.outcomeIndex === 0;
-                          if (txFilter === 'no') return trade.outcomeIndex === 1;
-                          if (txFilter === 'buy') return trade.type === 'Buy';
-                          if (txFilter === 'sell') return trade.type === 'Sell';
-                          return true;
-                        })
-                        .map((trade: TradeEvent, i: number) => (
-                          <tr key={i} className="border-b border-foreground/10 hover:bg-muted/10 transition-colors">
-                            <td className="px-6 py-4">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${trade.type === 'Buy' ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'}`}>
-                                {trade.type.toUpperCase()}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${trade.outcomeIndex === 0 ? 'bg-green-500/10 text-green-700 border-green-600/20' : 'bg-red-500/10 text-red-700 border-red-600/20'}`} style={{ fontWeight: 600 }}>
-                                {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm" style={{ fontWeight: 500 }}>${trade.amountIn}</td>
-                            <td className="px-6 py-4 text-sm" style={{ fontWeight: 500 }}>{trade.amountOut}</td>
-                            <td className="px-6 py-4 text-xs text-muted-foreground">{new Date(trade.timestamp).toLocaleString()}</td>
-                          </tr>
+                  {/* Transactions Tab */}
+                  {activeTab === 'transactions' && (
+                    <>
+                      {/* Filter Tabs */}
+                      <div className="flex gap-1 p-2 border-b border-gray-100 bg-gray-50/50">
+                        {(['all', 'yes', 'no', 'buy', 'sell'] as const).map((filter) => (
+                          <button
+                            key={filter}
+                            onClick={() => setTxFilter(filter)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${txFilter === filter
+                              ? filter === 'yes' ? 'bg-green-600 text-white shadow-sm'
+                                : filter === 'no' ? 'bg-red-600 text-white shadow-sm'
+                                  : filter === 'buy' ? 'bg-green-100 text-green-700 border border-green-200'
+                                    : filter === 'sell' ? 'bg-red-100 text-red-700 border border-red-200'
+                                      : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                              }`}
+                          >
+                            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                          </button>
                         ))}
-                      {recentTrades.filter((trade: TradeEvent) => {
-                        if (txFilter === 'all') return true;
-                        if (txFilter === 'yes') return trade.outcomeIndex === 0;
-                        if (txFilter === 'no') return trade.outcomeIndex === 1;
-                        if (txFilter === 'buy') return trade.type === 'Buy';
-                        if (txFilter === 'sell') return trade.type === 'Sell';
-                        return true;
-                      }).length === 0 && (
-                          <tr>
-                            <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground text-sm">No transactions found</td>
+                      </div>
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-100 bg-gray-50/50">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                              Type
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                              Outcome
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                              Amount In
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                              Amount Out
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                              Date
+                            </th>
                           </tr>
-                        )}
-                    </tbody>
-                  </table>
-                </>
-              )}
+                        </thead>
+                        <tbody>
+                          {recentTrades
+                            .filter((trade: TradeEvent) => {
+                              if (txFilter === 'all') return true;
+                              if (txFilter === 'yes') return trade.outcomeIndex === 0;
+                              if (txFilter === 'no') return trade.outcomeIndex === 1;
+                              if (txFilter === 'buy') return trade.type === 'Buy';
+                              if (txFilter === 'sell') return trade.type === 'Sell';
+                              return true;
+                            })
+                            .map((trade: TradeEvent, i: number) => (
+                              <tr key={i} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${trade.type === 'Buy' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {trade.type.toUpperCase()}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${trade.outcomeIndex === 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                    {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900">${trade.amountIn}</td>
+                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{trade.amountOut}</td>
+                                <td className="px-6 py-4 text-xs text-gray-500">{new Date(trade.timestamp).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          {recentTrades.filter((trade: TradeEvent) => {
+                            if (txFilter === 'all') return true;
+                            if (txFilter === 'yes') return trade.outcomeIndex === 0;
+                            if (txFilter === 'no') return trade.outcomeIndex === 1;
+                            if (txFilter === 'buy') return trade.type === 'Buy';
+                            if (txFilter === 'sell') return trade.type === 'Sell';
+                            return true;
+                          }).length === 0 && (
+                              <tr>
+                                <td colSpan={5} className="px-6 py-8 text-center text-gray-500 text-sm">No transactions found</td>
+                              </tr>
+                            )}
+                        </tbody>
+                      </table>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

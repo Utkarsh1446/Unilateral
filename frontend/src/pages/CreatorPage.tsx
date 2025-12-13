@@ -24,7 +24,7 @@ export function CreatorPage() {
   const [shareSupply, setShareSupply] = useState("0");
   const [userShareBalance, setUserShareBalance] = useState("0");
   const [holdersCount, setHoldersCount] = useState(0);
-  const [recentTxns, setRecentTxns] = useState<{ type: string, amount: string, price: string, time: string, address: string }[]>([]);
+  const [recentTxns, setRecentTxns] = useState<{ type: string, amount: string, price: string, time: string, address: string, timestamp: number }[]>([]);
   const [priceHistory, setPriceHistory] = useState<{ date: string, price: number, timestamp: number }[]>([]);
   const [balance, setBalance] = useState("0"); // USDC Balance
   const [allowance, setAllowance] = useState<bigint>(0n);
@@ -41,6 +41,9 @@ export function CreatorPage() {
       loadShareData(creator.contract_address);
       checkBalance();
       checkAllowance();
+    } else if (creator?.contract_address) {
+      // Load public data even if not connected
+      loadShareData(creator.contract_address);
     }
   }, [creator, account]);
 
@@ -57,7 +60,7 @@ export function CreatorPage() {
       const creatorData = await getCreator(id!);
       setCreator(creatorData);
 
-      const marketsData = await getCreatorMarkets(id!);
+      const marketsData = await getCreatorMarkets(creatorData.id); // Use ID from creator data if 'id' param is a handle
       setMarkets(marketsData);
     } catch (err) {
       console.error(err);
@@ -72,142 +75,125 @@ export function CreatorPage() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = getContract(address, ABIS.CreatorShare, provider);
 
+      // Current Supply
       const supply = await contract.totalSupply();
+      const currentSupplyBigInt = supply;
       setShareSupply(ethers.formatEther(supply));
 
-      // Get Buy Price for 1 share
+      // Current Price
       try {
         const price = await contract.getBuyPrice(ethers.parseEther("1"));
-        setSharePrice(ethers.formatUnits(price, 6)); // Assuming USDC pricing
+        setSharePrice(ethers.formatUnits(price, 6));
       } catch (e) {
         console.warn("Could not fetch price", e);
       }
 
+      // User Balance
       if (account) {
         const balance = await contract.balanceOf(account);
         setUserShareBalance(ethers.formatEther(balance));
       }
 
-      // Count unique holders by checking Transfer events
-      try {
-        const filter = contract.filters.Transfer();
-        const currentBlock = await provider.getBlockNumber();
-        // Only query last 10000 blocks to avoid RPC limits
-        const fromBlock = Math.max(0, currentBlock - 10000);
-        const logs = await contract.queryFilter(filter, fromBlock);
-        const balances = new Map<string, bigint>();
+      // Fetch Logs
+      const filter = contract.filters.Transfer();
+      const currentBlock = await provider.getBlockNumber();
+      const fromBlock = Math.max(0, currentBlock - 10000); // Last 10k blocks
+      const logs = await contract.queryFilter(filter, fromBlock);
 
-        for (const log of logs) {
-          const args = (log as any).args;
-          const from = String(args[0]).toLowerCase();
-          const to = String(args[1]).toLowerCase();
-          const value = BigInt(args[2]);
+      // Process Transactions & Holders
+      const balances = new Map<string, bigint>();
+      const processedTxns: any[] = [];
 
-          const zeroAddr = ethers.ZeroAddress.toLowerCase();
+      for (const log of logs) {
+        const args = (log as any).args;
+        const from = String(args[0]).toLowerCase();
+        const to = String(args[1]).toLowerCase();
+        const value = BigInt(args[2]);
+        const zeroAddr = ethers.ZeroAddress.toLowerCase();
 
-          if (from !== zeroAddr) {
-            balances.set(from, (balances.get(from) || 0n) - value);
-          }
-          if (to !== zeroAddr) {
-            balances.set(to, (balances.get(to) || 0n) + value);
-          }
-        }
+        // Holder Balances
+        if (from !== zeroAddr) balances.set(from, (balances.get(from) || 0n) - value);
+        if (to !== zeroAddr) balances.set(to, (balances.get(to) || 0n) + value);
 
-        let count = 0;
-        balances.forEach((bal) => { if (bal > 0n) count++; });
-        console.log(`Holders: ${count} from ${logs.length} events`);
-        setHoldersCount(count > 0 ? count : (parseFloat(ethers.formatEther(supply)) > 0 ? 1 : 0));
+        // Transaction History
+        let timestamp = Date.now();
+        try {
+          const block = await (log as any).getBlock();
+          timestamp = block.timestamp * 1000;
+        } catch { }
 
-        // Extract recent transactions from logs with timestamps and build price history
-        const txnPromises = logs.slice(-20).map(async (log) => {
-          const args = (log as any).args;
-          const from = String(args[0]).toLowerCase();
-          const to = String(args[1]).toLowerCase();
-          const value = BigInt(args[2]);
-          const zeroAddr = ethers.ZeroAddress.toLowerCase();
-          const isBuy = from === zeroAddr;
-          const isSell = to === zeroAddr;
-          const addr = isBuy ? to : from;
-
-          // Get block timestamp for this transaction
-          let timestamp = Date.now();
-          try {
-            const block = await (log as any).getBlock();
-            timestamp = block.timestamp * 1000;
-          } catch (e) {
-            console.warn("Could not get block timestamp");
-          }
-
-          return {
-            type: isBuy ? 'Buy' : (isSell ? 'Sell' : 'Transfer'),
-            amount: ethers.formatEther(value),
-            price: '-',
-            time: new Date(timestamp).toLocaleDateString(),
-            address: addr.slice(0, 6) + '...' + addr.slice(-4),
-            timestamp
-          };
+        processedTxns.push({
+          from, to, value, timestamp,
+          type: from === zeroAddr ? 'Buy' : (to === zeroAddr ? 'Sell' : 'Transfer'),
+          amount: ethers.formatEther(value),
+          address: (from === zeroAddr ? to : from).slice(0, 6) + '...' + (from === zeroAddr ? to : from).slice(-4)
         });
-
-        const txnsWithTime = await Promise.all(txnPromises);
-        const sortedTxns = txnsWithTime.sort((a, b) => b.timestamp - a.timestamp);
-        setRecentTxns(sortedTxns.slice(0, 10));
-
-        // Build price history for chart (price at each transaction time)
-        // Calculate price based on supply at that point using bonding curve formula
-        const pricePoints: { date: string, price: number, timestamp: number }[] = [];
-        let runningSupply = 0n;
-
-        // Sort by timestamp ascending for building history
-        const sortedForHistory = [...txnsWithTime].sort((a, b) => a.timestamp - b.timestamp);
-
-        // Add initial point
-        if (sortedForHistory.length > 0) {
-          pricePoints.push({
-            date: new Date(sortedForHistory[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            price: 1.00, // Initial price
-            timestamp: sortedForHistory[0].timestamp
-          });
-        }
-
-        for (const txn of sortedForHistory) {
-          const amount = BigInt(Math.floor(parseFloat(txn.amount) * 1e18));
-          if (txn.type === 'Buy') {
-            runningSupply += amount;
-          } else if (txn.type === 'Sell') {
-            runningSupply = runningSupply > amount ? runningSupply - amount : 0n;
-          }
-
-          // Calculate price based on bonding curve: price = 1 + (supply^2 / 1400)
-          const supplyNum = parseFloat(ethers.formatEther(runningSupply));
-          const price = 1 + (supplyNum * supplyNum) / 1400;
-
-          pricePoints.push({
-            date: new Date(txn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            price: parseFloat(price.toFixed(2)),
-            timestamp: txn.timestamp
-          });
-        }
-
-        // If no transactions, show current state
-        if (pricePoints.length === 0) {
-          const now = Date.now();
-          pricePoints.push(
-            { date: 'Start', price: 1.00, timestamp: now - 3600000 },
-            { date: 'Now', price: parseFloat((1 + (supplyNum * supplyNum) / 1400).toFixed(2)), timestamp: now }
-          );
-        }
-
-        setPriceHistory(pricePoints);
-      } catch (e) {
-        console.warn("Could not count holders:", e);
-        // Fallback: if supply > 0, at least 1 holder
-        if (parseFloat(ethers.formatEther(supply)) > 0) setHoldersCount(1);
       }
+
+      let count = 0;
+      balances.forEach(bal => { if (bal > 0n) count++; });
+      setHoldersCount(count > 0 ? count : (parseFloat(ethers.formatEther(supply)) > 0 ? 1 : 0));
+
+      const sortedTxns = processedTxns.sort((a, b) => b.timestamp - a.timestamp);
+      setRecentTxns(sortedTxns.slice(0, 10).map(tx => ({
+        type: tx.type,
+        amount: tx.amount,
+        price: '-',
+        time: new Date(tx.timestamp).toLocaleDateString(),
+        address: tx.address,
+        timestamp: tx.timestamp
+      })));
+
+      // Generate Price History (Working Backwards)
+      // Recent txns are DESCENDING (newest first).
+      const historyPoints: { date: string, price: number, timestamp: number }[] = [];
+      let runningSupply = currentSupplyBigInt;
+
+      // Add current point
+      historyPoints.push({
+        date: 'Now',
+        price: calculatePrice(runningSupply),
+        timestamp: Date.now()
+      });
+
+      // Iterate backwards through time (Txns are Descending)
+      for (const tx of sortedTxns) {
+        const amount = tx.value;
+        // Reverse operation to get supply BEFORE this tx
+        if (tx.type === 'Buy') {
+          runningSupply -= amount;
+        } else if (tx.type === 'Sell') {
+          runningSupply += amount;
+        }
+        // For Transfer, supply doesn't change
+
+        historyPoints.push({
+          date: new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          price: calculatePrice(runningSupply),
+          timestamp: tx.timestamp
+        });
+      }
+
+      // Add start point
+      historyPoints.push({
+        date: 'Launch',
+        price: 1.00,
+        timestamp: sortedTxns.length > 0 ? sortedTxns[sortedTxns.length - 1].timestamp - 3600 : Date.now() - 3600
+      });
+
+      // Reverse back to ASCENDING for Valid Chart
+      setPriceHistory(historyPoints.reverse());
 
     } catch (e) {
       console.error("Error loading share data:", e);
     }
   };
+
+  const calculatePrice = (supplyBigInt: bigint) => {
+    const supplyNum = parseFloat(ethers.formatEther(supplyBigInt));
+    // Price = 1 + (supply^2 / 1400)
+    return parseFloat((1 + (supplyNum * supplyNum) / 1400).toFixed(2));
+  }
 
   const checkBalance = async () => {
     if (!account) return;
@@ -273,7 +259,6 @@ export function CreatorPage() {
 
   const [estimatedCost, setEstimatedCost] = useState("0.00");
 
-  // Update estimated cost when amount changes
   useEffect(() => {
     const updateCost = async () => {
       if (!amount || !creator?.contract_address || parseFloat(amount) <= 0) {
@@ -285,315 +270,235 @@ export function CreatorPage() {
         const contract = getContract(creator.contract_address, ABIS.CreatorShare, provider);
         const amountWei = ethers.parseEther(amount);
         const price = await contract.getBuyPrice(amountWei);
-        // Add 5% fee
         const totalWithFee = (BigInt(price) * 105n) / 100n;
         setEstimatedCost(ethers.formatUnits(totalWithFee, 6));
       } catch (e) {
-        console.warn("Could not calculate cost:", e);
         setEstimatedCost((parseFloat(amount) * parseFloat(sharePrice) * 1.05).toFixed(2));
       }
     };
     updateCost();
   }, [amount, creator?.contract_address, sharePrice]);
 
-  const calculateCost = () => estimatedCost;
-
-  // priceHistory is now set from loadShareData with time-based data
-  // If empty, generate fallback
-  const supplyNum = parseFloat(shareSupply) || 0;
-  const chartData = priceHistory.length > 0 ? priceHistory : [
-    { date: 'Start', price: 1.00, timestamp: Date.now() - 3600000 },
-    { date: 'Now', price: parseFloat((1 + (supplyNum * supplyNum) / 1400).toFixed(2)), timestamp: Date.now() }
-  ];
-
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
   if (!creator) return <div className="text-center py-20">Creator not found</div>;
 
   const isPositive = (parseFloat(creator.priceChange) || 0) > 0;
-  const needsApproval = tradeType === 'buy' && allowance < ethers.parseUnits(calculateCost(), 6);
+  const needsApproval = tradeType === 'buy' && allowance < ethers.parseUnits(estimatedCost, 6);
 
   return (
     <>
       <div className="bg-muted/20 min-h-screen">
-        <div className="max-w-[1400px] mx-auto px-6 py-6">
-          {/* Go Back */}
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4 md:py-6">
+
           <button
             onClick={() => navigate('/creators')}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
-            Go Back
+            Back to Creators
           </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Creator Profile Header */}
-              <div className="bg-background rounded-xl border border-foreground/10 p-6">
-                <div className="flex items-start gap-6 mb-6">
-                  {/* Avatar */}
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-foreground/20 flex-shrink-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
-                    {creator.profile_image ? (
-                      <img
-                        src={creator.profile_image.replace('_normal', '')}
-                        alt={creator.twitter_handle}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <span className={`text-4xl font-bold text-foreground/50 ${creator.profile_image ? 'hidden' : ''}`}>
-                      {creator.twitter_handle?.[0]?.toUpperCase()}
-                    </span>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
 
-                  {/* Info */}
-                  <div className="flex-1">
-                    <h1 className="heading-page mb-2">{creator.twitter_handle}</h1>
-                    <div className="text-lg text-muted-foreground mb-4">@{creator.twitter_handle}</div>
-
-                    {/* Social Links */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <a href={`https://twitter.com/${creator.twitter_handle}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg hover:bg-foreground hover:text-background transition-all text-sm">
-                        <Twitter className="w-4 h-4" />
-                        <span style={{ fontWeight: 500 }}>Twitter</span>
-                      </a>
+              {/* Header */}
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-200 border border-gray-300 flex-shrink-0">
+                  {creator.profile_image ? (
+                    <img src={creator.profile_image.replace('_normal', '')} alt={creator.twitter_handle} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-gray-400">
+                      {creator.twitter_handle[0]}
                     </div>
-
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {creator.bio || "No bio available."}
-                    </p>
-                  </div>
+                  )}
                 </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-1">{creator.display_name || creator.twitter_handle}</h1>
+                  <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+                    <span>@{creator.twitter_handle}</span>
+                    {creator.verified && <Award className="w-4 h-4 text-blue-500" />}
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed max-w-lg">
+                    {creator.bio || "Crypto enthusiast and market creator living on the edge of probability."}
+                  </p>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-muted/30 rounded-xl">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>Markets</div>
-                    <div className="text-value-md">{creator.active_markets_count || 0}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>Holders</div>
-                    <div className="text-value-md">{holdersCount}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>Total Volume</div>
-                    <div className="text-value-md">${parseFloat(creator.total_market_volume || "0").toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>Supply</div>
-                    <div className="text-value-md">{parseFloat(shareSupply).toFixed(0)}</div>
+                  <div className="flex gap-6 mt-4 text-sm">
+                    <div>
+                      <span className="font-bold text-gray-900">{holdersCount}</span>
+                      <span className="text-gray-500 ml-1">Holders</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-gray-900">{parseFloat(shareSupply).toFixed(0)}</span>
+                      <span className="text-gray-500 ml-1">Supply</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-gray-900">${parseFloat(creator.total_market_volume || "0").toLocaleString()}</span>
+                      <span className="text-gray-500 ml-1">Vol</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Share Price & Performance */}
-              <div className="bg-background rounded-xl border border-foreground/10 p-6">
-                <h3 className="heading-section mb-6">Share Performance</h3>
-
-                {/* Current Price */}
-                <div className="flex items-end gap-4 mb-6">
-                  <div className="text-value-lg">${sharePrice}</div>
-                  <div className={`flex items-center gap-2 pb-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                    {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                    <span className="text-value-sm">{Math.abs(parseFloat(creator.priceChange) || 0)}%</span>
-                  </div>
+              {/* Chart Section */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-semibold text-gray-900">Price History</h3>
+                  <div className="text-2xl font-bold text-gray-900">${sharePrice}</div>
                 </div>
 
-                {/* Line Chart */}
-                <div className="h-64 mb-6">
+                <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.05)" vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        stroke="hsl(var(--muted-foreground))"
-                        style={{ fontSize: '11px' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        style={{ fontSize: '11px' }}
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(value) => `$${value}`}
-                      />
+                    <LineChart data={priceHistory}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                      <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} minTickGap={30} />
+                      <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} domain={['auto', 'auto']} />
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--foreground) / 0.1)',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        formatter={(value: number) => `$${value}`}
+                        contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                        formatter={(val: any) => [`$${val}`, 'Price']}
                       />
-                      <Line
-                        type="monotone"
-                        dataKey="price"
-                        stroke="#8b5cf6"
-                        strokeWidth={2.5}
-                        dot={false}
-                        activeDot={{ r: 4, fill: '#8b5cf6' }}
-                      />
+                      <Line type="monotone" dataKey="price" stroke="#2563eb" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
+              </div>
 
-                {/* Recent Transactions */}
-                <div className="mt-6">
-                  <h4 className="text-base font-semibold mb-3">Recent Transactions</h4>
-                  {recentTxns.length > 0 ? (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {recentTxns.map((tx, i) => (
-                        <div key={i} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${tx.type === 'Buy' ? 'bg-green-500/20 text-green-600' :
-                              tx.type === 'Sell' ? 'bg-red-500/20 text-red-600' :
-                                'bg-blue-500/20 text-blue-600'
-                              }`}>{tx.type}</span>
-                            <span className="text-muted-foreground">{tx.address}</span>
-                          </div>
-                          <span className="font-medium">{parseFloat(tx.amount).toFixed(2)} shares</span>
+              {/* Transactions */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div className="p-4 border-b border-gray-100 bg-gray-50">
+                  <h3 className="font-semibold text-sm text-gray-700">Recent Activity</h3>
+                </div>
+                <div>
+                  {recentTxns.length > 0 ? recentTxns.map((tx, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                                      ${tx.type === 'Buy' ? 'bg-green-100 text-green-700' :
+                            tx.type === 'Sell' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {tx.type[0]}
                         </div>
-                      ))}
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{tx.type}</div>
+                          <div className="text-xs text-gray-500">{tx.time}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-900">{parseFloat(tx.amount).toFixed(2)} Shares</div>
+                        <div className="text-xs text-gray-500">{tx.address}</div>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No recent transactions</p>
+                  )) : (
+                    <div className="p-8 text-center text-gray-500 text-sm">No recent transactions found.</div>
                   )}
                 </div>
               </div>
 
-              {/* Creator's Markets */}
-              <div className="bg-background rounded-xl border border-foreground/10 p-6">
-                <h3 className="heading-section mb-6">Active Markets</h3>
-
-                {markets.filter(m => !m.resolved && m.status === 'approved').length > 0 ? (
+              {/* Active Markets */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Active Markets</h3>
+                {markets.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {markets.filter(m => !m.resolved && m.status === 'approved').map((market, idx) => (
-                      <MarketCard key={idx} {...market} />
-                    ))}
+                    {markets.filter(m => !m.resolved && m.approval_status === "approved").map((market) => {
+                      const yesOutcome = market.outcomes?.find((o: any) => o.name === 'Yes');
+                      const yesPrice = yesOutcome ? Math.round(Number(yesOutcome.current_price) * 100) : 50;
+
+                      return (
+                        <MarketCard
+                          key={market.id}
+                          title={market.question}
+                          creator={market.creator?.display_name || market.creator?.twitter_handle || 'Unknown'}
+                          yesPrice={yesPrice}
+                          noPrice={100 - yesPrice}
+                          volume={Number(market.volume).toLocaleString()}
+                          priceChange={0}
+                          imageUrl={market.image_url}
+                        />
+                      );
+                    })}
                   </div>
                 ) : (
-                  <div className="text-center py-10 text-muted-foreground">No active markets found.</div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
+                    This creator hasn't launched any active markets yet.
+                  </div>
                 )}
               </div>
+
             </div>
 
-            {/* Sidebar - Trading */}
-            <div className="lg:col-span-1">
-              {/* Trade Shares */}
-              <div className="bg-background rounded-xl border border-foreground/10 p-5 sticky top-6">
-                {/* Buy/Sell Tabs */}
-                <div className="flex border-b border-foreground/10 mb-5">
+            {/* Sidebar Trading Panel */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg sticky top-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Trade Shares</h2>
+
+                <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
                   <button
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${tradeType === 'buy' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                     onClick={() => setTradeType('buy')}
-                    className={`flex-1 pb-3 text-sm transition-colors relative ${tradeType === 'buy'
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    style={{ fontWeight: 500 }}
                   >
                     Buy
-                    {tradeType === 'buy' && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground"></div>
-                    )}
                   </button>
                   <button
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${tradeType === 'sell' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                     onClick={() => setTradeType('sell')}
-                    className={`flex-1 pb-3 text-sm transition-colors relative ${tradeType === 'sell'
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    style={{ fontWeight: 500 }}
                   >
                     Sell
-                    {tradeType === 'sell' && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground"></div>
-                    )}
                   </button>
                 </div>
 
-                {/* Current Price Display */}
-                <div className="mb-4">
-                  <div className="text-xs text-muted-foreground mb-2">Current Price</div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl" style={{ fontWeight: 600 }}>${sharePrice}</span>
-                    <span className={`text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`} style={{ fontWeight: 600 }}>
-                      {isPositive ? '+' : ''}{Math.abs(parseFloat(creator.priceChange) || 0)}%
-                    </span>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</label>
+                    <div className="mt-1 relative">
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium"
+                        placeholder="0"
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 text-sm">Shares</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Price per share</span>
+                    <span className="font-medium text-gray-900">${sharePrice}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Fee (5%)</span>
+                    <span className="font-medium text-gray-900">${(parseFloat(estimatedCost) * 0.05).toFixed(2)}</span>
+                  </div>
+                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <span className="font-bold text-gray-900">Total</span>
+                    <span className="text-xl font-bold text-gray-900">${estimatedCost}</span>
+                  </div>
+
+                  {!account ? (
+                    <button className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">
+                      Connect Wallet
+                    </button>
+                  ) : needsApproval ? (
+                    <button onClick={handleApprove} disabled={approving} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50">
+                      {approving ? 'Approving...' : 'Approve USDC'}
+                    </button>
+                  ) : (
+                    <button onClick={handleTrade} disabled={loadingTrade || !amount} className={`w-full py-3 rounded-xl font-bold text-white transition-colors disabled:opacity-50
+                                ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}>
+                      {loadingTrade ? 'Processing...' : (tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares')}
+                    </button>
+                  )}
+
+                  <div className="text-center text-xs text-gray-400 mt-2">
+                    Balance: {tradeType === 'buy' ? `$${balance}` : `${parseFloat(userShareBalance).toFixed(2)} Shares`}
                   </div>
                 </div>
-
-                {/* Enter Amount */}
-                <div className="mb-4">
-                  <label className="block text-xs text-muted-foreground mb-2">Enter Amount (Shares)</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="10"
-                      className="w-full px-4 py-3 bg-background border border-foreground/10 rounded-xl focus:border-foreground/30 outline-none transition-colors text-lg"
-                      style={{ fontWeight: 500 }}
-                    />
-                  </div>
-                </div>
-
-                {/* Balance */}
-                <div className="flex items-center justify-between mb-5 text-xs">
-                  <span className="text-muted-foreground">Balance</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-foreground" style={{ fontWeight: 500 }}>
-                      {tradeType === 'buy' ? `$${balance}` : `${parseFloat(userShareBalance).toFixed(2)} Shares`}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Trade Button */}
-                {!account ? (
-                  <button className="w-full py-3.5 bg-foreground text-background rounded-xl hover:opacity-90 transition-opacity text-sm mb-4" style={{ fontWeight: 600 }} disabled>
-                    Connect Wallet
-                  </button>
-                ) : needsApproval ? (
-                  <button
-                    onClick={handleApprove}
-                    disabled={approving}
-                    className="w-full py-3.5 bg-foreground text-background rounded-xl hover:opacity-90 transition-opacity text-sm mb-4" style={{ fontWeight: 600 }}
-                  >
-                    {approving ? "Approving..." : "Approve USDC"}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleTrade}
-                    disabled={loadingTrade || !amount || parseFloat(amount) <= 0}
-                    className="w-full py-3.5 bg-foreground text-background rounded-xl hover:opacity-90 transition-opacity text-sm mb-4" style={{ fontWeight: 600 }}
-                  >
-                    {loadingTrade ? "Processing..." : (tradeType === 'buy' ? "Buy Shares" : "Sell Shares")}
-                  </button>
-                )}
-
-                {/* Fee and Cost */}
-                <div className="space-y-2 mb-5 pb-5 border-b border-foreground/10">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Fee</span>
-                    <span className="text-foreground" style={{ fontWeight: 500 }}>5%</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Est. Cost</span>
-                    <span className="text-foreground" style={{ fontWeight: 600 }}>${calculateCost()}</span>
-                  </div>
-                </div>
-
               </div>
             </div>
+
           </div>
         </div>
       </div>
-
       <Footer />
     </>
   );

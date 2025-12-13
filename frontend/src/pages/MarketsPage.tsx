@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, Search, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getMarkets } from '../lib/api';
+import { MarketCard } from '../components/MarketCard';
 
 export function MarketsPage() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export function MarketsPage() {
 
     // Status filter logic
     let matchesStatus = true;
-    if (selectedStatus === 'active') matchesStatus = !market.resolved;
+    if (selectedStatus === 'active') matchesStatus = !market.resolved && new Date(market.deadline) > new Date();
     if (selectedStatus === 'resolved') matchesStatus = market.resolved;
 
     return matchesSearch && matchesCategory && matchesStatus;
@@ -173,60 +174,30 @@ export function MarketsPage() {
               ) : (
                 <>
                   {/* Markets Grid - Smaller Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMarkets.map((market) => {
                       // Mock data for missing fields if API doesn't return them yet
                       const yesPrice = market.yesPrice || 50;
                       const noPrice = 100 - yesPrice;
                       const priceChange = market.priceChange || 0;
-                      const isPositive = priceChange >= 0;
-                      const volume = market.volume ? `$${Number(market.volume).toLocaleString()}` : '$0';
+                      const volume = market.volume ? `${Number(market.volume).toLocaleString()}` : '0';
+                      const creatorName = market.creator?.display_name || market.creator?.twitter_handle || 'Guessly User';
 
                       return (
                         <Link
                           key={market.id}
                           to={`/market/${market.id}`}
-                          className="block bg-background rounded-xl border border-foreground/10 p-4 md:p-5 hover:shadow-md hover:border-foreground/20 transition-all active:scale-[0.98]"
+                          className="block hover:scale-[1.02] transition-transform duration-200"
                         >
-                          {/* Question */}
-                          <div className="mb-4 text-sm leading-snug min-h-[42px] line-clamp-2">
-                            {market.question}
-                          </div>
-
-                          {/* Probability */}
-                          <div className="flex items-end gap-2 mb-4">
-                            <div className="text-4xl" style={{ fontWeight: 700 }}>{yesPrice}%</div>
-                            <div className={`flex items-center gap-1 pb-1.5 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                              {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                              <span className="text-xs" style={{ fontWeight: 600 }}>{Math.abs(priceChange)}%</span>
-                            </div>
-                          </div>
-
-                          {/* Progress bar */}
-                          <div className="h-2 bg-muted rounded-full overflow-hidden mb-4">
-                            <div
-                              className="h-full bg-green-500 rounded-full transition-all"
-                              style={{ width: `${yesPrice}%` }}
-                            />
-                          </div>
-
-                          {/* YES/NO Prices */}
-                          <div className="grid grid-cols-2 gap-2 mb-4">
-                            <div className="py-2.5 bg-green-500/10 border border-green-600/20 rounded-xl text-center transition-all">
-                              <div className="text-[10px] text-green-700 mb-0.5 uppercase tracking-wider" style={{ fontWeight: 600 }}>YES</div>
-                              <div className="text-sm text-green-600" style={{ fontWeight: 700 }}>{yesPrice}¢</div>
-                            </div>
-                            <div className="py-2.5 bg-red-500/10 border border-red-600/20 rounded-xl text-center transition-all">
-                              <div className="text-[10px] text-red-700 mb-0.5 uppercase tracking-wider" style={{ fontWeight: 600 }}>NO</div>
-                              <div className="text-sm text-red-600" style={{ fontWeight: 700 }}>{noPrice}¢</div>
-                            </div>
-                          </div>
-
-                          {/* Volume */}
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>Volume</span>
-                            <span style={{ fontWeight: 600 }}>{volume}</span>
-                          </div>
+                          <MarketCard
+                            title={market.question}
+                            creator={creatorName}
+                            yesPrice={yesPrice}
+                            noPrice={noPrice}
+                            volume={volume}
+                            priceChange={priceChange}
+                            imageUrl={market.image_url}
+                          />
                         </Link>
                       );
                     })}

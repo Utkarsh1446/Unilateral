@@ -24,6 +24,11 @@ export class CreatorsController {
         return this.creatorsService.findOne(id);
     }
 
+    @Get(':id/markets')
+    getCreatorMarkets(@Param('id') id: string) {
+        return this.creatorsService.getCreatorMarkets(id);
+    }
+
     // Twitter OAuth - Initiate
     @Get('auth/twitter')
     initiateTwitterAuth(@Query('walletAddress') walletAddress: string, @Res() res: Response) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { getContract, ABIS, CONTRACTS } from '../lib/contracts';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
@@ -53,10 +53,10 @@ const updatePositionBackend = async (
 export function OrderBook({ marketAddress, marketId, account, bids, asks, loading, onRefresh }: OrderBookProps) {
     // Form state
     const [side, setSide] = useState<'buy' | 'sell'>('buy');
-    const [orderType, setOrderType] = useState<'limit' | 'market'>('limit');
-    const [outcome, setOutcome] = useState<0 | 1>(0); // 0 = YES, 1 = NO
-    const [limitPrice, setLimitPrice] = useState('0.50');
+    const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+    const [outcome, setOutcome] = useState<0 | 1>(0); // 0 for YES, 1 for NO
     const [amount, setAmount] = useState('');
+    const [limitPrice, setLimitPrice] = useState('');
     const [placingOrder, setPlacingOrder] = useState(false);
     const [orderBookTab, setOrderBookTab] = useState<'yes' | 'no'>('yes');
 
@@ -91,6 +91,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             return (currentAmount * price).toFixed(2);
         }
     };
+
+    const potentialReturn = calculatePotentialReturn();
 
     const handlePlaceOrder = async () => {
         if (!account) {
@@ -315,26 +317,23 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
     const currentAsks = orderBookTab === 'yes' ? yesAsks : noAsks;
 
     return (
-        <div className="bg-background rounded-xl border border-foreground/10 p-4 w-full">
-            {/* Trade Form Header */}
-            <h3 className="text-sm font-semibold text-foreground mb-4">Trade</h3>
-
-            {/* Buy/Sell Toggle */}
-            <div className="flex mb-4 bg-muted/30 rounded-lg p-1">
+        <div className="w-full">
+            {/* Buy/Sell Tabs (Segmented Control) */}
+            <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
                 <button
                     onClick={() => setSide('buy')}
-                    className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${side === 'buy'
-                        ? 'bg-green-600 text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${side === 'buy'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     Buy
                 </button>
                 <button
                     onClick={() => setSide('sell')}
-                    className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all ${side === 'sell'
-                        ? 'bg-red-600 text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${side === 'sell'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     Sell
@@ -342,12 +341,12 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             </div>
 
             {/* Outcome Selection */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-3">
                 <button
                     onClick={() => setOutcome(0)}
-                    className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm flex justify-between items-center transition-all border ${outcome === 0
-                        ? 'bg-green-500/10 border-green-500 text-green-700'
-                        : 'bg-muted/30 border-foreground/10 text-muted-foreground hover:border-foreground/20'
+                    className={`flex-1 py-2 px-2 rounded-lg font-medium text-sm flex justify-between items-center transition-all border ${outcome === 0
+                        ? 'bg-gray-50 border-gray-200 text-gray-900 ring-1 ring-gray-200'
+                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
                         }`}
                 >
                     <span className="font-semibold">YES</span>
@@ -355,9 +354,9 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 </button>
                 <button
                     onClick={() => setOutcome(1)}
-                    className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm flex justify-between items-center transition-all border ${outcome === 1
-                        ? 'bg-red-500/10 border-red-500 text-red-700'
-                        : 'bg-muted/30 border-foreground/10 text-muted-foreground hover:border-foreground/20'
+                    className={`flex-1 py-2 px-2 rounded-lg font-medium text-sm flex justify-between items-center transition-all border ${outcome === 1
+                        ? 'bg-gray-50 border-gray-200 text-gray-900 ring-1 ring-gray-200'
+                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
                         }`}
                 >
                     <span className="font-semibold">NO</span>
@@ -366,12 +365,12 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             </div>
 
             {/* Order Type Toggle */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-3">
                 <button
                     onClick={() => setOrderType('limit')}
                     className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${orderType === 'limit'
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                        ? 'bg-white text-gray-900 border border-gray-200 shadow-sm'
+                        : 'bg-gray-100 text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     Limit
@@ -379,8 +378,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 <button
                     onClick={() => setOrderType('market')}
                     className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${orderType === 'market'
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                        ? 'bg-white text-gray-900 border border-gray-200 shadow-sm'
+                        : 'bg-gray-100 text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     Market
@@ -391,18 +390,18 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             <div className="space-y-4">
                 {orderType === 'limit' && (
                     <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-2">Limit Price</label>
-                        <div className="flex items-center border border-foreground/10 rounded-lg p-1 bg-muted/20">
+                        <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Limit Price</label>
+                        <div className="flex items-center border border-gray-200 rounded-lg p-1 bg-gray-50 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
                             <button
                                 onClick={() => {
                                     const current = parseFloat(limitPrice) || 0.5;
                                     setLimitPrice(Math.max(0.01, current - 0.01).toFixed(2));
                                 }}
-                                className="p-2 hover:bg-muted/50 rounded-md text-muted-foreground"
+                                className="p-2 hover:bg-white rounded-md text-gray-500 shadow-sm transition-all"
                             >
                                 <Minus className="w-4 h-4" />
                             </button>
-                            <div className="flex-1 text-center font-semibold text-foreground">
+                            <div className="flex-1 text-center font-bold text-gray-900 text-lg">
                                 {((parseFloat(limitPrice) || 0) * 100).toFixed(0)}¢
                             </div>
                             <button
@@ -410,7 +409,7 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                                     const current = parseFloat(limitPrice) || 0.5;
                                     setLimitPrice(Math.min(0.99, current + 0.01).toFixed(2));
                                 }}
-                                className="p-2 hover:bg-muted/50 rounded-md text-muted-foreground"
+                                className="p-2 hover:bg-white rounded-md text-gray-500 shadow-sm transition-all"
                             >
                                 <Plus className="w-4 h-4" />
                             </button>
@@ -419,22 +418,27 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 )}
 
                 <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-2">
-                        {orderType === 'market' ? 'Amount (USDC)' : 'Shares'}
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+                        {orderType === 'market' ? 'Amount' : 'Shares'}
                     </label>
-                    <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="w-full border border-foreground/10 rounded-lg py-3 px-4 text-right font-medium bg-muted/20 text-foreground focus:ring-2 focus:ring-foreground/20 focus:border-foreground/30 outline-none"
-                        placeholder="0"
-                    />
+                    <div className="relative">
+                        <input
+                            type="number"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="block w-full rounded-lg border-gray-200 bg-gray-50 focus:border-blue-500 focus:ring-blue-500 p-3 text-lg font-medium text-right pr-16"
+                            placeholder="0"
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 text-sm">{side === 'buy' ? 'USDC' : 'Shares'}</span>
+                        </div>
+                    </div>
                     <div className="flex gap-1 mt-2 justify-end">
                         {[10, 50, 100, 500].map(val => (
                             <button
                                 key={val}
                                 onClick={() => setAmount(val.toString())}
-                                className="px-2 py-1 rounded border border-foreground/10 text-[10px] font-medium text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+                                className="px-2 py-1 rounded border border-gray-200 text-[10px] font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                             >
                                 {val}
                             </button>
@@ -442,17 +446,24 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                     </div>
                 </div>
 
-                {/* Summary */}
-                <div className="pt-4 border-t border-foreground/10">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-muted-foreground">Potential Return</span>
-                        <span className={`text-lg font-semibold ${side === 'buy' ? 'text-green-600' : 'text-red-600'}`}>
-                            ${calculatePotentialReturn()}
+                <div className="pt-4 border-t border-gray-100 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">Avg. Price</span>
+                        <span className="font-medium text-gray-900">
+                            {potentialReturn ? (parseFloat(potentialReturn) / parseFloat(amount || '1')).toFixed(2) : '-'}¢
                         </span>
                     </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Price: {orderType === 'market' ? (outcome === 0 ? bestAskYes : bestAskNo) * 100 : (parseFloat(limitPrice) || 0) * 100}¢</span>
-                        <span>Cost: ${orderType === 'market' ? amount : ((parseFloat(amount) || 0) * (parseFloat(limitPrice) || 0)).toFixed(2)}</span>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">{side === 'buy' ? 'Est. Shares' : 'Est. Return'}</span>
+                        <span className="font-medium text-gray-900">
+                            {side === 'buy' ? (potentialReturn || '0.00') : `$${potentialReturn || '0.00'}`}
+                        </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2">
+                        <span className="font-bold text-gray-900">Total</span>
+                        <span className="text-xl font-bold text-gray-900">
+                            {side === 'buy' ? `$${amount || '0.00'}` : `${amount || '0'} Shares`}
+                        </span>
                     </div>
                 </div>
 
@@ -460,11 +471,11 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                 <button
                     onClick={handlePlaceOrder}
                     disabled={placingOrder || !amount || parseFloat(amount) <= 0}
-                    className={`w-full py-3 rounded-xl text-white font-semibold text-sm shadow-lg transition-all ${placingOrder || !amount || parseFloat(amount) <= 0
-                        ? side === 'buy' ? 'bg-green-600/50 cursor-not-allowed text-white/50' : 'bg-red-600/50 cursor-not-allowed text-white/50'
+                    className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all transform active:scale-[0.98] mt-4 ${placingOrder || !amount || parseFloat(amount) <= 0
+                        ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                         : side === 'buy'
-                            ? 'bg-green-600 hover:bg-green-700'
-                            : 'bg-red-600 hover:bg-red-700'
+                            ? 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
+                            : 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
                         }`}
                 >
                     {placingOrder ? (
@@ -479,16 +490,16 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
             </div>
 
             {/* Order Book Section */}
-            <div className="mt-6 pt-6 border-t border-foreground/10">
+            <div className="mt-4 pt-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-semibold text-foreground">Order Book</h4>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Order Book</h4>
                     {/* YES/NO Tabs */}
-                    <div className="flex bg-muted/30 rounded-lg p-0.5">
+                    <div className="flex bg-gray-100 rounded-lg p-0.5">
                         <button
                             onClick={() => setOrderBookTab('yes')}
                             className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${orderBookTab === 'yes'
-                                ? 'bg-green-600 text-white'
-                                : 'text-muted-foreground hover:text-foreground'
+                                ? 'bg-green-600 text-white shadow-sm'
+                                : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
                             YES
@@ -496,8 +507,8 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
                         <button
                             onClick={() => setOrderBookTab('no')}
                             className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${orderBookTab === 'no'
-                                ? 'bg-red-600 text-white'
-                                : 'text-muted-foreground hover:text-foreground'
+                                ? 'bg-red-600 text-white shadow-sm'
+                                : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
                             NO
@@ -507,24 +518,24 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
 
                 {loading ? (
                     <div className="flex justify-center py-4">
-                        <Loader2 className="animate-spin w-5 h-5 text-muted-foreground" />
+                        <Loader2 className="animate-spin w-5 h-5 text-gray-400" />
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-3">
                         {/* Bids (Buy Orders) */}
                         <div>
-                            <div className="text-[10px] font-medium text-muted-foreground mb-2 flex justify-between px-1">
+                            <div className="text-[10px] font-semibold text-gray-400 mb-2 flex justify-between px-1 uppercase">
                                 <span>Qty</span>
                                 <span>Bid</span>
                             </div>
-                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                            <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
                                 {currentBids.length === 0 ? (
-                                    <div className="text-[10px] text-muted-foreground text-center py-3 bg-muted/20 rounded">No bids</div>
+                                    <div className="text-[10px] text-gray-400 text-center py-3 bg-gray-50 rounded italic">No bids</div>
                                 ) : (
                                     currentBids.slice(0, 5).map((order) => (
-                                        <div key={order.id} className="flex justify-between text-xs py-1.5 px-2 rounded bg-green-500/10 text-green-700">
+                                        <div key={order.id} className="flex justify-between text-xs py-1.5 px-2 rounded bg-green-50 text-green-700 border border-green-100">
                                             <span>{order.amount.toFixed(0)}</span>
-                                            <span className="font-mono font-medium">{(order.price * 100).toFixed(1)}¢</span>
+                                            <span className="font-mono font-semibold">{(order.price * 100).toFixed(1)}¢</span>
                                         </div>
                                     ))
                                 )}
@@ -533,17 +544,17 @@ export function OrderBook({ marketAddress, marketId, account, bids, asks, loadin
 
                         {/* Asks (Sell Orders) */}
                         <div>
-                            <div className="text-[10px] font-medium text-muted-foreground mb-2 flex justify-between px-1">
+                            <div className="text-[10px] font-semibold text-gray-400 mb-2 flex justify-between px-1 uppercase">
                                 <span>Ask</span>
                                 <span>Qty</span>
                             </div>
-                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                            <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
                                 {currentAsks.length === 0 ? (
-                                    <div className="text-[10px] text-muted-foreground text-center py-3 bg-muted/20 rounded">No asks</div>
+                                    <div className="text-[10px] text-gray-400 text-center py-3 bg-gray-50 rounded italic">No asks</div>
                                 ) : (
                                     currentAsks.slice(0, 5).map((order) => (
-                                        <div key={order.id} className="flex justify-between text-xs py-1.5 px-2 rounded bg-red-500/10 text-red-700">
-                                            <span className="font-mono font-medium">{(order.price * 100).toFixed(1)}¢</span>
+                                        <div key={order.id} className="flex justify-between text-xs py-1.5 px-2 rounded bg-red-50 text-red-700 border border-red-100">
+                                            <span className="font-mono font-semibold">{(order.price * 100).toFixed(1)}¢</span>
                                             <span>{order.amount.toFixed(0)}</span>
                                         </div>
                                     ))

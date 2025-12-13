@@ -187,6 +187,23 @@ export class CreatorsService {
         };
     }
 
+    async getCreatorMarkets(creatorId: string) {
+        return this.prisma.opinionMarket.findMany({
+            where: { creator_id: creatorId },
+            orderBy: { created_at: 'desc' },
+            include: {
+                creator: {
+                    select: {
+                        display_name: true,
+                        twitter_handle: true,
+                        profile_image: true
+                    }
+                },
+                outcomes: true
+            }
+        });
+    }
+
     async checkEligibility(twitterHandle: string) {
         // Use Scraper Service for real checks
         const metrics = await this.twitterScraper.getTwitterMetrics(twitterHandle);
