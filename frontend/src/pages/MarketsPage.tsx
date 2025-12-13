@@ -177,7 +177,8 @@ export function MarketsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMarkets.map((market) => {
                       // Mock data for missing fields if API doesn't return them yet
-                      const yesPrice = market.yesPrice || 50;
+                      const yesOutcome = market.outcomes?.find((o: any) => o.name === 'Yes');
+                      const yesPrice = yesOutcome ? Math.round(Number(yesOutcome.current_price) * 100) : 50;
                       const noPrice = 100 - yesPrice;
                       const priceChange = market.priceChange || 0;
                       const volume = market.volume ? `${Number(market.volume).toLocaleString()}` : '0';

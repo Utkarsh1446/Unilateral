@@ -424,6 +424,51 @@ export function MarketPage() {
 
       setAmount('');
       // setShowSuccessPopup(true); // Removed popup
+      setAmount('');
+      // Update volume locally for instant feedback
+      if (market && amountVal > 0) {
+        const currentVol = parseFloat(market.volume || "0");
+        // For buys (USDC), volume is roughly cost. For sells (Shares), volume is roughly val * price. 
+        // Backend logic: each trade adds 'cost' (USDC amount) to volume.
+        // We know 'amount' is shares if user selected shares, or USDC if user selected USDC?
+        // Actually OrderBook.tsx input is dependent on side.
+        // Wait, handleTrade here in MarketPage uses 'amount' state. 
+        // If tradeType == 'buy', amount is USDC? No, wait.
+
+        // Let's re-read handleTrade logic:
+        // const amountWei = ethers.parseUnits(amount, 6);
+        // It always treats amount as 6 decimals. 
+        // If orderType == 'limit': input is Shares (amount) and Price.
+        // If orderType == 'market': 
+        //   If buy: fills Asks. Asks have price. Input 'amount' is generally "USDC to spend" or "Shares to buy"?
+        //   In OrderBook.tsx:
+        //     placeholder={side === 'buy' ? '0' : '0'}
+        //     suffix: {side === 'buy' ? 'USDC' : 'Shares'}
+        //   So if Buy, amount is USDC. If Sell, amount is Shares.
+
+        let addedVolume = 0;
+        if (tradeType === 'buy') {
+          // Amount is USDC
+          addedVolume = amountVal;
+        } else {
+          // Amount is Shares. Volume should be USDC value approximately.
+          // We can approximate by current price or just rely on the eventual fetch.
+          // But to be "better than nothing", let's assume price ~ currentPrice.
+          // OR, cleaner: fetchMarketData() will get it from backend eventually.
+          // Ideally we pass the 'cost' from the event but we don't have it yet easily here without parsing logs again.
+          // Let's just update perfectly if it's USDC, else approximate?
+          // Actually, limit order might not fill immediately so volume doesn't increase immediately.
+          // Market order fills immediately.
+        }
+
+        // Better fix: Just rely on fetchMarketData() but ensure endpoint is correct. 
+        // User says "does not update". This implies fetchMarketData IS polling but getting same old volume.
+        // This implies backend isn't updating it OR we are looking at stale data.
+        // Let's force a fetchMarketData() call *immediately* after trade success.
+        // It is already called: fetchOrders(); fetchBalances(); ... wait, fetchMarketData() is missing in the success block!
+      }
+
+      fetchMarketData(); // Add this!
       fetchOrders();
       fetchBalances();
     } catch (err: any) {
