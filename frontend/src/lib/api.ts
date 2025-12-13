@@ -197,3 +197,13 @@ export async function rejectMarket(id: string, reason: string, adminId: string) 
     if (!res.ok) throw new Error("Failed to reject market");
     return res.json();
 }
+
+export async function updateMarketStats(contractAddress: string, tradeVolume: number, outcomeIndex?: number, price?: number) {
+    const res = await fetch(`${API_URL}/markets/volume/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractAddress, tradeVolume, outcomeIndex, price }),
+    });
+    if (!res.ok) throw new Error("Failed to update market stats");
+    return res.json();
+}

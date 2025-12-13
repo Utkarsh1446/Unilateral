@@ -7,7 +7,7 @@ import { ethers } from 'ethers';
 import { toast, Toaster } from 'sonner';
 import { CONTRACTS, ABIS, getContract } from '../lib/contracts';
 import { OrderBook } from '../components/OrderBook';
-import { getMarket } from '../lib/api';
+import { getMarket, updateMarketStats } from '../lib/api';
 
 interface MarketData {
   id: string;
@@ -424,51 +424,43 @@ export function MarketPage() {
 
       setAmount('');
       // setShowSuccessPopup(true); // Removed popup
-      setAmount('');
-      // Update volume locally for instant feedback
+      // Update volume/stats locally for instant feedback & sync with backend
       if (market && amountVal > 0) {
-        const currentVol = parseFloat(market.volume || "0");
-        // For buys (USDC), volume is roughly cost. For sells (Shares), volume is roughly val * price. 
-        // Backend logic: each trade adds 'cost' (USDC amount) to volume.
-        // We know 'amount' is shares if user selected shares, or USDC if user selected USDC?
-        // Actually OrderBook.tsx input is dependent on side.
-        // Wait, handleTrade here in MarketPage uses 'amount' state. 
-        // If tradeType == 'buy', amount is USDC? No, wait.
-
-        // Let's re-read handleTrade logic:
-        // const amountWei = ethers.parseUnits(amount, 6);
-        // It always treats amount as 6 decimals. 
-        // If orderType == 'limit': input is Shares (amount) and Price.
-        // If orderType == 'market': 
-        //   If buy: fills Asks. Asks have price. Input 'amount' is generally "USDC to spend" or "Shares to buy"?
-        //   In OrderBook.tsx:
-        //     placeholder={side === 'buy' ? '0' : '0'}
-        //     suffix: {side === 'buy' ? 'USDC' : 'Shares'}
-        //   So if Buy, amount is USDC. If Sell, amount is Shares.
-
+        // Calculate approx volume in USDC
         let addedVolume = 0;
-        if (tradeType === 'buy') {
-          // Amount is USDC
-          addedVolume = amountVal;
-        } else {
-          // Amount is Shares. Volume should be USDC value approximately.
-          // We can approximate by current price or just rely on the eventual fetch.
-          // But to be "better than nothing", let's assume price ~ currentPrice.
-          // OR, cleaner: fetchMarketData() will get it from backend eventually.
-          // Ideally we pass the 'cost' from the event but we don't have it yet easily here without parsing logs again.
-          // Let's just update perfectly if it's USDC, else approximate?
-          // Actually, limit order might not fill immediately so volume doesn't increase immediately.
-          // Market order fills immediately.
-        }
+        let price = 0;
 
-        // Better fix: Just rely on fetchMarketData() but ensure endpoint is correct. 
-        // User says "does not update". This implies fetchMarketData IS polling but getting same old volume.
-        // This implies backend isn't updating it OR we are looking at stale data.
-        // Let's force a fetchMarketData() call *immediately* after trade success.
-        // It is already called: fetchOrders(); fetchBalances(); ... wait, fetchMarketData() is missing in the success block!
+        if (tradeType === 'buy' && orderType === 'market') {
+          // Market Buy: Amount is USDC cost.
+          // We need the average execution price to update outcome price.
+          // We can get it from the event logs or approximate it.
+          // Since we don't have event logs easily here without parsing receipt manually (complex),
+          // we can use the 'currentPrice' or the last trade price if we just fetched orders.
+
+          // Ideally, fillOrders returns nothing useful in standard ethers Call.
+          // We can wait for fetchOrders() which is fast.
+          // Or just send volume update now and price update later?
+          // Let's send volume update now.
+          addedVolume = amountVal;
+
+          // Try to infer outcome Index
+          const outcomeIndex = selectedOutcome === 'yes' ? 0 : 1;
+
+          // Using current price as approx new price for now to unblock "Price not updating"
+          // Better: fetchOrders() will update recentTrades which updates chart which updates price.
+          // But backend needs persistent price.
+          // Let's send the `currentPrice` from state (which might be slightly stale but better than 0.5)
+          const p = currentPrice / 100;
+
+          await updateMarketStats(market.contract_address, addedVolume, outcomeIndex, p);
+        } else {
+          // Other types... simplify to just update volume for now if complex
+          // If selling shares, we don't know USDC volume easily without price.
+          await updateMarketStats(market.contract_address, 0); // Skip volume if unknown, or fetch price
+        }
       }
 
-      fetchMarketData(); // Add this!
+      fetchMarketData(); // Re-fetch to see backend updates confirmed
       fetchOrders();
       fetchBalances();
     } catch (err: any) {

@@ -56,9 +56,10 @@ export class MarketsController {
     }
 
     // Update volume when trades happen (called by frontend after successful trade)
+    // Update volume and optionally price when trades happen (called by frontend after successful trade)
     @Post('volume/update')
-    async updateVolume(@Body() body: { contractAddress: string, tradeVolume: number }) {
-        return this.marketsService.updateVolumeByAddress(body.contractAddress, body.tradeVolume);
+    async updateVolume(@Body() body: { contractAddress: string, tradeVolume: number, outcomeIndex?: number, price?: number }) {
+        return this.marketsService.updateVolumeByAddress(body.contractAddress, body.tradeVolume, body.outcomeIndex, body.price);
     }
 
     // Get market volume stats

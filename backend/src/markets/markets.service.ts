@@ -294,9 +294,11 @@ export class MarketsService {
     }
 
     // Update market volume when trades happen
-    async updateVolume(marketId: string, tradeVolume: number) {
+    // Update market volume and optionally price
+    async updateVolume(marketId: string, tradeVolume: number, outcomeIndex?: number, price?: number) {
         const market = await this.prisma.opinionMarket.findUnique({
-            where: { id: marketId }
+            where: { id: marketId },
+            include: { outcomes: true }
         });
 
         if (!market) {
@@ -306,17 +308,39 @@ export class MarketsService {
         const newVolume = Number(market.volume) + tradeVolume;
 
         // Update market volume
-        const updated = await this.prisma.opinionMarket.update({
+        await this.prisma.opinionMarket.update({
             where: { id: marketId },
             data: { volume: newVolume }
         });
 
-        console.log(`Market ${marketId} volume updated: $${newVolume.toFixed(2)}`);
+        // Update outcome price if provided
+        if (outcomeIndex !== undefined && price !== undefined) {
+            // Find valid outcome
+            const outcome = market.outcomes.find(o => o.index === outcomeIndex);
+            if (outcome) {
+                await this.prisma.marketOutcome.update({
+                    where: { id: outcome.id },
+                    data: { current_price: price }
+                });
+
+                // Also update the OTHER outcome to 1-price if binary
+                const otherIndex = outcomeIndex === 0 ? 1 : 0;
+                const otherOutcome = market.outcomes.find(o => o.index === otherIndex);
+                if (otherOutcome) {
+                    await this.prisma.marketOutcome.update({
+                        where: { id: otherOutcome.id },
+                        data: { current_price: 1 - price }
+                    });
+                }
+            }
+        }
+
+        console.log(`Market ${marketId} stats updated: Vol=$${newVolume.toFixed(2)}, Price=${price}`);
         return { marketId, newVolume };
     }
 
-    // Update volume by contract address (for frontend calls)
-    async updateVolumeByAddress(contractAddress: string, tradeVolume: number) {
+    // Update volume/price by contract address (for frontend calls)
+    async updateVolumeByAddress(contractAddress: string, tradeVolume: number, outcomeIndex?: number, price?: number) {
         const market = await this.prisma.opinionMarket.findFirst({
             where: { contract_address: contractAddress.toLowerCase() }
         });
@@ -329,10 +353,10 @@ export class MarketsService {
             if (!marketAlt) {
                 throw new NotFoundException("Market not found for address: " + contractAddress);
             }
-            return this.updateVolume(marketAlt.id, tradeVolume);
+            return this.updateVolume(marketAlt.id, tradeVolume, outcomeIndex, price);
         }
 
-        return this.updateVolume(market.id, tradeVolume);
+        return this.updateVolume(market.id, tradeVolume, outcomeIndex, price);
     }
 
     // Get market volume stats
