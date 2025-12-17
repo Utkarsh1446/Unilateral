@@ -13,20 +13,11 @@ const ADMIN_WALLETS = [
     "0x9f4c1f7eaa0b729b798f81be84b25fdf9f66a0bf"
 ].map(w => w.toLowerCase());
 
-// Market state enum matching contract
+// Market state enum matching contract (simplified)
 enum MarketState {
     Open = 0,
-    ResolutionProposed = 1,
-    Disputed = 2,
-    Resolved = 3
+    Resolved = 1
 }
-
-const STATE_LABELS: Record<number, { label: string; color: string; bg: string }> = {
-    [MarketState.Open]: { label: 'Open', color: 'text-green-600', bg: 'bg-green-100' },
-    [MarketState.ResolutionProposed]: { label: 'Resolution Proposed', color: 'text-yellow-600', bg: 'bg-yellow-100' },
-    [MarketState.Disputed]: { label: 'Disputed', color: 'text-red-600', bg: 'bg-red-100' },
-    [MarketState.Resolved]: { label: 'Resolved', color: 'text-purple-600', bg: 'bg-purple-100' },
-};
 
 interface PlatformStats {
     totalMarkets: number;
@@ -35,15 +26,7 @@ interface PlatformStats {
     activeMarkets: number;
 }
 
-interface MarketOnChainState {
-    state: number;
-    resolutionTimestamp: number;
-    proposedOutcome: number;
-    disputeWindowSeconds: number;
-    disputeWindowEnds: Date | null;
-    canFinalize: boolean;
-    timeRemaining: string;
-}
+
 
 export function AdminPage() {
     const navigate = useNavigate();
@@ -57,8 +40,6 @@ export function AdminPage() {
     const [activeTab, setActiveTab] = useState<'pending' | 'active' | 'resolution' | 'resolved'>('pending');
     const [resolutionOutcome, setResolutionOutcome] = useState<string>('');
     const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
-    const [marketStates, setMarketStates] = useState<Record<string, MarketOnChainState>>({});
-    const [expandedMarket, setExpandedMarket] = useState<string | null>(null);
 
     useEffect(() => {
         checkConnection();
@@ -102,52 +83,7 @@ export function AdminPage() {
         }
     };
 
-    const fetchMarketOnChainState = async (contractAddress: string): Promise<MarketOnChainState | null> => {
-        if (!contractAddress) return null;
-        try {
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
-            const market = getContract(contractAddress, ABIS.OpinionMarket, provider);
 
-            const [state, resolutionTimestamp, proposedOutcome, disputeWindow] = await Promise.all([
-                market.state(),
-                market.resolutionTimestamp(),
-                market.proposedOutcome(),
-                market.DISPUTE_WINDOW()
-            ]);
-
-            const stateNum = Number(state);
-            const resTs = Number(resolutionTimestamp);
-            const disputeSeconds = Number(disputeWindow);
-            const disputeEnds = resTs > 0 ? new Date((resTs + disputeSeconds) * 1000) : null;
-            const now = Date.now();
-            const canFinalize = disputeEnds ? now > disputeEnds.getTime() && stateNum === MarketState.ResolutionProposed : false;
-
-            let timeRemaining = '';
-            if (disputeEnds && stateNum === MarketState.ResolutionProposed) {
-                const diff = disputeEnds.getTime() - now;
-                if (diff > 0) {
-                    const hours = Math.floor(diff / (1000 * 60 * 60));
-                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    timeRemaining = `${hours}h ${mins}m`;
-                } else {
-                    timeRemaining = 'Window closed';
-                }
-            }
-
-            return {
-                state: stateNum,
-                resolutionTimestamp: resTs,
-                proposedOutcome: Number(proposedOutcome),
-                disputeWindowSeconds: disputeSeconds,
-                disputeWindowEnds: disputeEnds,
-                canFinalize,
-                timeRemaining
-            };
-        } catch (e) {
-            console.error("Failed to fetch on-chain state:", e);
-            return null;
-        }
-    };
 
     const fetchMarkets = async () => {
         if (!account) return;
@@ -176,21 +112,6 @@ export function AdminPage() {
             }
 
             setMarkets(filteredData);
-
-            // Fetch on-chain state for markets with contract addresses
-            const statePromises = filteredData
-                .filter((m: any) => m.contract_address)
-                .map(async (m: any) => {
-                    const state = await fetchMarketOnChainState(m.contract_address);
-                    return { id: m.id, state };
-                });
-
-            const states = await Promise.all(statePromises);
-            const stateMap: Record<string, MarketOnChainState> = {};
-            states.forEach(({ id, state }) => {
-                if (state) stateMap[id] = state;
-            });
-            setMarketStates(stateMap);
         } catch (e) {
             console.error(e);
         } finally {
@@ -284,7 +205,7 @@ export function AdminPage() {
         }
     };
 
-    const handleProposeResolution = async (marketId: string, contractAddress: string) => {
+    const handleResolveMarket = async (marketId: string, contractAddress: string) => {
         if (!account || !resolutionOutcome) return;
         setActionLoading(marketId);
         try {
@@ -292,33 +213,18 @@ export function AdminPage() {
             const signer = await provider.getSigner();
             const market = getContract(contractAddress, ABIS.OpinionMarket, signer);
 
-            // Step 1: Propose Resolution
-            const proposeTx = await market.proposeResolution(parseInt(resolutionOutcome));
-            await proposeTx.wait();
+            // Resolve market immediately
+            const tx = await market.resolveMarket(parseInt(resolutionOutcome));
+            await tx.wait();
 
-            // Step 2: Try to immediately finalize (works for new contracts without dispute window)
-            let finalized = false;
-            try {
-                const finalizeTx = await market.finalizeResolution();
-                await finalizeTx.wait();
-                finalized = true;
+            // Update backend
+            await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ outcome: parseInt(resolutionOutcome), adminWallet: account })
+            });
 
-                // Step 3: Update backend
-                await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ outcome: parseInt(resolutionOutcome), adminWallet: account })
-                });
-            } catch (finalizeErr: any) {
-                console.log('Finalize failed (likely old contract with dispute window):', finalizeErr.message);
-            }
-
-            if (finalized) {
-                alert("Market Resolved! Users can now claim winnings.");
-            } else {
-                alert("Resolution Proposed! This is an older market with a 6-hour dispute window. Please come back later to finalize.");
-            }
-
+            alert("Market Resolved! Users can now claim winnings immediately.");
             setResolutionOutcome('');
             setSelectedMarket(null);
             fetchMarkets();
@@ -330,66 +236,9 @@ export function AdminPage() {
         }
     };
 
-    const handleFinalizeResolution = async (marketId: string, contractAddress: string) => {
-        if (!account) return;
-        setActionLoading(marketId);
-        try {
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
-            const signer = await provider.getSigner();
-            const market = getContract(contractAddress, ABIS.OpinionMarket, signer);
 
-            const tx = await market.finalizeResolution();
-            await tx.wait();
-
-            // Update backend
-            await fetch(`${API_URL}/admin/markets/${marketId}/resolve`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ outcome: marketStates[marketId]?.proposedOutcome || 0, adminWallet: account })
-            });
-
-            alert("Resolution Finalized! Market is now resolved.");
-            fetchMarkets();
-        } catch (e: any) {
-            console.error(e);
-            alert(e.message || "Failed to finalize");
-        } finally {
-            setActionLoading(null);
-        }
-    };
-
-    const renderOnChainState = (marketId: string) => {
-        const state = marketStates[marketId];
-        if (!state) return null;
-
-        const stateInfo = STATE_LABELS[state.state] || { label: 'Unknown', color: 'text-gray-600', bg: 'bg-gray-100' };
-
-        return (
-            <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-foreground/5">
-                <div className="flex items-center gap-3 flex-wrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${stateInfo.bg} ${stateInfo.color}`}>
-                        {stateInfo.label}
-                    </span>
-
-                    {state.state === MarketState.ResolutionProposed && (
-                        <span className="text-xs text-muted-foreground">
-                            Resolution in progress...
-                        </span>
-                    )}
-
-                    {state.state === MarketState.Resolved && (
-                        <span className="text-xs text-purple-600 font-medium">
-                            Outcome: {state.proposedOutcome === 0 ? 'YES' : 'NO'}
-                        </span>
-                    )}
-                </div>
-            </div>
-        );
-    };
 
     const renderActionButtons = (market: any) => {
-        const state = marketStates[market.id];
-
         if (activeTab === 'pending') {
             return (
                 <>
@@ -413,8 +262,8 @@ export function AdminPage() {
         }
 
         if (activeTab === 'active' || activeTab === 'resolution') {
-            // Check on-chain state
-            if (!state || state.state === MarketState.Open) {
+            // Simple check: if market is not resolved, show resolve button
+            if (!market.resolved) {
                 return (
                     <button
                         onClick={() => setSelectedMarket(selectedMarket === market.id ? null : market.id)}
@@ -422,27 +271,6 @@ export function AdminPage() {
                     >
                         <Gavel className="w-4 h-4" />
                         Resolve Market
-                    </button>
-                );
-            }
-
-            if (state.state === MarketState.ResolutionProposed) {
-                return (
-                    <span className="text-xs text-yellow-600 font-medium flex items-center gap-1">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        Processing...
-                    </span>
-                );
-            }
-
-            if (state.state === MarketState.Disputed) {
-                return (
-                    <button
-                        onClick={() => setSelectedMarket(selectedMarket === market.id ? null : market.id)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-bold"
-                    >
-                        <AlertCircle className="w-4 h-4" />
-                        Re-propose
                     </button>
                 );
             }
@@ -613,9 +441,6 @@ export function AdminPage() {
                                                                 <span className="text-blue-600 font-medium">Vol: ${Number(market.volume).toFixed(2)}</span>
                                                             )}
                                                         </div>
-
-                                                        {/* On-chain state display */}
-                                                        {market.contract_address && renderOnChainState(market.id)}
                                                     </div>
 
                                                     <div className="flex flex-col gap-2 min-w-[160px]">
@@ -652,9 +477,9 @@ export function AdminPage() {
                                                 {/* Resolution Panel */}
                                                 {selectedMarket === market.id && (activeTab === 'active' || activeTab === 'resolution') && (
                                                     <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100 animate-in fade-in slide-in-from-top-2">
-                                                        <label className="block text-sm font-bold text-blue-800 mb-2">Propose Outcome</label>
+                                                        <label className="block text-sm font-bold text-blue-800 mb-2">Select Outcome</label>
                                                         <p className="text-xs text-blue-600 mb-3">
-                                                            A 6-hour dispute window will start after proposal. Anyone can dispute during this time.
+                                                            Market will be resolved immediately. Users can claim winnings right away.
                                                         </p>
                                                         <select
                                                             value={resolutionOutcome}
@@ -670,11 +495,11 @@ export function AdminPage() {
                                                                 Cancel
                                                             </button>
                                                             <button
-                                                                onClick={() => handleProposeResolution(market.id, market.contract_address)}
+                                                                onClick={() => handleResolveMarket(market.id, market.contract_address)}
                                                                 disabled={!resolutionOutcome || actionLoading === market.id}
                                                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold disabled:opacity-50"
                                                             >
-                                                                {actionLoading === market.id ? <Loader2 className="animate-spin w-4 h-4" /> : 'Propose Resolution'}
+                                                                {actionLoading === market.id ? <Loader2 className="animate-spin w-4 h-4" /> : 'Resolve Market'}
                                                             </button>
                                                         </div>
                                                     </div>

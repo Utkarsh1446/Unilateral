@@ -38,17 +38,10 @@ contract OpinionMarket is ERC1155Holder {
     address public oracle;
     address public creator;
     
-    enum State { Open, ResolutionProposed, Disputed, Resolved }
+    enum State { Open, Resolved }
     State public state;
     bool public resolved;
     
-    uint256 public resolutionTimestamp;
-    uint256 public constant DISPUTE_WINDOW = 0; // Removed dispute window - immediate finalization
-    
-    uint256 public proposedOutcome;
-    
-    event ResolutionProposed(uint256 outcome, uint256 timestamp);
-    event ResolutionDisputed(address indexed disputer);
     event MarketResolved(uint256 outcome);
 
     address public orderBook;
@@ -75,34 +68,13 @@ contract OpinionMarket is ERC1155Holder {
         conditionId = keccak256(abi.encodePacked(address(this), questionId, uint256(2)));
     }
 
-    // Admin proposes resolution
-    function proposeResolution(uint256 outcome) external {
-        require(msg.sender == oracle, "Only oracle/admin can propose");
-        require(state == State.Open || state == State.Disputed, "Invalid state");
+    // Admin resolves market immediately
+    function resolveMarket(uint256 outcome) external {
+        require(msg.sender == oracle, "Only oracle/admin can resolve");
+        require(state == State.Open, "Market already resolved");
         require(outcome < 2, "Invalid outcome");
         
-        proposedOutcome = outcome;
-        state = State.ResolutionProposed;
-        resolutionTimestamp = block.timestamp;
-        
-        emit ResolutionProposed(outcome, block.timestamp);
-    }
-
-    // Any user can dispute within window
-    function disputeResolution() external {
-        require(state == State.ResolutionProposed, "Not in proposed state");
-        require(block.timestamp < resolutionTimestamp + DISPUTE_WINDOW, "Dispute window closed");
-        
-        state = State.Disputed;
-        emit ResolutionDisputed(msg.sender);
-    }
-
-    // Finalize after window passes
-    function finalizeResolution() external {
-        require(state == State.ResolutionProposed, "Not in proposed state");
-        require(block.timestamp >= resolutionTimestamp + DISPUTE_WINDOW, "Dispute window active");
-        
-        _resolve(proposedOutcome);
+        _resolve(outcome);
     }
 
     // Internal resolution logic

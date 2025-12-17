@@ -7,7 +7,7 @@ export const CONTRACTS = {
     AdminController: "0x1cCe371908eBEb0ce1A78e9af69D7Bb14D97ec8a",
     CreatorShareFactory: "0x5b8037A726f99B9aB2b5a63928BAA22Fb1036b54",
     OrderBook: "0x54fC379D88bF6be411E1F4719fAF4bC84725616A",
-    OpinionMarketFactory: "0x7fB9FF01874F6e5d7a4A72089941A79cf6ee6081"
+    OpinionMarketFactory: "0x9D2519b4c40E4E7A3d814e0E4f61A6a15DbC7AF0" // Updated: Immediate resolution support
 };
 
 export const ABIS = {
@@ -29,18 +29,12 @@ export const ABIS = {
     OpinionMarket: [
         "function mintSets(uint256 amount) external",
         "function redeemSets(uint256 amount) external",
-        "function resolveMarket() external",
+        "function resolveMarket(uint256 outcome) external",
         "function resolved() external view returns (bool)",
         "function conditionId() external view returns (bytes32)",
         "function collateralToken() external view returns (address)",
         "function conditionalTokens() external view returns (address)",
-        "function proposeResolution(uint256 outcome) external",
-        "function finalizeResolution() external",
-        "function disputeResolution() external",
         "function state() external view returns (uint8)",
-        "function resolutionTimestamp() external view returns (uint256)",
-        "function proposedOutcome() external view returns (uint256)",
-        "function DISPUTE_WINDOW() external view returns (uint256)",
         "function creator() external view returns (address)",
         "function oracle() external view returns (address)",
     ],
