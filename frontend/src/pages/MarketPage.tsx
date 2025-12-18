@@ -716,7 +716,10 @@ export function MarketPage() {
 
   const isMarketExpired = market?.deadline && new Date(market.deadline).getTime() < Date.now();
   const canResolve = !market?.resolved && isMarketExpired;
-  const canClaim = market?.resolved && (parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0);
+  // Show claim button for all resolved markets when user is connected
+  // The contract will handle if they actually have redeemable positions
+  const canClaim = market?.resolved && account;
+
 
   return (
     <>
