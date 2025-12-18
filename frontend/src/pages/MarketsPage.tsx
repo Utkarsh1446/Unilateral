@@ -47,6 +47,7 @@ export function MarketsPage() {
     let matchesStatus = true;
     if (selectedStatus === 'active') matchesStatus = !market.resolved && new Date(market.deadline) > new Date();
     if (selectedStatus === 'resolved') matchesStatus = market.resolved;
+    // 'all' shows everything - no additional filter needed
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
