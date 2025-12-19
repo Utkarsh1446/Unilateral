@@ -692,16 +692,15 @@ export function MarketPage() {
       const ctContract = getContract(ctAddress, ABIS.ConditionalTokens, signer);
 
       // For resolved markets, we need to call redeemPositions on ConditionalTokens
-      // indexSets: [1] for YES (outcome 0), [2] for NO (outcome 1)
+      // Pass outcome indexes: [0] for YES, [1] for NO
       // We try to redeem both positions - the contract will handle if one has zero balance
-      const indexSets = [1, 2]; // Try both YES and NO
+      const outcomeIndexes = [0, 1]; // Try both YES and NO
 
       toast.loading("Redeeming positions...", { id: toastId });
       const tx = await ctContract.redeemPositions(
         collateralToken,
-        ethers.ZeroHash, // parentCollectionId = 0 (root)
         conditionId,
-        indexSets
+        outcomeIndexes
       );
       await tx.wait();
 
