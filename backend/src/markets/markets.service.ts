@@ -220,18 +220,13 @@ export class MarketsService {
     }
 
     async findAll() {
-        // Show approved markets that are either:
-        // 1. Active (deadline not passed), OR
-        // 2. Expired but NOT resolved (so users can see them for resolution/claiming)
+        // Show all approved markets (active, expired, and resolved)
+        // Frontend will handle filtering by status
         return this.prisma.opinionMarket.findMany({
             where: {
-                approval_status: 'approved',
-                OR: [
-                    { deadline: { gt: new Date() } },  // Active markets
-                    { resolved: false }                 // Expired but pending resolution
-                ]
+                approval_status: 'approved'
             },
-            include: { creator: true },
+            include: { creator: true, outcomes: true },
             orderBy: { created_at: 'desc' }
         });
     }
