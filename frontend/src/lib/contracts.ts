@@ -61,7 +61,7 @@ export const ABIS = {
         "function balanceOfBatch(address[] calldata accounts, uint256[] calldata ids) view returns (uint256[])",
         "function isApprovedForAll(address account, address operator) view returns (bool)",
         "function setApprovalForAll(address operator, bool approved) external",
-        "function redeemPositions(address collateralToken, bytes32 parentCollectionId, bytes32 conditionId, uint256[] calldata indexSets) external"
+        "function redeemPositions(address collateralToken, bytes32 conditionId, uint256[] calldata outcomeIndexes) external"
     ],
     CreatorShareFactory: [
         "function createCreatorShare(string memory name, string memory symbol, uint256 deadline, bytes memory signature) external returns (address)",
