@@ -20,6 +20,11 @@ export class BtcMarketsController {
         return this.btcMarketsService.getMarketsByInterval(parseInt(interval));
     }
 
+    @Get('market/:address')
+    async getMarketByAddress(@Param('address') address: string) {
+        return this.btcMarketsService.getMarketByAddress(address);
+    }
+
     @Get('price')
     async getCurrentPrice() {
         const price = await this.btcMarketsService.getBTCPrice();

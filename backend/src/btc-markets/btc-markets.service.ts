@@ -341,6 +341,21 @@ export class BtcMarketsService {
     }
 
     /**
+     * Get market by contract address
+     */
+    async getMarketByAddress(address: string) {
+        const market = await this.prisma.bTCMarket.findFirst({
+            where: { contract_address: address }
+        });
+
+        if (!market) {
+            throw new Error('Market not found');
+        }
+
+        return market;
+    }
+
+    /**
      * Get active (unresolved) markets
      */
     async getActiveMarkets() {
