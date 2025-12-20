@@ -6,11 +6,17 @@ async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying with account:", deployer.address);
 
-    // Get existing contract addresses
+    // Get existing contract addresses from deployed contracts
     const CONDITIONAL_TOKENS = "0xE60AC9b3Bdb8161aD1276519F2b47C45cFeA3E83";
     const PLATFORM_TOKEN = "0xC59FD3678fCCB26284f763832579463AED36304D";
-    const ORDERBOOK = "0x8a4C5c686F6c682b0b7F6e3F8E0F3b3F8E0F3b3F"; // TODO: Update with actual OrderBook address
-    const PRICE_ORACLE = deployer.address; // Backend service address (update later)
+    const ORDERBOOK = "0x54fC379D88bF6be411E1F4719fAF4bC84725616A"; // Deployed OrderBook address
+    const PRICE_ORACLE = deployer.address; // Backend service address (will be updated after deployment)
+
+    console.log("\nUsing contract addresses:");
+    console.log("  ConditionalTokens:", CONDITIONAL_TOKENS);
+    console.log("  PlatformToken (USDC):", PLATFORM_TOKEN);
+    console.log("  OrderBook:", ORDERBOOK);
+    console.log("  PriceOracle (temp):", PRICE_ORACLE);
 
     // Deploy BTCMarketFactory
     const BTCMarketFactory = await ethers.getContractFactory("BTCMarketFactory");

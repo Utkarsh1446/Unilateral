@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { CreatorsModule } from './creators/creators.module';
 import { MarketsModule } from './markets/markets.module';
 import { AdminModule } from './admin/admin.module';
+import { BtcMarketsModule } from './btc-markets/btc-markets.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AdminModule } from './admin/admin.module';
     CreatorsModule,
     MarketsModule,
     AdminModule,
+    BtcMarketsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
