@@ -99,6 +99,8 @@ export class BtcMarketsService {
      */
     @Cron('0 * * * * *') // Every minute at :00 seconds
     async createBTCMarkets() {
+        this.logger.debug('🔄 Market creation cron triggered');
+
         if (!this.BTC_FACTORY_ADDRESS) {
             this.logger.warn('BTC_FACTORY_ADDRESS not set, skipping market creation');
             return;
@@ -106,10 +108,16 @@ export class BtcMarketsService {
 
         try {
             const now = new Date();
+            this.logger.debug(`Checking if markets should be created at ${now.toISOString()}`);
+            this.logger.debug(`UTC time: ${now.getUTCHours()}:${now.getUTCMinutes().toString().padStart(2, '0')}`);
+
             const intervals = [15, 60, 360, 720];
 
             for (const interval of intervals) {
-                if (this.shouldCreateMarket(now, interval)) {
+                const shouldCreate = this.shouldCreateMarket(now, interval);
+                this.logger.debug(`Interval ${interval}m: shouldCreate = ${shouldCreate}`);
+
+                if (shouldCreate) {
                     await this.createMarket(interval, now);
                 }
             }
