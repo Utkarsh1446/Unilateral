@@ -131,9 +131,8 @@ export class BtcMarketsService {
             // Convert price to 8 decimals (contract expects 8 decimals)
             const startPriceScaled = Math.floor(startPrice * 1e8);
 
-            // Use current timestamp + 60 seconds buffer (contract requires startTime >= block.timestamp)
-            // The buffer accounts for transaction mining time
-            const startTimestamp = Math.floor(Date.now() / 1000) + 60;
+            // Calculate start time (round to nearest minute)
+            const startTimestamp = Math.floor(Date.now() / 1000);
 
             // Connect to factory contract
             const factory = new ethers.Contract(
@@ -142,178 +141,144 @@ export class BtcMarketsService {
                 this.wallet
             );
 
-            // Check wallet balance before attempting transaction
-            const balance = await this.provider.getBalance(this.wallet.address);
-            this.logger.log(`Wallet balance: ${ethers.formatEther(balance)} ETH`);
-
-            if (balance === 0n) {
-                this.logger.error('❌ Wallet has no ETH for gas fees!');
-                throw new Error('Wallet has no ETH for gas fees');
-            }
-
             // Create market on-chain
             this.logger.log(`Calling createBTCMarket(${interval}, ${startTimestamp}, ${startPriceScaled})`);
+            const tx = await factory.createBTCMarket(interval, startTimestamp, startPriceScaled);
+            const receipt = await tx.wait();
 
-            try {
-                const tx = await factory.createBTCMarket(interval, startTimestamp, startPriceScaled);
-                this.logger.log(`Transaction sent: ${tx.hash}, waiting for confirmation...`);
+            this.logger.log(`Market created in tx: ${receipt.hash}`);
 
-                const receipt = await tx.wait();
-                this.logger.log(`✅ Market created in tx: ${receipt.hash}`);
+            // Extract marketId from events
+            const marketId = this.extractMarketIdFromReceipt(receipt);
 
-                // Extract marketId from events
-                let marketId = this.extractMarketIdFromReceipt(receipt);
-
-                if (!marketId) {
-                    this.logger.warn('Failed to extract marketId from receipt, fetching from contract...');
-
-                    // Fallback: Get all market IDs and use the latest one
-                    try {
-                        const allMarketIds = await factory.getAllMarketIds();
-                        if (allMarketIds.length > 0) {
-                            marketId = allMarketIds[allMarketIds.length - 1];
-                            this.logger.log(`Using latest marketId from contract: ${marketId}`);
-                        } else {
-                            this.logger.error('No markets found in contract');
-                            return;
-                        }
-                    } catch (error) {
-                        this.logger.error('Failed to fetch market IDs from contract', error);
-                        return;
-                    }
-                }
-
-                // Get market details from contract
-                const marketDetails = await factory.getMarket(marketId);
-
-                this.logger.log(`Market details: ${JSON.stringify({
-                    marketAddress: marketDetails.marketAddress,
-                    interval: marketDetails.interval.toString(),
-                    startTime: marketDetails.startTime.toString(),
-                    endTime: marketDetails.endTime.toString()
-                })}`);
-
-                // Save to database
-                const endTime = new Date(Number(marketDetails.endTime) * 1000);
-                const startTimeDb = new Date(Number(marketDetails.startTime) * 1000);
-
-                await this.prisma.bTCMarket.create({
-                    data: {
-                        market_id: marketId as string, // Already checked for null above
-                        contract_address: marketDetails.marketAddress,
-                        interval: Number(marketDetails.interval),
-                        start_time: startTimeDb,
-                        end_time: endTime,
-                        start_price: startPrice.toString(),
-                        resolved: false
-                    }
-                });
-
-                this.logger.log(`✅ BTC ${interval}m market created successfully`);
-                this.logger.log(`   Market ID: ${marketId}`);
-                this.logger.log(`   Start Price: $${startPrice.toFixed(2)}`);
-                this.logger.log(`   End Time: ${endTime.toISOString()}`);
-
-            } catch (error) {
-                this.logger.error(`Failed to create BTC ${interval}m market`, error);
+            if (!marketId) {
+                this.logger.error('Failed to extract marketId from receipt');
+                return;
             }
+
+            // Get market details from contract
+            const marketDetails = await factory.getMarket(marketId);
+
+            // Save to database
+            const endTime = new Date((startTimestamp + interval * 60) * 1000);
+
+            await this.prisma.bTCMarket.create({
+                data: {
+                    market_id: marketId,
+                    contract_address: marketDetails.marketAddress,
+                    interval,
+                    start_time: startTime,
+                    end_time: endTime,
+                    start_price: startPrice.toString(),
+                    resolved: false
+                }
+            });
+
+            this.logger.log(`✅ BTC ${interval}m market created successfully`);
+            this.logger.log(`   Market ID: ${marketId}`);
+            this.logger.log(`   Start Price: $${startPrice.toFixed(2)}`);
+            this.logger.log(`   End Time: ${endTime.toISOString()}`);
+
+        } catch (error) {
+            this.logger.error(`Failed to create BTC ${interval}m market`, error);
         }
+    }
 
     /**
      * Check and resolve expired markets - runs every minute
      */
     @Cron('30 * * * * *') // Every minute at :30 seconds
-        async checkAndResolveMarkets() {
-            if (!this.BTC_FACTORY_ADDRESS) {
-                this.logger.warn('BTC_FACTORY_ADDRESS not set, skipping resolution check');
-                return;
-            }
-
-            try {
-                const now = new Date();
-
-                // Find expired unresolved markets
-                const expiredMarkets = await this.prisma.bTCMarket.findMany({
-                    where: {
-                        resolved: false,
-                        end_time: {
-                            lte: now
-                        }
-                    }
-                });
-
-                this.logger.debug(`Found ${expiredMarkets.length} expired markets to resolve`);
-
-                for (const market of expiredMarkets) {
-                    await this.resolveMarket(market.market_id);
-                }
-            } catch (error) {
-                this.logger.error('Error in checkAndResolveMarkets cron', error);
-            }
+    async checkAndResolveMarkets() {
+        if (!this.BTC_FACTORY_ADDRESS) {
+            this.logger.warn('BTC_FACTORY_ADDRESS not set, skipping resolution check');
+            return;
         }
+
+        try {
+            const now = new Date();
+
+            // Find expired unresolved markets
+            const expiredMarkets = await this.prisma.bTCMarket.findMany({
+                where: {
+                    resolved: false,
+                    end_time: {
+                        lte: now
+                    }
+                }
+            });
+
+            this.logger.debug(`Found ${expiredMarkets.length} expired markets to resolve`);
+
+            for (const market of expiredMarkets) {
+                await this.resolveMarket(market.market_id);
+            }
+        } catch (error) {
+            this.logger.error('Error in checkAndResolveMarkets cron', error);
+        }
+    }
 
     /**
      * Resolve a single BTC market
      */
     async resolveMarket(marketId: string) {
-            try {
-                this.logger.log(`Resolving market: ${marketId}`);
+        try {
+            this.logger.log(`Resolving market: ${marketId}`);
 
-                // Get market from database
-                const market = await this.prisma.bTCMarket.findUnique({
-                    where: { market_id: marketId }
-                });
+            // Get market from database
+            const market = await this.prisma.bTCMarket.findUnique({
+                where: { market_id: marketId }
+            });
 
-                if (!market) {
-                    this.logger.error(`Market not found: ${marketId}`);
-                    return;
-                }
-
-                if (market.resolved) {
-                    this.logger.warn(`Market already resolved: ${marketId}`);
-                    return;
-                }
-
-                // Get current BTC price
-                const endPrice = await this.getBTCPrice();
-                const endPriceScaled = Math.floor(endPrice * 1e8);
-
-                // Connect to factory contract
-                const factory = new ethers.Contract(
-                    this.BTC_FACTORY_ADDRESS,
-                    this.FACTORY_ABI,
-                    this.wallet
-                );
-
-                // Resolve market on-chain
-                this.logger.log(`Calling resolveBTCMarket(${marketId}, ${endPriceScaled})`);
-                const tx = await factory.resolveBTCMarket(marketId, endPriceScaled);
-                await tx.wait();
-
-                // Determine outcome
-                const startPrice = parseFloat(market.start_price.toString());
-                const outcome = endPrice > startPrice ? 0 : 1; // 0 = UP, 1 = DOWN
-
-                // Update database
-                await this.prisma.bTCMarket.update({
-                    where: { market_id: marketId },
-                    data: {
-                        end_price: endPrice.toString(),
-                        resolved: true,
-                        outcome
-                    }
-                });
-
-                this.logger.log(`✅ Market resolved successfully`);
-                this.logger.log(`   Market ID: ${marketId}`);
-                this.logger.log(`   Start Price: $${startPrice.toFixed(2)}`);
-                this.logger.log(`   End Price: $${endPrice.toFixed(2)}`);
-                this.logger.log(`   Outcome: ${outcome === 0 ? 'UP' : 'DOWN'}`);
-
-            } catch (error) {
-                this.logger.error(`Failed to resolve market ${marketId}`, error);
+            if (!market) {
+                this.logger.error(`Market not found: ${marketId}`);
+                return;
             }
+
+            if (market.resolved) {
+                this.logger.warn(`Market already resolved: ${marketId}`);
+                return;
+            }
+
+            // Get current BTC price
+            const endPrice = await this.getBTCPrice();
+            const endPriceScaled = Math.floor(endPrice * 1e8);
+
+            // Connect to factory contract
+            const factory = new ethers.Contract(
+                this.BTC_FACTORY_ADDRESS,
+                this.FACTORY_ABI,
+                this.wallet
+            );
+
+            // Resolve market on-chain
+            this.logger.log(`Calling resolveBTCMarket(${marketId}, ${endPriceScaled})`);
+            const tx = await factory.resolveBTCMarket(marketId, endPriceScaled);
+            await tx.wait();
+
+            // Determine outcome
+            const startPrice = parseFloat(market.start_price.toString());
+            const outcome = endPrice > startPrice ? 0 : 1; // 0 = UP, 1 = DOWN
+
+            // Update database
+            await this.prisma.bTCMarket.update({
+                where: { market_id: marketId },
+                data: {
+                    end_price: endPrice.toString(),
+                    resolved: true,
+                    outcome
+                }
+            });
+
+            this.logger.log(`✅ Market resolved successfully`);
+            this.logger.log(`   Market ID: ${marketId}`);
+            this.logger.log(`   Start Price: $${startPrice.toFixed(2)}`);
+            this.logger.log(`   End Price: $${endPrice.toFixed(2)}`);
+            this.logger.log(`   Outcome: ${outcome === 0 ? 'UP' : 'DOWN'}`);
+
+        } catch (error) {
+            this.logger.error(`Failed to resolve market ${marketId}`, error);
         }
+    }
 
     /**
      * Extract marketId from transaction receipt
