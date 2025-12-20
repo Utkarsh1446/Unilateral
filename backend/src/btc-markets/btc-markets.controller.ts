@@ -38,4 +38,16 @@ export class BtcMarketsController {
         await this.btcMarketsService.resolveMarket(marketId);
         return { success: true, message: `Market ${marketId} resolved` };
     }
+
+    @Get('debug/config')
+    async debugConfig() {
+        return {
+            factoryAddress: process.env.BTC_FACTORY_ADDRESS || 'NOT SET',
+            rpcUrl: process.env.BASE_SEPOLIA_RPC_URL ? 'SET' : 'NOT SET',
+            privateKey: process.env.PRIVATE_KEY ? 'SET (hidden)' : 'NOT SET',
+            currentTime: new Date().toISOString(),
+            currentUTCTime: new Date().toUTCString(),
+            nextCronRun: 'Every minute at :00 seconds'
+        };
+    }
 }
