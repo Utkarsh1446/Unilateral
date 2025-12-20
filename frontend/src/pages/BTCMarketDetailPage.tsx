@@ -195,6 +195,37 @@ export function BTCMarketDetailPage() {
     const priceChange = getPriceChange();
     const timeRemaining = getTimeRemaining();
 
+    // Generate dynamic title
+    const getMarketTitle = () => {
+        if (!market) return 'Bitcoin Up or Down';
+
+        const startDate = new Date(market.start_time);
+        const endDate = new Date(market.end_time);
+
+        // Format: "Bitcoin 15m Up or Down: December 20, 07:15-07:30 ET"
+        const monthDay = startDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            timeZone: 'America/New_York'
+        });
+
+        const startTime = startDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'America/New_York'
+        });
+
+        const endTime = endDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'America/New_York'
+        });
+
+        return `Bitcoin ${market.interval}m Up or Down: ${monthDay}, ${startTime}-${endTime} ET`;
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Navbar />
@@ -216,7 +247,7 @@ export function BTCMarketDetailPage() {
                                 <DollarSign className="w-8 h-8 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Bitcoin Up or Down</h1>
+                                <h1 className="text-2xl font-bold text-gray-900">{getMarketTitle()}</h1>
                                 <p className="text-gray-500">
                                     {new Date(market.end_time).toLocaleString('en-US', {
                                         month: 'long',
