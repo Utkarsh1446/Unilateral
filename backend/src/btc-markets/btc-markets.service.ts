@@ -33,30 +33,39 @@ export class BtcMarketsService {
     }
 
     /**
-     * Fetch current BTC price with fallback chain
-     * Primary: CryptoCompare (more generous rate limits)
-     * Fallback: CoinGecko
+     * Fetch current BTC price from Pyth Network oracle
+     * Pyth provides reliable, decentralized price feeds with no rate limits
+     * BTC/USD Price Feed ID: 0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43
      */
     async getBTCPrice(): Promise<number> {
-        // Try CryptoCompare first (better rate limits)
-        try {
-            const response = await axios.get('https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD');
-            const price = response.data.USD;
-            this.logger.debug(`Current BTC price (CryptoCompare): $${price.toFixed(2)}`);
-            return price;
-        } catch (error) {
-            this.logger.warn('CryptoCompare failed, trying CoinGecko...');
-        }
+        const PYTH_BTC_USD_FEED = '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43';
 
-        // Fallback to CoinGecko
         try {
-            const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-            const price = response.data.bitcoin.usd;
-            this.logger.debug(`Current BTC price (CoinGecko): $${price.toFixed(2)}`);
+            // Pyth Hermes API - free, no authentication, no rate limits
+            const response = await axios.get(
+                `https://hermes.pyth.network/v2/updates/price/latest?ids[]=${PYTH_BTC_USD_FEED}`
+            );
+
+            const priceData = response.data.parsed[0];
+            const price = parseFloat(priceData.price.price) * Math.pow(10, priceData.price.expo);
+
+            this.logger.debug(`Current BTC price (Pyth): $${price.toFixed(2)}`);
+            this.logger.debug(`Pyth confidence: ±$${(parseFloat(priceData.price.conf) * Math.pow(10, priceData.price.expo)).toFixed(2)}`);
+
             return price;
         } catch (error) {
-            this.logger.error('All price APIs failed', error);
-            throw new Error('Unable to fetch BTC price from any source');
+            this.logger.error('Pyth price fetch failed, trying CryptoCompare fallback...', error);
+
+            // Fallback to CryptoCompare
+            try {
+                const response = await axios.get('https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD');
+                const price = response.data.USD;
+                this.logger.log(`Using fallback price from CryptoCompare: $${price.toFixed(2)}`);
+                return price;
+            } catch (fallbackError) {
+                this.logger.error('All price sources failed', fallbackError);
+                throw new Error('Unable to fetch BTC price from any source');
+            }
         }
     }
 
