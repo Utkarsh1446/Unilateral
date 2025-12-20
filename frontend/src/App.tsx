@@ -10,6 +10,7 @@ import { CreateMarketPage } from './pages/CreateMarketPage';
 import { BecomeCreatorPage } from './pages/BecomeCreatorPage';
 import { AdminPage } from './pages/AdminPage';
 import { BTCMarketsPage } from './pages/BTCMarketsPage';
+import { BTCMarketDetailPage } from './pages/BTCMarketDetailPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/markets" element={<MarketsPage />} />
           <Route path="/btc-markets" element={<BTCMarketsPage />} />
+          <Route path="/btc-market/:address" element={<BTCMarketDetailPage />} />
           <Route path="/creators" element={<CreatorsPage />} />
           <Route path="/market/:id" element={<MarketPage />} />
           <Route path="/creator/:id" element={<CreatorPage />} />

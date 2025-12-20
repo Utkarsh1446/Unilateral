@@ -116,8 +116,8 @@ export function BTCMarketsPage() {
                                 key={interval}
                                 onClick={() => setActiveInterval(interval)}
                                 className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${activeInterval === interval
-                                        ? 'bg-purple-600 text-white shadow-lg'
-                                        : 'text-white/70 hover:bg-white/10'
+                                    ? 'bg-purple-600 text-white shadow-lg'
+                                    : 'text-white/70 hover:bg-white/10'
                                     }`}
                             >
                                 {getIntervalLabel(interval)}
@@ -236,14 +236,14 @@ function MarketCard({ market, currentPrice }: MarketCardProps) {
             {!market.resolved && market.contract_address && (
                 <div className="grid grid-cols-2 gap-3">
                     <button
-                        onClick={() => window.location.href = `/market/${market.contract_address}`}
+                        onClick={() => window.location.href = `/btc-market/${market.contract_address}`}
                         className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                     >
                         <TrendingUp className="w-5 h-5" />
                         <span>UP</span>
                     </button>
                     <button
-                        onClick={() => window.location.href = `/market/${market.contract_address}`}
+                        onClick={() => window.location.href = `/btc-market/${market.contract_address}`}
                         className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                     >
                         <TrendingDown className="w-5 h-5" />
