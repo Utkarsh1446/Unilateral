@@ -284,20 +284,32 @@ export class BtcMarketsService {
      * Extract marketId from transaction receipt
      */
     private extractMarketIdFromReceipt(receipt: any): string | null {
-        // Look for BTCMarketCreated event
-        // Event signature: BTCMarketCreated(bytes32 indexed marketId, ...)
-        for (const log of receipt.logs) {
-            try {
-                // The first topic is the event signature
-                // The second topic is the indexed marketId
-                if (log.topics.length >= 2) {
-                    return log.topics[1]; // marketId is the first indexed parameter
+        try {
+            // Create interface to parse events
+            const iface = new ethers.Interface([
+                'event BTCMarketCreated(bytes32 indexed marketId, address indexed marketAddress, uint256 interval, uint256 startTime, uint256 endTime, uint256 startPrice)'
+            ]);
+
+            // Parse all logs
+            for (const log of receipt.logs) {
+                try {
+                    const parsed = iface.parseLog(log);
+                    if (parsed && parsed.name === 'BTCMarketCreated') {
+                        this.logger.log(`Found BTCMarketCreated event, marketId: ${parsed.args.marketId}`);
+                        return parsed.args.marketId;
+                    }
+                } catch (e) {
+                    // Not this event, continue
                 }
-            } catch (e) {
-                // Continue to next log
             }
+
+            this.logger.error('BTCMarketCreated event not found in receipt');
+            this.logger.debug(`Receipt logs: ${JSON.stringify(receipt.logs)}`);
+            return null;
+        } catch (error) {
+            this.logger.error('Error extracting marketId:', error);
+            return null;
         }
-        return null;
     }
 
     /**
