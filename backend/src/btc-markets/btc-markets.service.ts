@@ -186,7 +186,7 @@ export class BtcMarketsService {
 
             await this.prisma.bTCMarket.create({
                 data: {
-                    market_id: marketId,
+                    market_id: marketId as string, // Already checked for null above
                     contract_address: marketDetails.marketAddress,
                     interval: Number(marketDetails.interval),
                     start_time: startTimeDb,
