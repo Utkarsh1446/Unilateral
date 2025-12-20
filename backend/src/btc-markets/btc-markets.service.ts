@@ -76,10 +76,14 @@ export class BtcMarketsService {
         const minutes = now.getUTCMinutes();
         const hours = now.getUTCHours();
 
+        this.logger.debug(`shouldCreateMarket: interval=${interval}, minutes=${minutes}, hours=${hours}`);
+
         switch (interval) {
             case 15:
                 // Create every 15 minutes (00, 15, 30, 45)
-                return minutes % 15 === 0;
+                const result15 = minutes % 15 === 0;
+                this.logger.debug(`15m check: ${minutes} % 15 = ${minutes % 15}, result = ${result15}`);
+                return result15;
             case 60:
                 // Create every hour (00 minutes)
                 return minutes === 0;
