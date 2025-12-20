@@ -112,6 +112,15 @@ export class BtcMarketsService {
 
         try {
             const now = new Date();
+
+            // If we're in the first 30 seconds of a minute, check the previous minute
+            // This accounts for cron execution delay
+            const seconds = now.getUTCSeconds();
+            if (seconds > 0 && seconds < 30) {
+                now.setUTCMinutes(now.getUTCMinutes() - 1);
+                this.logger.debug(`Adjusted time back 1 minute due to cron delay (seconds=${seconds})`);
+            }
+
             this.logger.debug(`Checking if markets should be created at ${now.toISOString()}`);
             this.logger.debug(`UTC time: ${now.getUTCHours()}:${now.getUTCMinutes().toString().padStart(2, '0')}`);
 
