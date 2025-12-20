@@ -148,3 +148,22 @@ model CreatorVolumeTracking {
 
   creator Creator @relation(fields: [creator_id], references: [id])
 }
+
+model BTCMarket {
+  id              String   @id @default(uuid())
+  market_id       String   @unique // bytes32 from contract
+  contract_address String?
+  interval        Int      // Duration in minutes (15, 60, 360, 720)
+  start_time      DateTime
+  end_time        DateTime
+  start_price     Decimal  @db.Decimal(18, 8) // BTC price at start (8 decimals)
+  end_price       Decimal? @db.Decimal(18, 8) // BTC price at end (8 decimals)
+  resolved        Boolean  @default(false)
+  outcome         Int?     // 0 = UP, 1 = DOWN
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([interval])
+  @@index([start_time])
+  @@index([resolved])
+}
