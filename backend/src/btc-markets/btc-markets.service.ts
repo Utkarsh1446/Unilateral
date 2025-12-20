@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { ethers } from 'ethers';
+import axios from 'axios';
 
 @Injectable()
 export class BtcMarketsService {
@@ -36,9 +37,8 @@ export class BtcMarketsService {
      */
     async getBTCPrice(): Promise<number> {
         try {
-            const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-            const data = await response.json();
-            const price = parseFloat(data.price);
+            const response = await axios.get('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+            const price = parseFloat(response.data.price);
             this.logger.debug(`Current BTC price: $${price.toFixed(2)}`);
             return price;
         } catch (error) {
