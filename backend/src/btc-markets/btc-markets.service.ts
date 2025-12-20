@@ -33,27 +33,30 @@ export class BtcMarketsService {
     }
 
     /**
-     * Fetch current BTC price from CoinGecko API (no geo-restrictions)
+     * Fetch current BTC price with fallback chain
+     * Primary: CryptoCompare (more generous rate limits)
+     * Fallback: CoinGecko
      */
     async getBTCPrice(): Promise<number> {
+        // Try CryptoCompare first (better rate limits)
         try {
-            // CoinGecko free API - no authentication required
-            const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-            const price = response.data.bitcoin.usd;
-            this.logger.debug(`Current BTC price: $${price.toFixed(2)}`);
+            const response = await axios.get('https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD');
+            const price = response.data.USD;
+            this.logger.debug(`Current BTC price (CryptoCompare): $${price.toFixed(2)}`);
             return price;
         } catch (error) {
-            this.logger.error('Failed to fetch BTC price from CoinGecko', error);
-            // Fallback to CryptoCompare if CoinGecko fails
-            try {
-                const fallbackResponse = await axios.get('https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD');
-                const fallbackPrice = fallbackResponse.data.USD;
-                this.logger.log(`Using fallback price from CryptoCompare: $${fallbackPrice.toFixed(2)}`);
-                return fallbackPrice;
-            } catch (fallbackError) {
-                this.logger.error('Fallback price fetch also failed', fallbackError);
-                throw error;
-            }
+            this.logger.warn('CryptoCompare failed, trying CoinGecko...');
+        }
+
+        // Fallback to CoinGecko
+        try {
+            const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+            const price = response.data.bitcoin.usd;
+            this.logger.debug(`Current BTC price (CoinGecko): $${price.toFixed(2)}`);
+            return price;
+        } catch (error) {
+            this.logger.error('All price APIs failed', error);
+            throw new Error('Unable to fetch BTC price from any source');
         }
     }
 
