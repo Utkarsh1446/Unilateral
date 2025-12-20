@@ -131,8 +131,9 @@ export class BtcMarketsService {
             // Convert price to 8 decimals (contract expects 8 decimals)
             const startPriceScaled = Math.floor(startPrice * 1e8);
 
-            // Calculate start time (round to nearest minute)
-            const startTimestamp = Math.floor(Date.now() / 1000);
+            // Use current timestamp + 60 seconds buffer (contract requires startTime >= block.timestamp)
+            // The buffer accounts for transaction mining time
+            const startTimestamp = Math.floor(Date.now() / 1000) + 60;
 
             // Connect to factory contract
             const factory = new ethers.Contract(
