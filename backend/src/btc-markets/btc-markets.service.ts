@@ -143,6 +143,14 @@ export class BtcMarketsService {
 
             // Create market on-chain
             this.logger.log(`Calling createBTCMarket(${interval}, ${startTimestamp}, ${startPriceScaled})`);
+            this.logger.log(`Factory address: ${this.BTC_FACTORY_ADDRESS}`);
+            this.logger.log(`Wallet address: ${this.wallet.address}`);
+
+            // Encode the function call to verify it's working
+            const iface = new ethers.Interface(this.FACTORY_ABI);
+            const encodedData = iface.encodeFunctionData('createBTCMarket', [interval, startTimestamp, startPriceScaled]);
+            this.logger.log(`Encoded transaction data: ${encodedData.substring(0, 66)}...`);
+
             const tx = await factory.createBTCMarket(interval, startTimestamp, startPriceScaled);
             const receipt = await tx.wait();
 
