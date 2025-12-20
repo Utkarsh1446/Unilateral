@@ -120,7 +120,7 @@ export class BtcMarketsService {
             const startPriceScaled = Math.floor(startPrice * 1e8);
 
             // Calculate start time (round to nearest minute)
-            const startTimestamp = Math.floor(startTime.getTime() / 1000);
+            const startTimestamp = Math.floor(Date.now() / 1000);
 
             // Connect to factory contract
             const factory = new ethers.Contract(
