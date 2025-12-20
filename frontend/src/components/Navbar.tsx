@@ -151,6 +151,9 @@ export function Navbar() {
             <Link to="/markets" className="text-sm uppercase tracking-wider hover:opacity-60 transition-opacity" style={{ letterSpacing: '0.08em', fontWeight: 400 }}>
               Markets
             </Link>
+            <Link to="/btc-markets" className="text-sm uppercase tracking-wider hover:opacity-60 transition-opacity" style={{ letterSpacing: '0.08em', fontWeight: 400 }}>
+              BTC Markets
+            </Link>
             <Link to="/creators" className="text-sm uppercase tracking-wider hover:opacity-60 transition-opacity" style={{ letterSpacing: '0.08em', fontWeight: 400 }}>
               Creators
             </Link>
@@ -209,6 +212,14 @@ export function Navbar() {
               style={{ letterSpacing: '0.08em', fontWeight: 500 }}
             >
               Markets
+            </Link>
+            <Link
+              to="/btc-markets"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-3 px-4 text-sm uppercase tracking-wider hover:bg-muted/30 rounded-lg transition-colors"
+              style={{ letterSpacing: '0.08em', fontWeight: 500 }}
+            >
+              BTC Markets
             </Link>
             <Link
               to="/creators"

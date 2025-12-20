@@ -9,6 +9,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { CreateMarketPage } from './pages/CreateMarketPage';
 import { BecomeCreatorPage } from './pages/BecomeCreatorPage';
 import { AdminPage } from './pages/AdminPage';
+import { BTCMarketsPage } from './pages/BTCMarketsPage';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/markets" element={<MarketsPage />} />
+          <Route path="/btc-markets" element={<BTCMarketsPage />} />
           <Route path="/creators" element={<CreatorsPage />} />
           <Route path="/market/:id" element={<MarketPage />} />
           <Route path="/creator/:id" element={<CreatorPage />} />
