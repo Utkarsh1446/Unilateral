@@ -250,7 +250,6 @@ export class BtcMarketsService {
 
             // Get current BTC price
             const endPrice = await this.getBTCPrice();
-            const endPriceScaled = Math.floor(endPrice * 1e8);
 
             // Connect to factory contract
             const factory = new ethers.Contract(
@@ -260,11 +259,33 @@ export class BtcMarketsService {
             );
 
             // Resolve market on-chain
-            this.logger.log(`Calling resolveBTCMarket(${marketId}, ${endPriceScaled})`);
-            const tx = await factory.resolveBTCMarket(marketId, endPriceScaled);
-            await tx.wait();
+            this.logger.log(`Calling resolveBTCMarket(${marketId}, ${Math.floor(endPrice * 1e8)})`);
 
-            // Determine outcome
+            try {
+                const tx = await factory.resolveBTCMarket(marketId, Math.floor(endPrice * 1e8));
+                await tx.wait();
+            } catch (error: any) {
+                // If market doesn't exist in current factory (e.g., created with old factory), skip it
+                if (error.message?.includes('Market does not exist')) {
+                    this.logger.warn(`Market ${marketId} does not exist in current factory, marking as resolved in DB`);
+                    // Just mark it as resolved in the database without on-chain resolution
+                    // We need startPrice here, so we must ensure 'market' is available.
+                    // The 'market' variable is already defined at the top of the function.
+                    const startPrice = parseFloat(market.start_price.toString());
+                    await this.prisma.bTCMarket.update({
+                        where: { market_id: marketId },
+                        data: {
+                            end_price: endPrice.toString(),
+                            resolved: true,
+                            outcome: endPrice > startPrice ? 0 : 1
+                        }
+                    });
+                    return;
+                }
+                throw error;
+            }
+
+            // Determine outcome (0 = UP, 1 = DOWN)
             const startPrice = parseFloat(market.start_price.toString());
             const outcome = endPrice > startPrice ? 0 : 1; // 0 = UP, 1 = DOWN
 
