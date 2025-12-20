@@ -149,25 +149,47 @@ export class BtcMarketsService {
             this.logger.log(`Market created in tx: ${receipt.hash}`);
 
             // Extract marketId from events
-            const marketId = this.extractMarketIdFromReceipt(receipt);
+            let marketId = this.extractMarketIdFromReceipt(receipt);
 
             if (!marketId) {
-                this.logger.error('Failed to extract marketId from receipt');
-                return;
+                this.logger.warn('Failed to extract marketId from receipt, fetching from contract...');
+
+                // Fallback: Get all market IDs and use the latest one
+                try {
+                    const allMarketIds = await factory.getAllMarketIds();
+                    if (allMarketIds.length > 0) {
+                        marketId = allMarketIds[allMarketIds.length - 1];
+                        this.logger.log(`Using latest marketId from contract: ${marketId}`);
+                    } else {
+                        this.logger.error('No markets found in contract');
+                        return;
+                    }
+                } catch (error) {
+                    this.logger.error('Failed to fetch market IDs from contract', error);
+                    return;
+                }
             }
 
             // Get market details from contract
             const marketDetails = await factory.getMarket(marketId);
 
+            this.logger.log(`Market details: ${JSON.stringify({
+                marketAddress: marketDetails.marketAddress,
+                interval: marketDetails.interval.toString(),
+                startTime: marketDetails.startTime.toString(),
+                endTime: marketDetails.endTime.toString()
+            })}`);
+
             // Save to database
-            const endTime = new Date((startTimestamp + interval * 60) * 1000);
+            const endTime = new Date(Number(marketDetails.endTime) * 1000);
+            const startTimeDb = new Date(Number(marketDetails.startTime) * 1000);
 
             await this.prisma.bTCMarket.create({
                 data: {
                     market_id: marketId,
                     contract_address: marketDetails.marketAddress,
-                    interval,
-                    start_time: startTime,
+                    interval: Number(marketDetails.interval),
+                    start_time: startTimeDb,
                     end_time: endTime,
                     start_price: startPrice.toString(),
                     resolved: false
