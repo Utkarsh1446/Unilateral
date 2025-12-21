@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { TrendingUp, TrendingDown, Clock, DollarSign, ArrowLeft } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
@@ -228,7 +227,6 @@ export function BTCMarketDetailPage() {
 
     return (
         <div className="min-h-screen bg-white">
-            <Navbar />
 
             <div className="container mx-auto px-4 py-6">
                 {/* Header */}

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { TrendingUp, TrendingDown, Clock, DollarSign } from 'lucide-react';
 
@@ -79,7 +78,6 @@ export function BTCMarketsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <Navbar />
 
             <div className="container mx-auto px-4 py-8">
                 {/* Header with Current BTC Price */}
