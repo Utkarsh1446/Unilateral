@@ -16,9 +16,9 @@ export function Navbar() {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img
-                src="/superpumped-logo-white.png"
+                src="/Superpumped_SVG.svg"
                 alt="SuperPumped"
-                className="h-10"
+                className="w-[130px] h-[130px]"
               />
             </button>
 

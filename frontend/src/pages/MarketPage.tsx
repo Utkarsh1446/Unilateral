@@ -43,6 +43,7 @@ export function MarketPage() {
   // UI State
   const [activeTab, setActiveTab] = useState('positions');
   const [timeRange, setTimeRange] = useState<'5m' | '15m' | '1h' | '5h' | '1d' | '1w' | 'all'>('all');
+  const [chartType, setChartType] = useState<'line' | 'candle' | 'area'>('line');
 
   // Wallet & Contract State
   const [account, setAccount] = useState<string | null>(null);
@@ -359,60 +360,62 @@ export function MarketPage() {
       <Toaster position="top-center" richColors />
       <div className="bg-black min-h-screen text-white">
         {/* Top Navbar */}
-        <Navbar />
+
 
         {/* Top Header */}
-        <div className="border-b border-[#A4E977] bg-black">
-          <div className="max-w-[1920px] mx-auto px-6 py-4">
-            <div className="flex items-start justify-between">
-              {/* Left: Market Title and Volume */}
-              <div className="flex items-start gap-4">
-                {displayMarket.image_url && (
-                  <img
-                    src={displayMarket.image_url}
-                    alt=""
-                    className="w-14 h-14 rounded-lg object-cover"
-                  />
-                )}
-                <div>
-                  <h1 className="text-2xl font-bold text-white mb-2">
-                    {displayMarket.description}
-                  </h1>
-                  <div className="text-sm text-gray-400">
-                    ${parseFloat(displayMarket.volume || "0").toLocaleString()} Vol.
+        <div className="max-w-[1920px] mx-auto px-3 pt-3">
+          <div className="border-2 rounded-lg bg-black" style={{ borderColor: '#A4E977' }}>
+            <div className="px-6 py-4">
+              <div className="flex items-start justify-between">
+                {/* Left: Market Title and Volume */}
+                <div className="flex items-start gap-4">
+                  {displayMarket.image_url && (
+                    <img
+                      src={displayMarket.image_url}
+                      alt=""
+                      className="w-14 h-14 rounded-lg object-cover"
+                    />
+                  )}
+                  <div>
+                    <h1 className="text-2xl font-bold text-white mb-2">
+                      {displayMarket.description}
+                    </h1>
+                    <div className="text-sm text-gray-400">
+                      ${parseFloat(displayMarket.volume || "0").toLocaleString()} Vol.
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right: Outcome and Chance */}
-              <div className="flex items-center gap-8">
-                <div className="text-right">
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Outcome</div>
-                  <div className="text-sm text-white font-medium">-</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                    % Chance
-                    <button className="text-gray-500 hover:text-white">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
+                {/* Right: Outcome and Chance */}
+                <div className="flex items-center gap-8">
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Outcome</div>
+                    <div className="text-sm text-white font-medium">-</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      % Chance
+                      <button className="text-gray-500 hover:text-white">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="text-sm text-white font-medium">{yesPrice}%</div>
+                  </div>
+
+                  {/* Action Icons */}
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 hover:bg-gray-800 rounded transition-colors">
+                      <Copy className="w-4 h-4 text-gray-400" />
+                    </button>
+                    <button className="p-2 hover:bg-gray-800 rounded transition-colors">
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </button>
+                    <button className="p-2 hover:bg-gray-800 rounded transition-colors">
+                      <Settings className="w-4 h-4 text-gray-400" />
                     </button>
                   </div>
-                  <div className="text-sm text-white font-medium">{yesPrice}%</div>
-                </div>
-
-                {/* Action Icons */}
-                <div className="flex items-center gap-2">
-                  <button className="p-2 hover:bg-gray-800 rounded transition-colors">
-                    <Copy className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-800 rounded transition-colors">
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-800 rounded transition-colors">
-                    <Settings className="w-4 h-4 text-gray-400" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -421,24 +424,61 @@ export function MarketPage() {
 
         {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-[85%_15%] gap-0">
+          <div className="grid grid-cols-[87%_13%] gap-0">
             {/* LEFT: Chart Section with Order Book Inside */}
             <div className="border-r border-gray-800/50 h-full">
               <div className="grid grid-cols-[82.35%_17.65%] gap-3 p-3">
                 {/* Chart Area */}
-                <div className="border-2 border-[#A4E977] rounded-lg overflow-hidden bg-black">
+                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
                   <div className="p-4 bg-black">
-                    <div className="flex items-center gap-2 mb-4">
-                      {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      {/* Time Range Buttons - LEFT */}
+                      <div className="flex items-center gap-2">
+                        {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+                          <button
+                            key={range}
+                            onClick={() => setTimeRange(range)}
+                            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                          >
+                            {range.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Chart Type Switcher - RIGHT */}
+                      <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
                         <button
-                          key={range}
-                          onClick={() => setTimeRange(range)}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                            }`}
+                          onClick={() => setChartType('line')}
+                          className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-gray-700 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                          title="Line Chart"
                         >
-                          {range.toUpperCase()}
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                          </svg>
                         </button>
-                      ))}
+                        <button
+                          onClick={() => setChartType('candle')}
+                          className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-gray-700 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                          title="Candlestick Chart"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="9" y1="2" x2="9" y2="22" />
+                            <rect x="7" y="6" width="4" height="10" fill="currentColor" />
+                            <line x1="15" y1="2" x2="15" y2="22" />
+                            <rect x="13" y="8" width="4" height="8" fill="currentColor" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setChartType('area')}
+                          className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-gray-700 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                          title="Area Chart"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                            <path d="M3 18h18" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="h-[500px] bg-black">
@@ -456,7 +496,7 @@ export function MarketPage() {
                 </div>
 
                 {/* Order Book - INSIDE Chart Section */}
-                <div className="border-2 border-[#A4E977] rounded-lg overflow-hidden bg-black">
+                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
                   <div className="px-3 py-3 border-b border-[#A4E977]">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-white">Order Book</h3>
@@ -511,7 +551,7 @@ export function MarketPage() {
               </div>
 
               {/* Bottom Tabs */}
-              <div className="border-2 border-[#A4E977] rounded-lg overflow-hidden bg-black mt-3 mx-3 mb-3">
+              <div className="border-2 rounded-lg overflow-hidden bg-black mx-3 mb-3" style={{ borderColor: '#A4E977' }}>
                 <div className="flex border-b border-[#A4E977]">
                   {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
                     <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-400 hover:text-white'}`}>
@@ -575,8 +615,8 @@ export function MarketPage() {
 
             {/* RIGHT: Trading Panel ONLY */}
             <div className="bg-black flex flex-col h-full p-3">
-              <div className="border-2 border-[#A4E977] rounded-lg overflow-hidden bg-black">
-                <div className="flex border-b border-[#A4E977]">
+              <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
+                <div className="flex border-b border-[#A4E977] py-2 px-2">
                   <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Buy</button>
                   <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Sell</button>
                 </div>
@@ -628,21 +668,35 @@ export function MarketPage() {
                 )}
 
                 <div className="px-3 pb-3">
-                  <div className="flex items-center justify-between gap-2">
-                    {[{ val: 0, label: '0%' }, { val: 25, label: '25%' }, { val: 50, label: '50%' }, { val: 75, label: '75%' }, { val: 100, label: 'MAX' }].map((item) => (
+                  <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sliderValue}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      setSliderValue(val);
+                      const maxAmount = parseFloat(balance) || 0;
+                      setAmount(((maxAmount * val) / 100).toFixed(2));
+                    }}
+                    className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer slider-thumb"
+                    style={{
+                      background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1f2937 ${sliderValue}%, #1f2937 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between mt-2">
+                    {[0, 25, 50, 75, 100].map((val) => (
                       <button
-                        key={item.val}
+                        key={val}
                         onClick={() => {
-                          setSliderValue(item.val);
+                          setSliderValue(val);
                           const maxAmount = parseFloat(balance) || 0;
-                          setAmount(((maxAmount * item.val) / 100).toFixed(2));
+                          setAmount(((maxAmount * val) / 100).toFixed(2));
                         }}
-                        className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-full transition-colors ${sliderValue === item.val
-                          ? 'bg-[#A4E977] text-black'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                          }`}
+                        className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
                       >
-                        {item.label}
+                        {val}%
                       </button>
                     ))}
                   </div>
