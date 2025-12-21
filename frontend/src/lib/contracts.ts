@@ -2,12 +2,13 @@ import { ethers } from "ethers";
 
 export const CONTRACTS = {
     PlatformToken: "0xC59FD3678fCCB26284f763832579463AED36304D", // USDC
-    ConditionalTokens: "0xE60AC9b3Bdb8161aD1276519F2b47C45cFeA3E83",
+    ConditionalTokens: "0x54a8868598Fc10051274C09F6a365C09D8A49911", // NEW - Fresh deployment
     FeeCollector: "0x8D99A4C5C13885350A9Be5Fa810Deb9f75e7056d",
     AdminController: "0x1cCe371908eBEb0ce1A78e9af69D7Bb14D97ec8a",
     CreatorShareFactory: "0x5b8037A726f99B9aB2b5a63928BAA22Fb1036b54",
-    OrderBook: "0x54fC379D88bF6be411E1F4719fAF4bC84725616A",
-    OpinionMarketFactory: "0x9D2519b4c40E4E7A3d814e0E4f61A6a15DbC7AF0" // Updated: Immediate resolution support
+    OrderBook: "0x1C1f9789De6D4024d571ddf3FF3718FE2013D63D", // Correct OrderBook
+    OpinionMarketFactory: "0x9D2519b4c40E4E7A3d814e0E4f61A6a15DbC7AF0", // Updated: Immediate resolution support
+    BTCMarketFactory: "0xFfE7462aac84C7f047C1465c5f4b029c2E9D5f93" // NEW - BTC markets
 };
 
 export const ABIS = {

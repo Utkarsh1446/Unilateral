@@ -137,13 +137,6 @@ export function BTCMarketDetailPage() {
 
     // Place order function
     const handlePlaceOrder = async () => {
-        console.log('\n=== PLACE ORDER CALLED ===');
-        console.log('Account:', account);
-        console.log('Market:', market?.contract_address);
-        console.log('Limit Price:', limitPrice, 'cents');
-        console.log('Shares:', shares);
-        console.log('Tab:', activeTab, 'Type:', orderType);
-        
         if (!account || !market?.contract_address) {
             alert('Please connect your wallet first');
             return;
@@ -189,13 +182,6 @@ export function BTCMarketDetailPage() {
                 signer
             );
 
-            console.log('--- Placing Order ---');
-            console.log('Market:', market.contract_address);
-            console.log('Outcome:', outcomeIndex, '(0=UP,1=DOWN)');
-            console.log('Price:', priceIn6Decimals);
-            console.log('Amount:', amountInUsdc.toString());
-            console.log('IsBid:', isBid);
-            
             const tx = await orderBookContract.placeOrder(
                 market.contract_address,
                 outcomeIndex,
@@ -203,8 +189,6 @@ export function BTCMarketDetailPage() {
                 amountInUsdc,
                 isBid
             );
-            
-            console.log('TX:', tx.hash);
 
             await tx.wait();
             alert('Order placed successfully!');
@@ -213,13 +197,8 @@ export function BTCMarketDetailPage() {
             setLimitPrice('50');
             setShares('10');
         } catch (error: any) {
-            console.error('=== ERROR ===');
-            console.error('Error:', error);
-            console.error('Message:', error.message);
-            console.error('Reason:', error.reason);
-            console.error('Code:', error.code);
-            let msg = error.reason || error.message || error.toString();
-            alert(`Failed: ${msg}`);
+            console.error('Error placing order:', error);
+            alert(`Failed to place order: ${error.message}`);
         } finally {
             setIsTrading(false);
         }

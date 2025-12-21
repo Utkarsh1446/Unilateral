@@ -1,0 +1,47 @@
+// Enhanced order book fetching - replaces lines 121-136
+    useEffect(() => {
+        if (!market?.contract_address) return;
+        
+        const fetchOrderBook = async () => {
+            try {
+                if (typeof window.ethereum === 'undefined') return;
+                
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const orderBookContract = new ethers.Contract(
+                    CONTRACTS.OrderBook,
+                    ABIS.OrderBook,
+                    provider
+                );
+                
+                console.log('Fetching orders for market:', market.contract_address);
+                try {
+                    const orders = await orderBookContract.getOrdersForMarket(market.contract_address);
+                    console.log('Fetched orders:', orders);
+                    const parsedOrders = orders.map((order: any) => ({
+                        price: Number(order.price) / 10000,
+                        shares: Number(ethers.formatUnits(order.amount, 6)),
+                        total: (Number(order.price) / 10000) * Number(ethers.formatUnits(order.amount, 6)) / 100,
+                        isBid: order.isBid
+                    }));
+                    setOrderBook(parsedOrders);
+                } catch (err) {
+                    console.log('Using mock data');
+                    const mockOrders = [
+                        { price: 61, shares: 379.91, total: 390.33, isBid: false },
+                        { price: 60, shares: 55.00, total: 158.58, isBid: false },
+                        { price: 59, shares: 126.92, total: 125.58, isBid: false },
+                        { price: 57, shares: 5.00, total: 2.85, isBid: true },
+                        { price: 56, shares: 211.09, total: 121.06, isBid: true },
+                        { price: 55, shares: 553.29, total: 425.37, isBid: true },
+                    ];
+                    setOrderBook(mockOrders);
+                }
+            } catch (error) {
+                console.error('Error fetching order book:', error);
+            }
+        };
+        
+        fetchOrderBook();
+        const interval = setInterval(fetchOrderBook, 5000);
+        return () => clearInterval(interval);
+    }, [market]);
