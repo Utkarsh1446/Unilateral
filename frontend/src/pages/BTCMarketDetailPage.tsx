@@ -64,6 +64,15 @@ export function BTCMarketDetailPage() {
             try {
                 const response = await fetch(`${API_URL}/btc-markets/market/${address}`);
                 const data = await response.json();
+                
+                // Validate market has valid contract address
+                if (!data.contract_address || data.contract_address === '0x0000000000000000000000000000000000000000') {
+                    console.error('Invalid market: null contract address');
+                    setMarket(null);
+                    setLoading(false);
+                    return;
+                }
+                
                 setMarket(data);
             } catch (error) {
                 console.error('Failed to fetch market:', error);

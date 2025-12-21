@@ -49,7 +49,12 @@ export function BTCMarketsPage() {
             try {
                 const response = await fetch(`${API_URL}/btc-markets/interval/${activeInterval}`);
                 const data = await response.json();
-                setMarkets(data);
+                // Filter out markets with null contract addresses
+                const validMarkets = data.filter((m: any) => 
+                    m.contract_address && m.contract_address !== '0x0000000000000000000000000000000000000000'
+                );
+                console.log(`Filtered ${data.length - validMarkets.length} invalid markets`);
+                setMarkets(validMarkets);
             } catch (error) {
                 console.error('Failed to fetch markets:', error);
             } finally {
