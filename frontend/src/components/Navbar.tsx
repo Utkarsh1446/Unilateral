@@ -31,6 +31,24 @@ export function Navbar() {
                 Markets
               </button>
               <button
+                onClick={() => navigate('/discover')}
+                className="text-sm text-gray-400 font-medium hover:text-white transition-colors"
+              >
+                DISCOVER
+              </button>
+              <button
+                onClick={() => navigate('/whales')}
+                className="text-sm text-gray-400 font-medium hover:text-white transition-colors"
+              >
+                WHALES
+              </button>
+              <button
+                onClick={() => navigate('/portfolio')}
+                className="text-sm text-gray-400 font-medium hover:text-white transition-colors"
+              >
+                PORTFOLIO
+              </button>
+              <button
                 onClick={() => navigate('/btc-markets')}
                 className="text-sm text-gray-400 font-medium hover:text-white transition-colors"
               >

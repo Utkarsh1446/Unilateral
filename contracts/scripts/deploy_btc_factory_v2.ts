@@ -10,13 +10,13 @@ async function main() {
     // Contract addresses from previous deployment
     const CONDITIONAL_TOKENS = '0x54a8868598Fc10051274C09F6a365C09D8A49911'; // FRESH DEPLOYMENT
     const COLLATERAL_TOKEN = '0xC59FD3678fCCB26284f763832579463AED36304D'; // Your custom USDC
-    const ORDER_BOOK = '0x1C1f9789De6D4024d571ddf3FF3718FE2013D63D';
+    const ORDER_BOOK = '0x7CBE1B7ed9fA1926E745c57ea6Db9F7beBC6ba63'; // NEW - BTC Markets OrderBook
     const PRICE_ORACLE = deployer.address; // Backend wallet
 
     console.log('Using existing contracts:');
     console.log('ConditionalTokens:', CONDITIONAL_TOKENS);
     console.log('CollateralToken (USDC):', COLLATERAL_TOKEN);
-    console.log('OrderBook:', ORDER_BOOK);
+    console.log('OrderBook:', ORDER_BOOK, '(NEW - BTC Markets)');
     console.log('PriceOracle:', PRICE_ORACLE, '\n');
 
     // Deploy BTCMarketFactory
