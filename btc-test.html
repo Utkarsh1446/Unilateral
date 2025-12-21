@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BTC Markets Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 BTC Markets Test Panel</h1>
+    
+    <h2>Manual Market Creation</h2>
+    <button onclick="createMarket(15)">Create 15m Market</button>
+    <button onclick="createMarket(60)">Create 1h Market</button>
+    <button onclick="createMarket(360)">Create 6h Market</button>
+    <button onclick="createMarket(720)">Create 12h Market</button>
+    
+    <h2>Check Status</h2>
+    <button onclick="checkPrice()">Get BTC Price</button>
+    <button onclick="checkMarkets()">Get All Markets</button>
+    <button onclick="checkConfig()">Check Config</button>
+    
+    <div id="result"></div>
+
+    <script>
+        const API_URL = 'https://unilateral-backend.onrender.com';
+        
+        async function createMarket(interval) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = `Creating ${interval}m market...`;
+            resultDiv.className = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/btc-markets/create/${interval}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                    resultDiv.className = 'success';
+                } else {
+                    resultDiv.textContent = `Error ${response.status}:\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.className = 'error';
+            }
+        }
+        
+        async function checkPrice() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Fetching BTC price...';
+            resultDiv.className = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/btc-markets/price`);
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                resultDiv.className = 'success';
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.className = 'error';
+            }
+        }
+        
+        async function checkMarkets() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Fetching markets...';
+            resultDiv.className = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/btc-markets`);
+                const data = await response.json();
+                resultDiv.textContent = `Found ${data.length} markets:\n\n${JSON.stringify(data, null, 2)}`;
+                resultDiv.className = data.length > 0 ? 'success' : '';
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.className = 'error';
+            }
+        }
+        
+        async function checkConfig() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Checking config...';
+            resultDiv.className = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/btc-markets/debug/config`);
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                resultDiv.className = 'success';
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>

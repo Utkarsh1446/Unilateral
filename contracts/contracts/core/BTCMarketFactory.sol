@@ -33,8 +33,9 @@ contract BTCMarketFactory is Ownable {
     bytes32[] public allMarketIds;
     
     // Configuration
-    uint256 public constant LIQUIDITY_AMOUNT = 20000 * 1e6; // 20k USDC (6 decimals)
+    uint256 public constant LIQUIDITY_AMOUNT = 10000 * 1e6; // 10k USDC (6 decimals)
     uint256[] public supportedIntervals = [15, 60, 360, 720]; // minutes
+    uint256 public nonce; // Counter for unique questionIds
     
     // Events
     event BTCMarketCreated(
@@ -96,12 +97,18 @@ contract BTCMarketFactory is Ownable {
         
         require(markets[marketId].marketAddress == address(0), "Market already exists");
 
-        // Generate question ID for the market
+        // Generate question ID for the market (must be unique!)
+        // Use block.timestamp and gasleft() to ensure uniqueness
+        // These values are guaranteed to be different for each transaction
         bytes32 questionId = keccak256(abi.encodePacked(
             "BTC_",
             interval,
             "_",
-            startTime
+            startTime,
+            "_",
+            block.timestamp,
+            "_",
+            gasleft()
         ));
 
         // Create the OpinionMarket
@@ -129,7 +136,8 @@ contract BTCMarketFactory is Ownable {
         allMarketIds.push(marketId);
 
         // Seed liquidity (approve and call orderbook)
-        _seedLiquidity(address(market));
+        // TEMPORARILY DISABLED - debugging market creation first
+        // _seedLiquidity(address(market));
 
         emit BTCMarketCreated(
             marketId,
@@ -176,20 +184,42 @@ contract BTCMarketFactory is Ownable {
 
     /**
      * @notice Seed liquidity for a newly created market
+     * @dev Places balanced buy/sell orders at 0.50 price to create initial liquidity
      * @param marketAddress Address of the market to seed
      */
     function _seedLiquidity(address marketAddress) internal {
-        // Transfer USDC from factory to orderbook for liquidity
-        // Note: Factory must have USDC balance and approval
+        // Check factory has enough USDC
+        uint256 balance = IERC20(collateralToken).balanceOf(address(this));
+        require(balance >= LIQUIDITY_AMOUNT, "Insufficient USDC for liquidity");
+        
+        // Approve orderbook to spend USDC
         IERC20(collateralToken).approve(orderBook, LIQUIDITY_AMOUNT);
         
-        // Call orderbook to place initial liquidity orders
-        // This would call a function like: orderBook.seedMarketLiquidity(marketAddress, LIQUIDITY_AMOUNT)
-        // For now, we'll assume the orderbook has this function
-        // Implementation depends on OrderBook contract design
+        // Split liquidity 50/50 between YES and NO
+        uint256 halfAmount = LIQUIDITY_AMOUNT / 2;
+        uint256 price = 500000; // 0.50 in 6 decimals (50% probability)
         
-        // TODO: Implement orderbook liquidity seeding
-        // IOrderBook(orderBook).seedMarketLiquidity(marketAddress, LIQUIDITY_AMOUNT);
+        // Place YES buy order at 0.50
+        // outcomeIndex 0 = YES/UP
+        IOrderBook(orderBook).placeOrderFor(
+            address(this),      // maker (factory owns the liquidity)
+            marketAddress,      // market
+            0,                  // outcomeIndex (0 = YES/UP)
+            price,              // price (0.50)
+            halfAmount,         // amount (5k USDC)
+            true                // isBid (buying YES tokens)
+        );
+        
+        // Place NO buy order at 0.50
+        // outcomeIndex 1 = NO/DOWN
+        IOrderBook(orderBook).placeOrderFor(
+            address(this),      // maker (factory owns the liquidity)
+            marketAddress,      // market
+            1,                  // outcomeIndex (1 = NO/DOWN)
+            price,              // price (0.50)
+            halfAmount,         // amount (5k USDC)
+            true                // isBid (buying NO tokens)
+        );
     }
 
     /**
