@@ -92,7 +92,7 @@ export function BTCMarketDetailPage() {
         };
 
         fetchPrice();
-        const interval = setInterval(fetchPrice, 10000);
+        const interval = setInterval(fetchPrice, 500); // Update every 0.5 seconds
         return () => clearInterval(interval);
     }, []);
 
