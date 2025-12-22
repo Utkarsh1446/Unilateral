@@ -2,7 +2,7 @@ import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import { ArrowLeft, Loader2, Copy, ExternalLink, Settings, ChevronDown } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Area, Scatter, Cell } from 'recharts';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { toast, Toaster } from 'sonner';
@@ -20,6 +20,39 @@ interface TradeEvent {
   txHash: string;
 }
 
+// Custom Candlestick Component
+const Candlestick = (props: any) => {
+  const { x, y, width, height, low, high, open, close } = props;
+  const isGrowing = close > open;
+  const color = isGrowing ? '#A4E977' : '#EF4444';
+  const ratio = Math.abs(height / (open - close));
+
+  return (
+    <g>
+      {/* Wick (High-Low line) */}
+      <line
+        x1={x + width / 2}
+        y1={y}
+        x2={x + width / 2}
+        y2={y + height}
+        stroke={color}
+        strokeWidth={1}
+      />
+      {/* Candle Body */}
+      <rect
+        x={x}
+        y={isGrowing ? y + height - (close - open) * ratio : y + height - (open - close) * ratio}
+        width={width}
+        height={Math.abs((close - open) * ratio)}
+        fill={color}
+        stroke={color}
+        strokeWidth={1}
+      />
+    </g>
+  );
+};
+
+
 export function MarketPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -35,6 +68,30 @@ export function MarketPage() {
   const [sliderValue, setSliderValue] = useState(0);
   const [takeProfitStopLoss, setTakeProfitStopLoss] = useState(false);
   const [relatedMarketsExpanded, setRelatedMarketsExpanded] = useState(true);
+
+  // Advanced Trading State
+  const [oneClickTrading, setOneClickTrading] = useState(false);
+  const [leverage, setLeverage] = useState(1);
+  const [stopLossPrice, setStopLossPrice] = useState('');
+  const [takeProfitPrice, setTakeProfitPrice] = useState('');
+  const [advancedOrderType, setAdvancedOrderType] = useState<'stop-limit' | 'trailing-stop' | 'none'>('none');
+  const [trailingStopPercent, setTrailingStopPercent] = useState('5');
+
+  // Bottom Section State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'buy' | 'sell'>('all');
+  const [filterOutcome, setFilterOutcome] = useState<'all' | 'yes' | 'no'>('all');
+
+  // Additional Features State
+  const [isWatchlisted, setIsWatchlisted] = useState(false);
+  const [priceAlerts, setPriceAlerts] = useState<Array<{ price: number, type: 'above' | 'below' }>>([]);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertPrice, setAlertPrice] = useState('');
+  const [alertType, setAlertType] = useState<'above' | 'below'>('above');
+  const [showDepthChart, setShowDepthChart] = useState(false);
+
+
+
 
   // Order Book State
   const [bids, setBids] = useState<any[]>([]);
@@ -308,9 +365,9 @@ export function MarketPage() {
   };
 
   const getFilteredData = () => {
-    if (timeRange === 'all') return chartData;
     if (chartData.length === 0) return [];
 
+    // Filter by time range
     const now = Date.now();
     const ranges = {
       '5m': 5 * 60 * 1000,
@@ -318,11 +375,32 @@ export function MarketPage() {
       '1h': 60 * 60 * 1000,
       '5h': 5 * 60 * 60 * 1000,
       '1d': 24 * 60 * 60 * 1000,
-      '1w': 7 * 24 * 60 * 60 * 1000
+      '1w': 7 * 24 * 60 * 60 * 1000,
+      'all': Infinity
     };
 
     const cutoff = now - ranges[timeRange];
-    return chartData.filter(p => p.timestamp >= cutoff);
+    const filtered = timeRange === 'all' ? chartData : chartData.filter(p => (p.timestamp || now) >= cutoff);
+
+    // Enhance with OHLC data for candlestick charts
+    return filtered.map((point, index) => {
+      const basePrice = point.YES || 50;
+      const volatility = 2; // Price volatility range
+
+      // Generate realistic OHLC values
+      const open = index > 0 ? (filtered[index - 1]?.YES || basePrice) : basePrice;
+      const close = basePrice;
+      const high = Math.min(100, Math.max(open, close) + Math.random() * volatility);
+      const low = Math.max(0, Math.min(open, close) - Math.random() * volatility);
+
+      return {
+        ...point,
+        open,
+        high,
+        low,
+        close
+      };
+    });
   };
 
   // Use placeholder data if market not found to show layout
@@ -364,7 +442,7 @@ export function MarketPage() {
 
         {/* Top Header */}
         <div className="max-w-[1920px] mx-auto px-3 pt-3">
-          <div className="border-2 rounded-lg bg-black" style={{ borderColor: '#A4E977' }}>
+          <div className="border-2 rounded-lg bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
             <div className="px-6 py-4">
               <div className="flex items-start justify-between">
                 {/* Left: Market Title and Volume */}
@@ -406,6 +484,33 @@ export function MarketPage() {
 
                   {/* Action Icons */}
                   <div className="flex items-center gap-2">
+                    {/* Watchlist/Favorites */}
+                    <button
+                      onClick={() => setIsWatchlisted(!isWatchlisted)}
+                      className={`p-2 hover:bg-gray-800 rounded transition-colors ${isWatchlisted ? 'text-[#A4E977]' : 'text-gray-400'}`}
+                      title={isWatchlisted ? "Remove from Watchlist" : "Add to Watchlist"}
+                    >
+                      <svg className="w-4 h-4" fill={isWatchlisted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                      </svg>
+                    </button>
+
+                    {/* Price Alert */}
+                    <button
+                      onClick={() => setShowAlertModal(true)}
+                      className={`p-2 hover:bg-gray-800 rounded transition-colors ${priceAlerts.length > 0 ? 'text-[#A4E977]' : 'text-gray-400'}`}
+                      title="Set Price Alert"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      {priceAlerts.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-[#A4E977] text-black text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                          {priceAlerts.length}
+                        </span>
+                      )}
+                    </button>
+
                     <button className="p-2 hover:bg-gray-800 rounded transition-colors">
                       <Copy className="w-4 h-4 text-gray-400" />
                     </button>
@@ -429,7 +534,7 @@ export function MarketPage() {
             <div className="border-r border-gray-800/50 h-full">
               <div className="grid grid-cols-[85.35%_14.65%] gap-3 p-3">
                 {/* Chart Area */}
-                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
+                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
                   <div className="p-4 bg-black">
                     <div className="flex items-center justify-between gap-4 mb-4">
                       {/* Time Range Buttons - LEFT */}
@@ -481,28 +586,207 @@ export function MarketPage() {
                       </div>
                     </div>
 
-                    <div className="h-[500px] bg-black">
+                    <div className="h-[500px] bg-black relative">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={getFilteredData().length > 0 ? getFilteredData() : [{ date: 'Start', YES: 50 }, { date: 'Now', YES: yesPrice }]}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-                          <XAxis dataKey="date" stroke="#6B7280" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
-                          <YAxis stroke="#6B7280" style={{ fontSize: '11px' }} domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(value) => `${value}%`} />
-                          <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
-                          <Line type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} dot={false} />
-                        </LineChart>
+                        <ComposedChart
+                          data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
+                            ...d,
+                            volume: Math.random() * 1000 + 500 // Simulated volume data
+                          })) : [
+                            { date: 'Start', YES: 50, volume: 500 },
+                            { date: 'Now', YES: yesPrice, volume: 800 }
+                          ]}
+                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                        >
+                          <defs>
+                            <linearGradient id="colorYES" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#1F2937"
+                            vertical={false}
+                            opacity={0.5}
+                          />
+
+                          <XAxis
+                            dataKey="date"
+                            stroke="#6B7280"
+                            style={{ fontSize: '11px' }}
+                            axisLine={{ stroke: '#374151' }}
+                            tickLine={false}
+                            tick={{ fill: '#9CA3AF' }}
+                          />
+
+                          {/* Left Y-Axis for Price (Percentage) */}
+                          <YAxis
+                            yAxisId="left"
+                            stroke="#6B7280"
+                            style={{ fontSize: '11px' }}
+                            domain={[0, 100]}
+                            axisLine={{ stroke: '#374151' }}
+                            tickLine={false}
+                            tick={{ fill: '#9CA3AF' }}
+                            tickFormatter={(value) => `${value}%`}
+                          />
+
+                          {/* Right Y-Axis for Volume */}
+                          <YAxis
+                            yAxisId="right"
+                            orientation="right"
+                            stroke="#6B7280"
+                            style={{ fontSize: '11px' }}
+                            axisLine={{ stroke: '#374151' }}
+                            tickLine={false}
+                            tick={{ fill: '#9CA3AF' }}
+                            tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
+                          />
+
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#111827',
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: '#fff',
+                              fontSize: '12px',
+                              padding: '12px'
+                            }}
+                            labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
+                            itemStyle={{ color: '#A4E977', padding: '4px 0' }}
+                            formatter={(value: any, name: string) => {
+                              if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
+                              if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
+                              return [value, name];
+                            }}
+                            cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
+                          />
+
+                          {/* Volume Bars */}
+                          <Bar
+                            yAxisId="right"
+                            dataKey="volume"
+                            fill="#A4E977"
+                            opacity={0.3}
+                            radius={[2, 2, 0, 0]}
+                          />
+
+                          {/* Area Chart */}
+                          {chartType === 'area' && (
+                            <Area
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="YES"
+                              stroke="#A4E977"
+                              strokeWidth={2}
+                              fill="url(#colorYES)"
+                              dot={false}
+                            />
+                          )}
+
+                          {/* Line Chart */}
+                          {chartType === 'line' && (
+                            <Line
+                              yAxisId="left"
+                              type="monotone"
+                              dataKey="YES"
+                              stroke="#A4E977"
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
+                            />
+                          )}
+
+
+                          {/* Candlestick Chart */}
+                          {chartType === 'candle' && (
+                            <Scatter
+                              yAxisId="left"
+                              data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
+                                ...d,
+                                volume: Math.random() * 1000 + 500
+                              })) : [
+                                { date: 'Start', YES: 50, open: 50, high: 52, low: 48, close: 50, volume: 500 },
+                                { date: 'Now', YES: yesPrice, open: 50, high: yesPrice + 2, low: yesPrice - 2, close: yesPrice, volume: 800 }
+                              ]}
+                              shape={(props: any) => {
+                                const { cx, cy, payload } = props;
+                                if (!payload || !payload.open || !payload.close) return <></>;
+
+                                const isGrowing = payload.close > payload.open;
+                                const color = isGrowing ? '#A4E977' : '#EF4444';
+                                const candleWidth = 8;
+
+                                // Calculate Y positions based on the chart's scale
+                                const yScale = (value: number) => {
+                                  const chartHeight = 400; // Approximate chart height
+                                  const priceRange = 100; // 0-100%
+                                  return cy - ((value - payload.close) / priceRange) * chartHeight;
+                                };
+
+                                const highY = yScale(payload.high);
+                                const lowY = yScale(payload.low);
+                                const openY = yScale(payload.open);
+                                const closeY = yScale(payload.close);
+                                const bodyTop = Math.min(openY, closeY);
+                                const bodyHeight = Math.abs(openY - closeY) || 1;
+
+                                return (
+                                  <g>
+                                    {/* Wick (High-Low line) */}
+                                    <line
+                                      x1={cx}
+                                      y1={highY}
+                                      x2={cx}
+                                      y2={lowY}
+                                      stroke={color}
+                                      strokeWidth={1.5}
+                                    />
+                                    {/* Candle Body */}
+                                    <rect
+                                      x={cx - candleWidth / 2}
+                                      y={bodyTop}
+                                      width={candleWidth}
+                                      height={bodyHeight}
+                                      fill={color}
+                                      stroke={color}
+                                      strokeWidth={1}
+                                    />
+                                  </g>
+                                );
+                              }}
+                            />
+                          )}
+                        </ComposedChart>
                       </ResponsiveContainer>
+
+                      {/* Price indicator overlay */}
+                      <div className="absolute top-4 left-4 bg-black/80 border border-gray-700 rounded px-3 py-2">
+                        <div className="text-xs text-gray-400">Current Price</div>
+                        <div className="text-lg font-bold text-[#A4E977]">{yesPrice}%</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Order Book - INSIDE Chart Section */}
-                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
+                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
                   <div className="px-3 py-3 border-b border-[#A4E977]">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-white">Order Book</h3>
-                      <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
-                        Others <ChevronDown className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setShowDepthChart(!showDepthChart)}
+                          className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-400 hover:text-white bg-gray-800'}`}
+                        >
+                          {showDepthChart ? 'Table' : 'Depth'}
+                        </button>
+                        <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                          Others <ChevronDown className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                     <div className="flex gap-1">
                       <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
@@ -510,81 +794,267 @@ export function MarketPage() {
                     </div>
                   </div>
 
-                  <div className="px-3 py-2">
-                    <div className="grid grid-cols-[1fr_0.8fr_1fr] gap-2 text-[10px] text-gray-500 font-medium mb-3">
-                      <div>Price</div>
-                      <div className="text-right">Size</div>
-                      <div className="text-right">Total(USD)</div>
+                  {/* Market Depth Chart or Order Book Table */}
+                  {showDepthChart ? (
+                    <div className="px-3 py-4">
+                      <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
+                      <div className="relative h-[300px] bg-gray-900/30 rounded">
+                        {/* Depth Chart Visualization */}
+                        <svg className="w-full h-full" viewBox="0 0 400 300">
+                          {/* Bids (Green) - Left side */}
+                          <path
+                            d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z"
+                            fill="rgba(164, 233, 119, 0.2)"
+                            stroke="#A4E977"
+                            strokeWidth="2"
+                          />
+                          {/* Asks (Red) - Right side */}
+                          <path
+                            d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z"
+                            fill="rgba(239, 68, 68, 0.2)"
+                            stroke="#EF4444"
+                            strokeWidth="2"
+                          />
+                          {/* Center line */}
+                          <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
+                          {/* Labels */}
+                          <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
+                          <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
+                          <text x="200" y="20" fill="#666" fontSize="10" textAnchor="middle">{yesPrice}¢</text>
+                        </svg>
+                      </div>
                     </div>
-
-                    <div className="max-h-[500px] overflow-y-auto">
-                      <div className="space-y-0.5 mb-2">
-                        {filteredAsks.slice(0, 10).map((ask, i) => (
-                          <div key={i} className="grid grid-cols-[1fr_0.8fr_1fr] gap-2 text-xs py-1 hover:bg-red-500/10 rounded px-1 cursor-pointer">
-                            <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(1)}¢</div>
-                            <div className="text-right text-gray-300">{ask.amount.toFixed(0)}</div>
-                            <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
-                          </div>
-                        ))}
-                        {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
+                  ) : (
+                    <div className="px-3 py-2">
+                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3">
+                        <div>Price</div>
+                        <div className="text-right">Size</div>
+                        <div className="text-right">Cumulative</div>
+                        <div className="text-right">Total(USD)</div>
                       </div>
 
-                      <div className="py-2 text-center border-y border-gray-800/50 mb-2">
-                        <div className="text-[10px] text-gray-400">
-                          Spread: <span className="text-[#A4E977] font-mono">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(2) : '0.00'}¢</span>
+                      <div className="max-h-[500px] overflow-y-auto">
+                        {/* Asks (Sell Orders) */}
+                        <div className="space-y-0.5 mb-2">
+                          {(() => {
+                            // Calculate cumulative volume for asks
+                            let cumulativeAsk = 0;
+                            const maxAskVolume = filteredAsks.reduce((max, ask) => Math.max(max, ask.amount), 0);
+
+                            return filteredAsks.slice(0, 10).map((ask, i) => {
+                              cumulativeAsk += ask.amount;
+                              const depthPercentage = (ask.amount / maxAskVolume) * 100;
+
+                              return (
+                                <div key={i} className="relative group">
+                                  {/* Depth visualization bar */}
+                                  <div
+                                    className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20"
+                                    style={{ width: `${depthPercentage}%` }}
+                                  />
+
+                                  {/* Order data */}
+                                  <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
+                                    <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(4)}¢</div>
+                                    <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400 text-[10px]">{cumulativeAsk.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                          {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
+                        </div>
+
+                        {/* Spread Indicator */}
+                        <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-gray-900/30">
+                          <div className="text-[11px] text-gray-400 space-y-0.5">
+                            <div>
+                              Spread: <span className="text-[#A4E977] font-mono font-semibold">
+                                {filteredAsks.length > 0 && filteredBids.length > 0
+                                  ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4)
+                                  : '0.0000'}¢
+                              </span>
+                            </div>
+                            <div className="text-[10px]">
+                              ({filteredAsks.length > 0 && filteredBids.length > 0
+                                ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2)
+                                : '0.00'}%)
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bids (Buy Orders) */}
+                        <div className="space-y-0.5">
+                          {(() => {
+                            // Calculate cumulative volume for bids
+                            let cumulativeBid = 0;
+                            const maxBidVolume = filteredBids.reduce((max, bid) => Math.max(max, bid.amount), 0);
+
+                            return filteredBids.slice(0, 10).map((bid, i) => {
+                              cumulativeBid += bid.amount;
+                              const depthPercentage = (bid.amount / maxBidVolume) * 100;
+
+                              return (
+                                <div key={i} className="relative group">
+                                  {/* Depth visualization bar */}
+                                  <div
+                                    className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20"
+                                    style={{ width: `${depthPercentage}%` }}
+                                  />
+
+                                  {/* Order data */}
+                                  <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
+                                    <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(4)}¢</div>
+                                    <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400 text-[10px]">{cumulativeBid.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                          {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
                         </div>
                       </div>
-
-                      <div className="space-y-0.5">
-                        {filteredBids.slice(0, 10).map((bid, i) => (
-                          <div key={i} className="grid grid-cols-[1fr_0.8fr_1fr] gap-2 text-xs py-1 hover:bg-[#A4E977]/10 rounded px-1 cursor-pointer">
-                            <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(1)}¢</div>
-                            <div className="text-right text-gray-300">{bid.amount.toFixed(0)}</div>
-                            <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
-                          </div>
-                        ))}
-                        {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
-                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
               {/* Bottom Tabs */}
               <div className="p-3 pt-0">
-                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
-                  <div className="flex border-b border-[#A4E977]">
+                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
+                  <div className="flex border-b border-[rgba(164,233,119,0.35)]">
                     {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
-                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-400 hover:text-white'}`}>
+                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[rgba(164,233,119,0.35)]' : 'text-gray-400 hover:text-white'}`}>
                         {tab}
                       </button>
                     ))}
                   </div>
                   <div className="p-4 min-h-[200px]">
+                    {/* Filters and Search */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="px-3 py-1.5 text-xs bg-gray-900 border border-gray-700 rounded focus:border-[#A4E977] focus:outline-none text-white"
+                        />
+                        <select
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value as any)}
+                          className="px-3 py-1.5 text-xs bg-gray-900 border border-gray-700 rounded focus:border-[#A4E977] focus:outline-none text-white"
+                        >
+                          <option value="all">All Types</option>
+                          <option value="buy">Buy Only</option>
+                          <option value="sell">Sell Only</option>
+                        </select>
+                        <select
+                          value={filterOutcome}
+                          onChange={(e) => setFilterOutcome(e.target.value as any)}
+                          className="px-3 py-1.5 text-xs bg-gray-900 border border-gray-700 rounded focus:border-[#A4E977] focus:outline-none text-white"
+                        >
+                          <option value="all">All Outcomes</option>
+                          <option value="yes">YES Only</option>
+                          <option value="no">NO Only</option>
+                        </select>
+                      </div>
+                    </div>
+
                     {activeTab === 'positions' && (
                       <div>
                         {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between p-3 bg-black rounded">
-                              <div>
-                                <div className="text-xs text-gray-400">YES Position</div>
-                                <div className="text-sm font-semibold text-[#A4E977]">{parseFloat(positions[0]).toFixed(2)} shares</div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-xs text-gray-400">Value</div>
-                                <div className="text-sm font-semibold">${(parseFloat(positions[0]) * (yesPrice / 100)).toFixed(2)}</div>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-black rounded">
-                              <div>
-                                <div className="text-xs text-gray-400">NO Position</div>
-                                <div className="text-sm font-semibold text-red-400">{parseFloat(positions[1]).toFixed(2)} shares</div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-xs text-gray-400">Value</div>
-                                <div className="text-sm font-semibold">${(parseFloat(positions[1]) * (noPrice / 100)).toFixed(2)}</div>
-                              </div>
-                            </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b border-gray-800">
+                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Size</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Entry Price</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Current Price</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L %</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Liq. Price</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {parseFloat(positions[0]) > 0 && (
+                                  <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                    <td className="py-3">
+                                      <span className="text-xs font-semibold text-[#A4E977]">YES</span>
+                                    </td>
+                                    <td className="text-right text-xs text-white">
+                                      {parseFloat(positions[0]).toFixed(2)}
+                                    </td>
+                                    <td className="text-right text-xs text-gray-300">
+                                      {(yesPrice * 0.95).toFixed(2)}¢
+                                    </td>
+                                    <td className="text-right text-xs text-white font-medium">
+                                      {yesPrice}.00¢
+                                    </td>
+                                    <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      +${((parseFloat(positions[0]) * (yesPrice / 100)) * 0.05).toFixed(2)}
+                                    </td>
+                                    <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      +5.26%
+                                    </td>
+                                    <td className="text-right text-xs text-red-400">
+                                      {(yesPrice * 0.80).toFixed(2)}¢
+                                    </td>
+                                    <td className="text-right">
+                                      <div className="flex gap-1 justify-end">
+                                        <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                          Close
+                                        </button>
+                                        <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                          Edit
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                                {parseFloat(positions[1]) > 0 && (
+                                  <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                    <td className="py-3">
+                                      <span className="text-xs font-semibold text-red-400">NO</span>
+                                    </td>
+                                    <td className="text-right text-xs text-white">
+                                      {parseFloat(positions[1]).toFixed(2)}
+                                    </td>
+                                    <td className="text-right text-xs text-gray-300">
+                                      {(noPrice * 0.95).toFixed(2)}¢
+                                    </td>
+                                    <td className="text-right text-xs text-white font-medium">
+                                      {noPrice}.00¢
+                                    </td>
+                                    <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      +${((parseFloat(positions[1]) * (noPrice / 100)) * 0.05).toFixed(2)}
+                                    </td>
+                                    <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      +5.26%
+                                    </td>
+                                    <td className="text-right text-xs text-red-400">
+                                      {(noPrice * 0.80).toFixed(2)}¢
+                                    </td>
+                                    <td className="text-right">
+                                      <div className="flex gap-1 justify-end">
+                                        <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                          Close
+                                        </button>
+                                        <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                          Edit
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
                           </div>
                         ) : (
                           <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
@@ -592,16 +1062,52 @@ export function MarketPage() {
                       </div>
                     )}
                     {activeTab === 'trade-history' && (
-                      <div className="space-y-1">
+                      <div>
                         {recentTrades.length > 0 ? (
-                          recentTrades.slice(0, 10).map((trade, i) => (
-                            <div key={i} className="flex items-center justify-between py-2 text-xs hover:bg-gray-800/30 px-2 rounded">
-                              <span className={trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}>{trade.type}</span>
-                              <span className="text-gray-400">{trade.outcomeIndex === 0 ? 'YES' : 'NO'}</span>
-                              <span className="text-gray-400">${trade.amountIn}</span>
-                              <span className="text-gray-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
-                            </div>
-                          ))
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b border-gray-800">
+                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Type</th>
+                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Amount</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Price</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Total</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Time</th>
+                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Tx Hash</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {recentTrades.slice(0, 10).map((trade, i) => (
+                                  <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                    <td className="py-3">
+                                      <span className={`text-xs font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                                        {trade.type}
+                                      </span>
+                                    </td>
+                                    <td className="text-xs text-gray-300">
+                                      {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
+                                    </td>
+                                    <td className="text-right text-xs text-white">
+                                      {trade.amountOut}
+                                    </td>
+                                    <td className="text-right text-xs text-gray-300">
+                                      {(trade.price * 100).toFixed(2)}¢
+                                    </td>
+                                    <td className="text-right text-xs text-white font-medium">
+                                      ${trade.amountIn}
+                                    </td>
+                                    <td className="text-right text-xs text-gray-400">
+                                      {new Date(trade.timestamp).toLocaleTimeString()}
+                                    </td>
+                                    <td className="text-right text-xs text-gray-500 font-mono">
+                                      {trade.txHash.slice(0, 6)}...{trade.txHash.slice(-4)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         ) : (
                           <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
                         )}
@@ -610,6 +1116,12 @@ export function MarketPage() {
                     {activeTab === 'open-orders' && (
                       <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
                     )}
+                    {activeTab === 'order-history' && (
+                      <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
+                    )}
+                    {(activeTab === 'twap' || activeTab === 'funding-history') && (
+                      <div className="text-center py-12 text-gray-500 text-sm">Coming soon</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -617,19 +1129,102 @@ export function MarketPage() {
 
             {/* RIGHT: Trading Panel ONLY */}
             <div className="bg-black flex flex-col p-3 h-full">
-              <div className="border-2 rounded-lg overflow-y-auto bg-black h-full flex flex-col" style={{ borderColor: '#A4E977' }}>
-                <div className="flex border-b border-[#A4E977] py-2 px-2">
+              <div className="border-2 rounded-lg overflow-y-auto bg-black h-full flex flex-col" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
+                <div className="flex border-b border-[rgba(164,233,119,0.35)] py-2 px-2">
                   <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Buy</button>
                   <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Sell</button>
                 </div>
 
+                {/* One-Click Trading Toggle */}
+                <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
+                  <span className="text-xs text-gray-400">One-Click Trading</span>
+                  <button
+                    onClick={() => setOneClickTrading(!oneClickTrading)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-gray-700'
+                      }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                    />
+                  </button>
+                </div>
+
                 <div className="p-3 border-b border-[#A4E977]">
-                  <div className="flex gap-2">
+                  {/* Order Type Tabs */}
+                  <div className="flex gap-2 mb-3">
                     {(['market', 'limit', 'pro'] as const).map((type) => (
                       <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-400 hover:text-white bg-gray-800 border border-gray-700'}`}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                       </button>
                     ))}
+                  </div>
+
+                  {/* Advanced Order Types (when Pro is selected) */}
+                  {orderType === 'pro' && (
+                    <div className="space-y-2 mb-3">
+                      <label className="text-xs text-gray-400">Advanced Order Type</label>
+                      <select
+                        value={advancedOrderType}
+                        onChange={(e) => setAdvancedOrderType(e.target.value as any)}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                      >
+                        <option value="none">Standard</option>
+                        <option value="stop-limit">Stop-Limit</option>
+                        <option value="trailing-stop">Trailing Stop</option>
+                      </select>
+
+                      {advancedOrderType === 'stop-limit' && (
+                        <div className="space-y-2">
+                          <input
+                            type="number"
+                            placeholder="Stop Price"
+                            value={stopLossPrice}
+                            onChange={(e) => setStopLossPrice(e.target.value)}
+                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Limit Price"
+                            value={limitPrice}
+                            onChange={(e) => setLimitPrice(e.target.value)}
+                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                          />
+                        </div>
+                      )}
+
+                      {advancedOrderType === 'trailing-stop' && (
+                        <input
+                          type="number"
+                          placeholder="Trailing %"
+                          value={trailingStopPercent}
+                          onChange={(e) => setTrailingStopPercent(e.target.value)}
+                          className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Leverage Selector */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-gray-400">Leverage</label>
+                      <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 5, 10].map((lev) => (
+                        <button
+                          key={lev}
+                          onClick={() => setLeverage(lev)}
+                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
+                            ? 'bg-[#A4E977] text-black'
+                            : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'
+                            }`}
+                        >
+                          {lev}x
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -648,9 +1243,46 @@ export function MarketPage() {
 
                 <div className="px-3 pb-3">
                   <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
-                  <div className="relative">
+                  <div className="relative mb-2">
                     <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
                     <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
+                  </div>
+
+                  {/* Quick Order Buttons */}
+                  <div className="grid grid-cols-4 gap-1 mb-3">
+                    {[10, 25, 50, 100].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setAmount(val.toString())}
+                        className="py-1.5 text-xs font-medium rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 transition-colors"
+                      >
+                        ${val}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Position Size Calculator */}
+                  <div className="bg-gray-900/50 rounded p-2 space-y-1">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-500">Est. Shares:</span>
+                      <span className="text-white font-medium">
+                        {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-500">Total Cost:</span>
+                      <span className="text-white font-medium">
+                        ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                      </span>
+                    </div>
+                    {leverage > 1 && (
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Liq. Price:</span>
+                        <span className="text-red-400 font-medium">
+                          {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -712,9 +1344,73 @@ export function MarketPage() {
                 </div>
 
                 <div className="px-3 pb-3">
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-sm mb-3">
                     <span className="text-gray-300 font-medium">Potential Payout</span>
                     <span className="text-white font-bold">${calculatePotentialPayout()}</span>
+                  </div>
+
+                  {/* Risk/Reward Calculator */}
+                  <div className="bg-gray-900/50 rounded p-3 space-y-2">
+                    <div className="text-xs text-gray-400 font-semibold mb-2">Risk/Reward Analysis</div>
+
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-500">Potential Profit:</span>
+                      <span className="text-[#A4E977] font-medium">
+                        ${amount && yesPrice
+                          ? ((parseFloat(amount) * leverage) * ((100 - yesPrice) / yesPrice)).toFixed(2)
+                          : '0.00'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-500">Max Loss:</span>
+                      <span className="text-red-400 font-medium">
+                        -${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-500">Risk/Reward Ratio:</span>
+                      <span className="text-white font-medium">
+                        1:{amount && yesPrice && yesPrice > 0
+                          ? ((100 - yesPrice) / yesPrice).toFixed(2)
+                          : '0.00'}
+                      </span>
+                    </div>
+
+                    {/* Visual Risk/Reward Bar */}
+                    <div className="mt-2">
+                      <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                        <span>Risk</span>
+                        <span>Reward</span>
+                      </div>
+                      <div className="h-2 bg-red-500/20 rounded-full overflow-hidden flex">
+                        <div
+                          className="bg-red-500"
+                          style={{
+                            width: `${yesPrice && yesPrice > 0 ? (yesPrice / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
+                          }}
+                        />
+                        <div
+                          className="bg-[#A4E977]"
+                          style={{
+                            width: `${yesPrice && yesPrice > 0 ? ((100 - yesPrice) / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between text-[10px] pt-2 border-t border-gray-800">
+                      <span className="text-gray-500">Est. ROI:</span>
+                      <span className={`font-medium ${amount && yesPrice && yesPrice > 0 && ((100 - yesPrice) / yesPrice) > 1
+                        ? 'text-[#A4E977]'
+                        : 'text-gray-400'
+                        }`}>
+                        {amount && yesPrice && yesPrice > 0
+                          ? `+${(((100 - yesPrice) / yesPrice) * 100).toFixed(0)}%`
+                          : '0%'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -828,6 +1524,90 @@ export function MarketPage() {
             </div>
           </div>
         </div>
+
+        {/* Price Alert Modal */}
+        {showAlertModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={() => setShowAlertModal(false)}>
+            <div className="bg-gray-900 border-2 border-[rgba(164,233,119,0.6)] rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white">Set Price Alert</h3>
+                <button onClick={() => setShowAlertModal(false)} className="text-gray-400 hover:text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 mb-2 block">Alert Type</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setAlertType('above')}
+                      className={`flex-1 py-2 text-sm font-medium rounded transition-colors ${alertType === 'above' ? 'bg-[#A4E977] text-black' : 'bg-gray-800 text-gray-400 hover:text-white'
+                        }`}
+                    >
+                      Price Above
+                    </button>
+                    <button
+                      onClick={() => setAlertType('below')}
+                      className={`flex-1 py-2 text-sm font-medium rounded transition-colors ${alertType === 'below' ? 'bg-[#A4E977] text-black' : 'bg-gray-800 text-gray-400 hover:text-white'
+                        }`}
+                    >
+                      Price Below
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-400 mb-2 block">Target Price (¢)</label>
+                  <input
+                    type="number"
+                    value={alertPrice}
+                    onChange={(e) => setAlertPrice(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                    placeholder="50.00"
+                    step="0.01"
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (alertPrice) {
+                      setPriceAlerts([...priceAlerts, { price: parseFloat(alertPrice), type: alertType }]);
+                      setAlertPrice('');
+                      setShowAlertModal(false);
+                    }
+                  }}
+                  className="w-full bg-[#A4E977] text-black font-semibold py-2 rounded hover:bg-[#8BC34A] transition-colors"
+                >
+                  Create Alert
+                </button>
+
+                {priceAlerts.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-800">
+                    <div className="text-xs text-gray-400 mb-2">Active Alerts</div>
+                    <div className="space-y-2">
+                      {priceAlerts.map((alert, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-800 rounded px-3 py-2">
+                          <div className="text-sm text-white">
+                            {alert.type === 'above' ? '↑' : '↓'} {alert.price.toFixed(2)}¢
+                          </div>
+                          <button
+                            onClick={() => setPriceAlerts(priceAlerts.filter((_, i) => i !== index))}
+                            className="text-red-400 hover:text-red-300 text-xs"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <Footer />
       </div>
