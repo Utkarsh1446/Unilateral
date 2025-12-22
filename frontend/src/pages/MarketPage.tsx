@@ -424,10 +424,10 @@ export function MarketPage() {
 
         {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-[87%_13%] gap-0">
+          <div className="grid grid-cols-[84%_16%] gap-0">
             {/* LEFT: Chart Section with Order Book Inside */}
             <div className="border-r border-gray-800/50 h-full">
-              <div className="grid grid-cols-[82.35%_17.65%] gap-3 p-3">
+              <div className="grid grid-cols-[85.35%_14.65%] gap-3 p-3">
                 {/* Chart Area */}
                 <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
                   <div className="p-4 bg-black">
@@ -551,71 +551,73 @@ export function MarketPage() {
               </div>
 
               {/* Bottom Tabs */}
-              <div className="border-2 rounded-lg overflow-hidden bg-black mx-3 mb-3" style={{ borderColor: '#A4E977' }}>
-                <div className="flex border-b border-[#A4E977]">
-                  {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
-                    <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-400 hover:text-white'}`}>
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-                <div className="p-4 min-h-[200px]">
-                  {activeTab === 'positions' && (
-                    <div>
-                      {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-3 bg-black rounded">
-                            <div>
-                              <div className="text-xs text-gray-400">YES Position</div>
-                              <div className="text-sm font-semibold text-[#A4E977]">{parseFloat(positions[0]).toFixed(2)} shares</div>
+              <div className="p-3 pt-0">
+                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
+                  <div className="flex border-b border-[#A4E977]">
+                    {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
+                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-400 hover:text-white'}`}>
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-4 min-h-[200px]">
+                    {activeTab === 'positions' && (
+                      <div>
+                        {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between p-3 bg-black rounded">
+                              <div>
+                                <div className="text-xs text-gray-400">YES Position</div>
+                                <div className="text-sm font-semibold text-[#A4E977]">{parseFloat(positions[0]).toFixed(2)} shares</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-400">Value</div>
+                                <div className="text-sm font-semibold">${(parseFloat(positions[0]) * (yesPrice / 100)).toFixed(2)}</div>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-xs text-gray-400">Value</div>
-                              <div className="text-sm font-semibold">${(parseFloat(positions[0]) * (yesPrice / 100)).toFixed(2)}</div>
+                            <div className="flex items-center justify-between p-3 bg-black rounded">
+                              <div>
+                                <div className="text-xs text-gray-400">NO Position</div>
+                                <div className="text-sm font-semibold text-red-400">{parseFloat(positions[1]).toFixed(2)} shares</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-400">Value</div>
+                                <div className="text-sm font-semibold">${(parseFloat(positions[1]) * (noPrice / 100)).toFixed(2)}</div>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between p-3 bg-black rounded">
-                            <div>
-                              <div className="text-xs text-gray-400">NO Position</div>
-                              <div className="text-sm font-semibold text-red-400">{parseFloat(positions[1]).toFixed(2)} shares</div>
+                        ) : (
+                          <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
+                        )}
+                      </div>
+                    )}
+                    {activeTab === 'trade-history' && (
+                      <div className="space-y-1">
+                        {recentTrades.length > 0 ? (
+                          recentTrades.slice(0, 10).map((trade, i) => (
+                            <div key={i} className="flex items-center justify-between py-2 text-xs hover:bg-gray-800/30 px-2 rounded">
+                              <span className={trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}>{trade.type}</span>
+                              <span className="text-gray-400">{trade.outcomeIndex === 0 ? 'YES' : 'NO'}</span>
+                              <span className="text-gray-400">${trade.amountIn}</span>
+                              <span className="text-gray-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
                             </div>
-                            <div className="text-right">
-                              <div className="text-xs text-gray-400">Value</div>
-                              <div className="text-sm font-semibold">${(parseFloat(positions[1]) * (noPrice / 100)).toFixed(2)}</div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
-                      )}
-                    </div>
-                  )}
-                  {activeTab === 'trade-history' && (
-                    <div className="space-y-1">
-                      {recentTrades.length > 0 ? (
-                        recentTrades.slice(0, 10).map((trade, i) => (
-                          <div key={i} className="flex items-center justify-between py-2 text-xs hover:bg-gray-800/30 px-2 rounded">
-                            <span className={trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}>{trade.type}</span>
-                            <span className="text-gray-400">{trade.outcomeIndex === 0 ? 'YES' : 'NO'}</span>
-                            <span className="text-gray-400">${trade.amountIn}</span>
-                            <span className="text-gray-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
-                      )}
-                    </div>
-                  )}
-                  {activeTab === 'open-orders' && (
-                    <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
-                  )}
+                          ))
+                        ) : (
+                          <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
+                        )}
+                      </div>
+                    )}
+                    {activeTab === 'open-orders' && (
+                      <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* RIGHT: Trading Panel ONLY */}
-            <div className="bg-black flex flex-col h-full p-3">
-              <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: '#A4E977' }}>
+            <div className="bg-black flex flex-col p-3 h-full">
+              <div className="border-2 rounded-lg overflow-y-auto bg-black h-full flex flex-col" style={{ borderColor: '#A4E977' }}>
                 <div className="flex border-b border-[#A4E977] py-2 px-2">
                   <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Buy</button>
                   <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Sell</button>
@@ -786,7 +788,7 @@ export function MarketPage() {
                   )}
                 </div>
 
-                <div className="p-4 flex-1 flex flex-col justify-end">
+                <div className="p-4 mt-auto">
                   <button
                     onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
                     className="flex items-center justify-between w-full mb-3"
