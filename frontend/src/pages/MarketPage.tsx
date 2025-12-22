@@ -442,8 +442,8 @@ export function MarketPage() {
 
         {/* Top Header */}
         <div className="max-w-[1920px] mx-auto px-3 pt-3">
-          <div className="border-2 rounded-lg bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
-            <div className="px-6 py-4">
+          <div className="border rounded-lg bg-[#0a0a0a] shadow-lg" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' }}>
+            <div className="px-5 py-3">
               <div className="flex items-start justify-between">
                 {/* Left: Market Title and Volume */}
                 <div className="flex items-start gap-4">
@@ -455,7 +455,7 @@ export function MarketPage() {
                     />
                   )}
                   <div>
-                    <h1 className="text-2xl font-bold text-white mb-2">
+                    <h1 className="text-xl font-bold text-white mb-1.5">
                       {displayMarket.description}
                     </h1>
                     <div className="text-sm text-gray-400">
@@ -534,8 +534,8 @@ export function MarketPage() {
             <div className="border-r border-gray-800/50 h-full">
               <div className="grid grid-cols-[85.35%_14.65%] gap-3 p-3">
                 {/* Chart Area */}
-                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
-                  <div className="p-4 bg-black">
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="p-3 bg-[#0a0a0a]">
                     <div className="flex items-center justify-between gap-4 mb-4">
                       {/* Time Range Buttons - LEFT */}
                       <div className="flex items-center gap-2">
@@ -554,7 +554,7 @@ export function MarketPage() {
                       <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
                         <button
                           onClick={() => setChartType('line')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-gray-700 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                          className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
                           title="Line Chart"
                         >
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -563,7 +563,7 @@ export function MarketPage() {
                         </button>
                         <button
                           onClick={() => setChartType('candle')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-gray-700 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                          className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
                           title="Candlestick Chart"
                         >
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -575,7 +575,7 @@ export function MarketPage() {
                         </button>
                         <button
                           onClick={() => setChartType('area')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-gray-700 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                          className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
                           title="Area Chart"
                         >
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -586,7 +586,7 @@ export function MarketPage() {
                       </div>
                     </div>
 
-                    <div className="h-[500px] bg-black relative">
+                    <div className="h-[500px] bg-[#0a0a0a] relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
                           data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
@@ -607,18 +607,18 @@ export function MarketPage() {
 
                           <CartesianGrid
                             strokeDasharray="3 3"
-                            stroke="#1F2937"
+                            stroke="#1a1a1a"
                             vertical={false}
                             opacity={0.5}
                           />
 
                           <XAxis
                             dataKey="date"
-                            stroke="#6B7280"
+                            stroke="#666666"
                             style={{ fontSize: '11px' }}
-                            axisLine={{ stroke: '#374151' }}
+                            axisLine={{ stroke: '#2a2a2a' }}
                             tickLine={false}
-                            tick={{ fill: '#9CA3AF' }}
+                            tick={{ fill: '#888888' }}
                           />
 
                           {/* Left Y-Axis for Price (Percentage) */}
@@ -637,22 +637,19 @@ export function MarketPage() {
                           <YAxis
                             yAxisId="right"
                             orientation="right"
-                            stroke="#6B7280"
+                            stroke="#666666"
                             style={{ fontSize: '11px' }}
-                            axisLine={{ stroke: '#374151' }}
+                            axisLine={{ stroke: '#2a2a2a' }}
                             tickLine={false}
-                            tick={{ fill: '#9CA3AF' }}
+                            tick={{ fill: '#888888' }}
                             tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
                           />
 
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: '#111827',
-                              border: '1px solid #374151',
-                              borderRadius: '8px',
-                              color: '#fff',
-                              fontSize: '12px',
-                              padding: '12px'
+                              backgroundColor: '#0a0a0a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px'
                             }}
                             labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
                             itemStyle={{ color: '#A4E977', padding: '4px 0' }}
@@ -763,23 +760,23 @@ export function MarketPage() {
                       </ResponsiveContainer>
 
                       {/* Price indicator overlay */}
-                      <div className="absolute top-4 left-4 bg-black/80 border border-gray-700 rounded px-3 py-2">
-                        <div className="text-xs text-gray-400">Current Price</div>
-                        <div className="text-lg font-bold text-[#A4E977]">{yesPrice}%</div>
+                      <div className="absolute top-4 left-4 bg-[#0a0a0a]/90 border border-gray-800 rounded px-2.5 py-1.5">
+                        <div className="text-[10px] text-gray-500">Current Price</div>
+                        <div className="text-base font-bold text-[#A4E977]">{yesPrice}%</div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Order Book - INSIDE Chart Section */}
-                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="px-3 py-3 border-b border-[#A4E977]">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-white">Order Book</h3>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setShowDepthChart(!showDepthChart)}
-                          className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-400 hover:text-white bg-gray-800'}`}
+                          className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
                         >
                           {showDepthChart ? 'Table' : 'Depth'}
                         </button>
@@ -798,7 +795,7 @@ export function MarketPage() {
                   {showDepthChart ? (
                     <div className="px-3 py-4">
                       <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
-                      <div className="relative h-[300px] bg-gray-900/30 rounded">
+                      <div className="relative h-[300px] bg-[#1a1a1a] rounded">
                         {/* Depth Chart Visualization */}
                         <svg className="w-full h-full" viewBox="0 0 400 300">
                           {/* Bids (Green) - Left side */}
@@ -868,7 +865,7 @@ export function MarketPage() {
                         </div>
 
                         {/* Spread Indicator */}
-                        <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-gray-900/30">
+                        <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-[#1a1a1a]">
                           <div className="text-[11px] text-gray-400 space-y-0.5">
                             <div>
                               Spread: <span className="text-[#A4E977] font-mono font-semibold">
@@ -925,10 +922,10 @@ export function MarketPage() {
 
               {/* Bottom Tabs */}
               <div className="p-3 pt-0">
-                <div className="border-2 rounded-lg overflow-hidden bg-black" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
-                  <div className="flex border-b border-[rgba(164,233,119,0.35)]">
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
                     {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
-                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[rgba(164,233,119,0.35)]' : 'text-gray-400 hover:text-white'}`}>
+                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
                         {tab}
                       </button>
                     ))}
@@ -942,12 +939,12 @@ export function MarketPage() {
                           placeholder="Search..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="px-3 py-1.5 text-xs bg-gray-900 border border-gray-700 rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          className="px-3 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                         />
                         <select
                           value={filterType}
                           onChange={(e) => setFilterType(e.target.value as any)}
-                          className="px-3 py-1.5 text-xs bg-gray-900 border border-gray-700 rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                         >
                           <option value="all">All Types</option>
                           <option value="buy">Buy Only</option>
@@ -956,7 +953,7 @@ export function MarketPage() {
                         <select
                           value={filterOutcome}
                           onChange={(e) => setFilterOutcome(e.target.value as any)}
-                          className="px-3 py-1.5 text-xs bg-gray-900 border border-gray-700 rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                         >
                           <option value="all">All Outcomes</option>
                           <option value="yes">YES Only</option>
@@ -1129,10 +1126,10 @@ export function MarketPage() {
 
             {/* RIGHT: Trading Panel ONLY */}
             <div className="bg-black flex flex-col p-3 h-full">
-              <div className="border-2 rounded-lg overflow-y-auto bg-black h-full flex flex-col" style={{ borderColor: 'rgba(164, 233, 119, 0.35)' }}>
-                <div className="flex border-b border-[rgba(164,233,119,0.35)] py-2 px-2">
-                  <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Buy</button>
-                  <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-1' : 'text-gray-500 hover:text-white'}`}>Sell</button>
+              <div className="border rounded-lg overflow-y-auto bg-[#0a0a0a] h-full flex flex-col shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
+                  <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
+                  <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
                 </div>
 
                 {/* One-Click Trading Toggle */}
@@ -1140,7 +1137,7 @@ export function MarketPage() {
                   <span className="text-xs text-gray-400">One-Click Trading</span>
                   <button
                     onClick={() => setOneClickTrading(!oneClickTrading)}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-gray-700'
+                    className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'
                       }`}
                   >
                     <div
@@ -1154,7 +1151,7 @@ export function MarketPage() {
                   {/* Order Type Tabs */}
                   <div className="flex gap-2 mb-3">
                     {(['market', 'limit', 'pro'] as const).map((type) => (
-                      <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-400 hover:text-white bg-gray-800 border border-gray-700'}`}>
+                      <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                       </button>
                     ))}
@@ -1167,7 +1164,7 @@ export function MarketPage() {
                       <select
                         value={advancedOrderType}
                         onChange={(e) => setAdvancedOrderType(e.target.value as any)}
-                        className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
                       >
                         <option value="none">Standard</option>
                         <option value="stop-limit">Stop-Limit</option>
@@ -1181,7 +1178,7 @@ export function MarketPage() {
                             placeholder="Stop Price"
                             value={stopLossPrice}
                             onChange={(e) => setStopLossPrice(e.target.value)}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                            className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
                           />
                           <input
                             type="number"
@@ -1218,7 +1215,7 @@ export function MarketPage() {
                           onClick={() => setLeverage(lev)}
                           className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
                             ? 'bg-[#A4E977] text-black'
-                            : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'
+                            : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'
                             }`}
                         >
                           {lev}x
@@ -1230,11 +1227,11 @@ export function MarketPage() {
 
                 <div className="p-3">
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-gray-700 hover:border-[#A4E977]/50'}`}>
+                    <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
                       <span className="text-[10px] font-medium text-gray-400">Yes</span>
                       <span className={`text-base font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
                     </button>
-                    <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-gray-700 hover:border-red-500/50'}`}>
+                    <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
                       <span className="text-[10px] font-medium text-gray-400">No</span>
                       <span className={`text-base font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
                     </button>
@@ -1244,7 +1241,7 @@ export function MarketPage() {
                 <div className="px-3 pb-3">
                   <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
                   <div className="relative mb-2">
-                    <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
+                    <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
                     <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
                   </div>
 
@@ -1254,7 +1251,7 @@ export function MarketPage() {
                       <button
                         key={val}
                         onClick={() => setAmount(val.toString())}
-                        className="py-1.5 text-xs font-medium rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 transition-colors"
+                        className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
                       >
                         ${val}
                       </button>
@@ -1262,7 +1259,7 @@ export function MarketPage() {
                   </div>
 
                   {/* Position Size Calculator */}
-                  <div className="bg-gray-900/50 rounded p-2 space-y-1">
+                  <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
                     <div className="flex justify-between text-[10px]">
                       <span className="text-gray-500">Est. Shares:</span>
                       <span className="text-white font-medium">
@@ -1314,9 +1311,9 @@ export function MarketPage() {
                       const maxAmount = parseFloat(balance) || 0;
                       setAmount(((maxAmount * val) / 100).toFixed(2));
                     }}
-                    className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer slider-thumb"
+                    className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
                     style={{
-                      background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1f2937 ${sliderValue}%, #1f2937 100%)`
+                      background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
                     }}
                   />
                   <div className="flex justify-between mt-2">
@@ -1350,7 +1347,7 @@ export function MarketPage() {
                   </div>
 
                   {/* Risk/Reward Calculator */}
-                  <div className="bg-gray-900/50 rounded p-3 space-y-2">
+                  <div className="bg-[#1a1a1a] rounded p-3 space-y-2">
                     <div className="text-xs text-gray-400 font-semibold mb-2">Risk/Reward Analysis</div>
 
                     <div className="flex justify-between text-[10px]">
