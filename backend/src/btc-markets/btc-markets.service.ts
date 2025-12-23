@@ -101,7 +101,88 @@ export class BtcMarketsService {
     /**
      * Create BTC markets - runs every minute to check if markets should be created
      */
-    @Cron('0 * * * * *') // Every minute at :00 seconds
+    /**
+     * Batch create all BTC markets for the day - runs daily at midnight UTC
+     */
+    @Cron('0 0 0 * * *') // Daily at 00:00:00 UTC
+    async batchCreateDailyMarkets() {
+        this.logger.log('🚀 Starting daily batch market creation');
+
+        if (!this.BTC_FACTORY_ADDRESS) {
+            this.logger.warn('BTC_FACTORY_ADDRESS not set, skipping batch creation');
+            return;
+        }
+
+        try {
+            // Calculate today's date at 00:00 UTC
+            const today = new Date();
+            today.setUTCHours(0, 0, 0, 0);
+            const startOfDay = Math.floor(today.getTime() / 1000);
+
+            this.logger.log(`Creating markets for: ${today.toISOString()}`);
+            this.logger.log(`Start timestamp: ${startOfDay}`);
+
+            // Create 96 markets (24 hours * 4 per hour = 96)
+            const INTERVAL = 15; // 15 minutes
+            const TOTAL_MARKETS = 96;
+            let successCount = 0;
+            let skipCount = 0;
+            let failCount = 0;
+
+            this.logger.log(`📊 Creating ${TOTAL_MARKETS} markets...\n`);
+
+            for (let i = 0; i < TOTAL_MARKETS; i++) {
+                const startTime = startOfDay + (i * 15 * 60); // Each market starts 15 min after previous
+                const marketTime = new Date(startTime * 1000);
+
+                try {
+                    this.logger.log(`[${i + 1}/${TOTAL_MARKETS}] Creating market for ${marketTime.toISOString().substring(11, 16)} UTC...`);
+
+                    // Check if market already exists
+                    const existing = await this.prisma.bTCMarket.findFirst({
+                        where: {
+                            interval: INTERVAL,
+                            start_time: marketTime
+                        }
+                    });
+
+                    if (existing) {
+                        this.logger.log(`   ⏭️  Market already exists, skipping`);
+                        skipCount++;
+                        continue;
+                    }
+
+                    await this.createMarketAtTime(INTERVAL, marketTime, startTime);
+                    successCount++;
+
+                    // Small delay to avoid overwhelming the RPC
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                } catch (error: any) {
+                    this.logger.error(`   ❌ Failed: ${error.message}`);
+                    failCount++;
+
+                    // Continue with next market even if one fails
+                    if (error.message?.includes('Market already exists')) {
+                        skipCount++;
+                    }
+                }
+            }
+
+            this.logger.log('\n' + '='.repeat(60));
+            this.logger.log(`✅ Batch creation complete:`);
+            this.logger.log(`   Created: ${successCount}/${TOTAL_MARKETS}`);
+            this.logger.log(`   Skipped: ${skipCount}`);
+            this.logger.log(`   Failed: ${failCount}`);
+            this.logger.log('='.repeat(60));
+
+        } catch (error) {
+            this.logger.error('Error in batch market creation', error);
+        }
+    }
+
+    // DEPRECATED: Old one-by-one creation - keeping for backward compatibility
+    // @Cron('0 * * * * *') // Every minute at :00 seconds
     async createBTCMarkets() {
         this.logger.debug('🔄 Market creation cron triggered');
 
@@ -140,7 +221,64 @@ export class BtcMarketsService {
     }
 
     /**
-     * Create a single BTC market
+     * Create a single BTC market at a specific timestamp (used by batch creation)
+     */
+    async createMarketAtTime(interval: number, startTime: Date, startTimestamp: number) {
+        try {
+            this.logger.log(`Creating BTC ${interval}m market for ${startTime.toISOString()}`);
+
+            // Connect to factory contract
+            const factory = new ethers.Contract(
+                this.BTC_FACTORY_ADDRESS,
+                this.FACTORY_ABI,
+                this.wallet
+            );
+
+            // Create market on-chain (no start price needed with oracle)
+            this.logger.log(`Calling createBTCMarket(${interval}, ${startTimestamp})`);
+
+            const tx = await factory.createBTCMarket(interval, startTimestamp);
+            const receipt = await tx.wait();
+
+            this.logger.log(`   ✅ Market created in tx: ${receipt.hash}`);
+
+            // Extract marketId from events
+            const marketId = this.extractMarketIdFromReceipt(receipt);
+
+            if (!marketId) {
+                this.logger.error('Failed to extract marketId from receipt');
+                return;
+            }
+
+            // Get market details from contract
+            const marketDetails = await factory.getMarket(marketId);
+
+            // Save to database
+            const endTime = new Date((startTimestamp + interval * 60) * 1000);
+
+            await this.prisma.bTCMarket.create({
+                data: {
+                    market_id: marketId,
+                    contract_address: marketDetails.marketAddress,
+                    interval,
+                    start_time: startTime,
+                    end_time: endTime,
+                    start_price: '0', // Will be determined by oracle at start time
+                    resolved: false
+                }
+            });
+
+            this.logger.log(`   Market ID: ${marketId}`);
+            this.logger.log(`   End Time: ${endTime.toISOString()}`);
+
+        } catch (error) {
+            this.logger.error(`Failed to create BTC ${interval}m market`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create a single BTC market (DEPRECATED - use createMarketAtTime)
      */
     async createMarket(interval: number, startTime: Date) {
         try {
