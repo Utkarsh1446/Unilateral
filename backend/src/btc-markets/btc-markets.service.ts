@@ -13,8 +13,8 @@ export class BtcMarketsService {
     // Contract addresses (update after deployment)
     private readonly BTC_FACTORY_ADDRESS = process.env.BTC_FACTORY_ADDRESS || '';
     private readonly FACTORY_ABI = [
-        'function createBTCMarket(uint256 interval, uint256 startTime, uint256 startPrice) external returns (bytes32)',
-        'function resolveBTCMarket(bytes32 marketId, uint256 endPrice) external',
+        'function createBTCMarket(uint256 interval, uint256 startTime) external returns (bytes32)',
+        'function resolveBTCMarket(bytes32 marketId) external',
         'function getMarket(bytes32 marketId) external view returns (tuple(address marketAddress, uint256 interval, uint256 startTime, uint256 endTime, uint256 startPrice, uint256 endPrice, bool resolved, uint256 outcome))'
     ];
 
@@ -417,20 +417,45 @@ export class BtcMarketsService {
                 this.wallet
             );
 
-            // Resolve market on-chain
-            this.logger.log(`Calling resolveBTCMarket(${marketId}, ${Math.floor(endPrice * 1e8)})`);
+            // Resolve market on-chain (oracle determines both prices automatically)
+            this.logger.log(`Calling resolveBTCMarket(${marketId})`);
 
             try {
-                const tx = await factory.resolveBTCMarket(marketId, Math.floor(endPrice * 1e8));
-                await tx.wait();
+                const tx = await factory.resolveBTCMarket(marketId);
+                const receipt = await tx.wait();
+
+                this.logger.log(`✅ Market resolved in tx: ${receipt.hash}`);
+
+                // Get updated market details from contract to get actual prices and outcome
+                const marketDetails = await factory.getMarket(marketId);
+                const startPrice = Number(marketDetails.startPrice) / 1e8; // Convert from 8 decimals
+                const endPrice = Number(marketDetails.endPrice) / 1e8;
+                const outcome = Number(marketDetails.outcome);
+
+                // Update database with actual prices from oracle
+                await this.prisma.bTCMarket.update({
+                    where: { market_id: marketId },
+                    data: {
+                        start_price: startPrice.toString(),
+                        end_price: endPrice.toString(),
+                        resolved: true,
+                        outcome
+                    }
+                });
+
+                this.logger.log(`✅ Market resolved successfully`);
+                this.logger.log(`   Market ID: ${marketId}`);
+                this.logger.log(`   Start Price (Oracle): $${startPrice.toFixed(2)}`);
+                this.logger.log(`   End Price (Oracle): $${endPrice.toFixed(2)}`);
+                this.logger.log(`   Outcome: ${outcome === 0 ? 'UP' : 'DOWN'}`);
+
             } catch (error: any) {
                 // If market doesn't exist in current factory (e.g., created with old factory), skip it
                 if (error.message?.includes('Market does not exist')) {
                     this.logger.warn(`Market ${marketId} does not exist in current factory, marking as resolved in DB`);
                     // Just mark it as resolved in the database without on-chain resolution
-                    // We need startPrice here, so we must ensure 'market' is available.
-                    // The 'market' variable is already defined at the top of the function.
                     const startPrice = parseFloat(market.start_price.toString());
+                    const endPrice = await this.getBTCPrice();
                     await this.prisma.bTCMarket.update({
                         where: { market_id: marketId },
                         data: {
@@ -443,26 +468,6 @@ export class BtcMarketsService {
                 }
                 throw error;
             }
-
-            // Determine outcome (0 = UP, 1 = DOWN)
-            const startPrice = parseFloat(market.start_price.toString());
-            const outcome = endPrice > startPrice ? 0 : 1; // 0 = UP, 1 = DOWN
-
-            // Update database
-            await this.prisma.bTCMarket.update({
-                where: { market_id: marketId },
-                data: {
-                    end_price: endPrice.toString(),
-                    resolved: true,
-                    outcome
-                }
-            });
-
-            this.logger.log(`✅ Market resolved successfully`);
-            this.logger.log(`   Market ID: ${marketId}`);
-            this.logger.log(`   Start Price: $${startPrice.toFixed(2)}`);
-            this.logger.log(`   End Price: $${endPrice.toFixed(2)}`);
-            this.logger.log(`   Outcome: ${outcome === 0 ? 'UP' : 'DOWN'}`);
 
         } catch (error) {
             this.logger.error(`Failed to resolve market ${marketId}`, error);
