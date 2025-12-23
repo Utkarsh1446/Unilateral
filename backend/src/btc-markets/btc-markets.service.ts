@@ -118,9 +118,11 @@ export class BtcMarketsService {
             const today = new Date();
             today.setUTCHours(0, 0, 0, 0);
             const startOfDay = Math.floor(today.getTime() / 1000);
+            const currentTime = Math.floor(Date.now() / 1000);
 
             this.logger.log(`Creating markets for: ${today.toISOString()}`);
             this.logger.log(`Start timestamp: ${startOfDay}`);
+            this.logger.log(`Current timestamp: ${currentTime}`);
 
             // Create 96 markets (24 hours * 4 per hour = 96)
             const INTERVAL = 15; // 15 minutes
@@ -133,11 +135,21 @@ export class BtcMarketsService {
 
             for (let i = 0; i < TOTAL_MARKETS; i++) {
                 const startTime = startOfDay + (i * 15 * 60); // Each market starts 15 min after previous
+
+                // Skip markets that have already started
+                if (startTime <= currentTime) {
+                    this.logger.debug(`   ⏭️  Skipping past market at ${new Date(startTime * 1000).toISOString()}`);
+                    skipCount++;
+                    continue;
+                }
+
                 const marketTime = new Date(startTime * 1000);
+                const hours = marketTime.getUTCHours().toString().padStart(2, '0');
+                const minutes = marketTime.getUTCMinutes().toString().padStart(2, '0');
+
+                this.logger.log(`[${i + 1}/${TOTAL_MARKETS}] Creating market for ${hours}:${minutes} UTC...`);
 
                 try {
-                    this.logger.log(`[${i + 1}/${TOTAL_MARKETS}] Creating market for ${marketTime.toISOString().substring(11, 16)} UTC...`);
-
                     // Check if market already exists
                     const existing = await this.prisma.bTCMarket.findFirst({
                         where: {
