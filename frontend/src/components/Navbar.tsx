@@ -6,8 +6,8 @@ export function Navbar() {
 
   return (
     <nav className="bg-black border-b-2 border-[#A4E977]">
-      <div className="max-w-[1920px] mx-auto px-6">
-        <div className="flex items-center justify-between py-1">
+      <div className="max-w-[1920px] mx-auto px-6 pt-[5px]">
+        <div className="flex items-center justify-between h-[58px]">
           {/* Left: Logo and Navigation */}
           <div className="flex items-center gap-8">
             {/* Logo */}
@@ -16,9 +16,9 @@ export function Navbar() {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img
-                src="/Superpumped_SVG.svg"
+                src="/20251223_135814.svg"
                 alt="SuperPumped"
-                className="w-[130px] h-[130px]"
+                className="h-[25px] w-auto"
               />
             </button>
 
@@ -59,9 +59,9 @@ export function Navbar() {
               <input
                 type="text"
                 placeholder="Search"
-                className="bg-gray-900/50 border border-gray-800 rounded-lg pl-9 pr-12 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#A4E977] w-64"
+                className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg pl-9 pr-12 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#A4E977] w-64"
               />
-              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] text-gray-500 bg-gray-800 rounded border border-gray-700">
+              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] text-gray-500 bg-[#1a1a1a] rounded border border-[#2a2a2a]">
                 ⌘K
               </kbd>
             </div>

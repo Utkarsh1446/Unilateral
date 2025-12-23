@@ -1144,11 +1144,57 @@ export function MarketPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Related Markets Panel - Below Positions */}
+              <div className="pl-3 pb-3 pt-3">
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl max-h-[200px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-white">Related Markets</h3>
+                      <button
+                        onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto">
+                      {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
+                        <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {relatedMarketsExpanded && (
+                    <div className="overflow-y-auto flex-1 p-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                      <div className="space-y-2">
+                        {relatedMarkets.map((market: any, index: number) => (
+                          <div
+                            key={index}
+                            onClick={() => navigate(`/market/${market.id}`)}
+                            className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
+                          >
+                            {market.image_url && (
+                              <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{market.description}</div>
+                            </div>
+                            <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* RIGHT: Trading Panel ONLY */}
             <div className="bg-black flex flex-col p-3 h-full">
-              <div className="border rounded-lg overflow-y-auto bg-[#0a0a0a] h-full flex flex-col shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl min-h-[1050px]" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                 <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
                   <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                   <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
@@ -1502,47 +1548,65 @@ export function MarketPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <div className="p-4 mt-auto">
-                  <button
-                    onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
-                    className="flex items-center justify-between w-full mb-3"
-                  >
-                    <h3 className="text-sm font-semibold text-white">Related Markets</h3>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 hover:text-white transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {relatedMarketsExpanded && (
-                    <>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors">
-                          <img src="https://i.pravatar.cc/40?img=1" alt="" className="w-8 h-8 rounded-full" />
-                          <div className="flex-1 min-w-0"><div className="text-xs text-white truncate">Will Elon Musk win the 2028 US Presidential...</div></div>
-                          <div className="text-sm font-bold text-[#A4E977]">1%</div>
-                        </div>
-                        <div className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors">
-                          <img src="https://i.pravatar.cc/40?img=2" alt="" className="w-8 h-8 rounded-full" />
-                          <div className="flex-1 min-w-0"><div className="text-xs text-white truncate">Will Gavin Newsom win the 2028 US Presidential...</div></div>
-                          <div className="text-sm font-bold text-[#A4E977]">18%</div>
-                        </div>
-                        <div className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors">
-                          <img src="https://i.pravatar.cc/40?img=3" alt="" className="w-8 h-8 rounded-full" />
-                          <div className="flex-1 min-w-0"><div className="text-xs text-white truncate">Will Pete Buttigieg win the 2028 US Presidential...</div></div>
-                          <div className="text-sm font-bold text-[#A4E977]">2%</div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 mt-4 overflow-x-auto">
-                        {['All', 'Trump', 'Politics', 'Culture'].map((cat) => (
-                          <button key={cat} className={`px-3 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
-                        ))}
-                      </div>
-                    </>
-                  )}
+        {/* Market Activity Section - Full Width */}
+        <div className="max-w-[1920px] mx-auto px-3 pb-3">
+          <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
+              <h3 className="text-sm font-semibold text-white">Market Activity</h3>
+              <button className="text-xs text-gray-400 hover:text-white transition-colors">View All</button>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-5 gap-4">
+                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-[#A4E977]"></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-white">Large buy order placed</div>
+                    <div className="text-[10px] text-gray-500">2 minutes ago</div>
+                  </div>
+                  <div className="text-xs text-[#A4E977] font-semibold">+$5,000</div>
+                </div>
+                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-white">Price dropped 5%</div>
+                    <div className="text-[10px] text-gray-500">15 minutes ago</div>
+                  </div>
+                  <div className="text-xs text-red-400 font-semibold">-5%</div>
+                </div>
+                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-white">New whale entered</div>
+                    <div className="text-[10px] text-gray-500">1 hour ago</div>
+                  </div>
+                  <div className="text-xs text-blue-400 font-semibold">$10K+</div>
+                </div>
+                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-white">Volume spike detected</div>
+                    <div className="text-[10px] text-gray-500">2 hours ago</div>
+                  </div>
+                  <div className="text-xs text-yellow-400 font-semibold">+150%</div>
+                </div>
+                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-white">Liquidity increased</div>
+                    <div className="text-[10px] text-gray-500">3 hours ago</div>
+                  </div>
+                  <div className="text-xs text-purple-400 font-semibold">+$2,500</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
 
         {/* Market Selector Overlay */}
         {showMarketSelector && (
@@ -1569,8 +1633,8 @@ export function MarketPage() {
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`px-4 py-2 bg-[#1a1a1a] rounded text-sm transition-colors flex items-center gap-2 ${showFilters
-                        ? 'border-2 border-[#A4E977] text-white'
-                        : 'border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-[#A4E977]'
+                      ? 'border-2 border-[#A4E977] text-white'
+                      : 'border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-[#A4E977]'
                       }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
