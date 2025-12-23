@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./OpinionMarket.sol";
+import "../interfaces/IPriceOracle.sol";
 
 /**
  * @title BTCMarketFactory
@@ -27,6 +28,7 @@ contract BTCMarketFactory is Ownable {
     address public collateralToken;
     address public orderBook;
     address public priceOracle;      // Backend service that provides prices
+    IPriceOracle public priceOracleContract;  // On-chain oracle for price queries
     
     // Market tracking
     mapping(bytes32 => BTCMarket) public markets;  // marketId => BTCMarket
@@ -60,30 +62,29 @@ contract BTCMarketFactory is Ownable {
         address _conditionalTokens,
         address _collateralToken,
         address _orderBook,
-        address _priceOracle
+        address _priceOracle,
+        address _priceOracleContract
     ) Ownable(msg.sender) {
         conditionalTokens = _conditionalTokens;
         collateralToken = _collateralToken;
         orderBook = _orderBook;
         priceOracle = _priceOracle;
+        priceOracleContract = IPriceOracle(_priceOracleContract);
     }
 
     /**
-     * @notice Create a new BTC market
+     * @notice Create a new BTC market with dynamic strike price
      * @param interval Market duration in minutes (15, 60, 360, 720)
      * @param startTime UTC timestamp when market starts
-     * @param startPrice BTC price at start (8 decimals)
      * @return marketId Unique identifier for the market
      */
     function createBTCMarket(
         uint256 interval,
-        uint256 startTime,
-        uint256 startPrice
+        uint256 startTime
     ) external returns (bytes32 marketId) {
         require(msg.sender == priceOracle || msg.sender == owner(), "Only oracle or owner");
         require(_isValidInterval(interval), "Invalid interval");
         require(startTime >= block.timestamp, "Start time must be in future");
-        require(startPrice > 0, "Invalid start price");
 
         uint256 endTime = startTime + (interval * 60); // Convert minutes to seconds
         
@@ -121,13 +122,13 @@ contract BTCMarketFactory is Ownable {
             orderBook
         );
 
-        // Store market info
+        // Store market info (startPrice will be set during resolution)
         markets[marketId] = BTCMarket({
             marketAddress: address(market),
             interval: interval,
             startTime: startTime,
             endTime: endTime,
-            startPrice: startPrice,
+            startPrice: 0,  // Will be fetched from oracle at resolution
             endPrice: 0,
             resolved: false,
             outcome: 0
@@ -135,9 +136,8 @@ contract BTCMarketFactory is Ownable {
         
         allMarketIds.push(marketId);
 
-        // Seed liquidity (approve and call orderbook)
-        // TEMPORARILY DISABLED - debugging market creation first
-        // _seedLiquidity(address(market));
+        // Seed liquidity with spread from 50c to 75c
+        _seedLiquidity(address(market));
 
         emit BTCMarketCreated(
             marketId,
@@ -145,33 +145,37 @@ contract BTCMarketFactory is Ownable {
             interval,
             startTime,
             endTime,
-            startPrice
+            0  // startPrice not known yet
         );
 
         return marketId;
     }
 
     /**
-     * @notice Resolve a BTC market based on end price
+     * @notice Resolve a BTC market using oracle prices
      * @param marketId Unique identifier for the market
-     * @param endPrice BTC price at end time (8 decimals)
      */
-    function resolveBTCMarket(
-        bytes32 marketId,
-        uint256 endPrice
-    ) external {
+    function resolveBTCMarket(bytes32 marketId) external {
         require(msg.sender == priceOracle || msg.sender == owner(), "Only oracle or owner");
         
         BTCMarket storage market = markets[marketId];
         require(market.marketAddress != address(0), "Market does not exist");
         require(!market.resolved, "Market already resolved");
         require(block.timestamp >= market.endTime, "Market not expired yet");
-        require(endPrice > 0, "Invalid end price");
 
-        // Determine outcome: 0 = UP (price increased), 1 = DOWN (price decreased or same)
-        uint256 outcome = endPrice > market.startPrice ? 0 : 1;
+        // Fetch prices from oracle at start and end times
+        (bool isHigher, uint256 startPrice, uint256 endPrice) = priceOracleContract.comparePrices(
+            market.startTime,
+            market.endTime
+        );
+        
+        require(startPrice > 0 && endPrice > 0, "Invalid prices from oracle");
+
+        // Determine outcome: 0 = UP (endPrice >= startPrice), 1 = DOWN (endPrice < startPrice)
+        uint256 outcome = isHigher ? 0 : 1;
 
         // Update market state
+        market.startPrice = startPrice;
         market.endPrice = endPrice;
         market.resolved = true;
         market.outcome = outcome;
@@ -184,7 +188,7 @@ contract BTCMarketFactory is Ownable {
 
     /**
      * @notice Seed liquidity for a newly created market
-     * @dev Places balanced buy/sell orders at 0.50 price to create initial liquidity
+     * @dev Places orders from 50c to 75c for both YES and NO to create depth
      * @param marketAddress Address of the market to seed
      */
     function _seedLiquidity(address marketAddress) internal {
@@ -195,31 +199,42 @@ contract BTCMarketFactory is Ownable {
         // Approve orderbook to spend USDC
         IERC20(collateralToken).approve(orderBook, LIQUIDITY_AMOUNT);
         
-        // Split liquidity 50/50 between YES and NO
+        // Split liquidity between YES and NO
         uint256 halfAmount = LIQUIDITY_AMOUNT / 2;
-        uint256 price = 500000; // 0.50 in 6 decimals (50% probability)
         
-        // Place YES buy order at 0.50
-        // outcomeIndex 0 = YES/UP
-        IOrderBook(orderBook).placeOrderFor(
-            address(this),      // maker (factory owns the liquidity)
-            marketAddress,      // market
-            0,                  // outcomeIndex (0 = YES/UP)
-            price,              // price (0.50)
-            halfAmount,         // amount (5k USDC)
-            true                // isBid (buying YES tokens)
-        );
+        // Create 5 price levels from 50c to 75c
+        // Each level gets 1/5 of the half amount (1k USDC per level)
+        uint256 amountPerLevel = halfAmount / 5;
+        uint256[5] memory prices;
+        prices[0] = 500000;  // 0.50 (50%)
+        prices[1] = 562500;  // 0.5625 (56.25%)
+        prices[2] = 625000;  // 0.625 (62.5%)
+        prices[3] = 687500;  // 0.6875 (68.75%)
+        prices[4] = 750000;  // 0.75 (75%)
         
-        // Place NO buy order at 0.50
-        // outcomeIndex 1 = NO/DOWN
-        IOrderBook(orderBook).placeOrderFor(
-            address(this),      // maker (factory owns the liquidity)
-            marketAddress,      // market
-            1,                  // outcomeIndex (1 = NO/DOWN)
-            price,              // price (0.50)
-            halfAmount,         // amount (5k USDC)
-            true                // isBid (buying NO tokens)
-        );
+        // Place YES buy orders at each price level
+        for (uint256 i = 0; i < 5; i++) {
+            IOrderBook(orderBook).placeOrderFor(
+                address(this),      // maker (factory owns the liquidity)
+                marketAddress,      // market
+                0,                  // outcomeIndex (0 = YES/UP)
+                prices[i],          // price
+                amountPerLevel,     // amount (1k USDC)
+                true                // isBid (buying YES tokens)
+            );
+        }
+        
+        // Place NO buy orders at each price level
+        for (uint256 i = 0; i < 5; i++) {
+            IOrderBook(orderBook).placeOrderFor(
+                address(this),      // maker (factory owns the liquidity)
+                marketAddress,      // market
+                1,                  // outcomeIndex (1 = NO/DOWN)
+                prices[i],          // price
+                amountPerLevel,     // amount (1k USDC)
+                true                // isBid (buying NO tokens)
+            );
+        }
     }
 
     /**
@@ -235,13 +250,21 @@ contract BTCMarketFactory is Ownable {
     }
 
     /**
-     * @notice Update price oracle address
+     * @notice Update price oracle backend service address
      */
     function setPriceOracle(address newOracle) external onlyOwner {
         require(newOracle != address(0), "Invalid oracle address");
         address oldOracle = priceOracle;
         priceOracle = newOracle;
         emit PriceOracleUpdated(oldOracle, newOracle);
+    }
+    
+    /**
+     * @notice Update price oracle contract address
+     */
+    function setPriceOracleContract(address newOracleContract) external onlyOwner {
+        require(newOracleContract != address(0), "Invalid oracle contract");
+        priceOracleContract = IPriceOracle(newOracleContract);
     }
 
     /**

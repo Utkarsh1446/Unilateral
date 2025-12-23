@@ -455,17 +455,17 @@ export function MarketPage() {
         <div className="max-w-[1920px] mx-auto px-3 pt-3">
           <div className="border rounded-lg bg-[#0a0a0a] shadow-lg" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' }}>
             <div className="px-5 py-3">
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 {/* Left: Market Title and Volume */}
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-2 md:gap-4">
                   {/* Market Selector Button */}
                   <button
                     onClick={() => setShowMarketSelector(!showMarketSelector)}
-                    className="w-14 h-14 rounded-lg bg-[#0f0f0f] text-white flex items-center justify-center transition-colors focus:outline-none"
+                    className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-[#0f0f0f] text-white flex items-center justify-center transition-colors focus:outline-none flex-shrink-0"
                     style={{ borderWidth: '1px', borderColor: 'rgba(164, 233, 119, 0.35)' }}
                     title="Select Market"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -473,21 +473,21 @@ export function MarketPage() {
                     <img
                       src={displayMarket.image_url}
                       alt=""
-                      className="w-14 h-14 rounded-lg object-cover"
+                      className="w-12 h-12 md:w-14 md:h-14 rounded-lg object-cover flex-shrink-0"
                     />
                   )}
-                  <div>
-                    <h1 className="text-xl font-bold text-white mb-1.5">
+                  <div className="min-w-0">
+                    <h1 className="text-base md:text-xl font-bold text-white mb-1 md:mb-1.5 line-clamp-2">
                       {displayMarket.description}
                     </h1>
-                    <div className="text-sm text-gray-400">
+                    <div className="text-xs md:text-sm text-gray-400">
                       ${parseFloat(displayMarket.volume || "0").toLocaleString()} Vol.
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Outcome and Chance */}
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-4 md:gap-8">
                   <div className="text-right">
                     <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Outcome</div>
                     <div className="text-sm text-white font-medium">-</div>
@@ -505,7 +505,7 @@ export function MarketPage() {
                   </div>
 
                   {/* Action Icons */}
-                  <div className="flex items-center gap-2">
+                  <div className="hidden md:flex items-center gap-2">
                     {/* Watchlist/Favorites */}
                     <button
                       onClick={() => setIsWatchlisted(!isWatchlisted)}
@@ -551,10 +551,10 @@ export function MarketPage() {
 
         {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-[84%_16%] gap-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[84%_16%] gap-0">
             {/* LEFT: Chart Section with Order Book Inside */}
-            <div className="border-r border-gray-800/50 h-full">
-              <div className="grid grid-cols-[85.35%_14.65%] gap-3 p-3">
+            <div className="lg:border-r border-gray-800/50 h-full">
+              <div className="grid grid-cols-1 xl:grid-cols-[85.35%_14.65%] gap-3 p-3">
                 {/* Chart Area */}
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-3 bg-[#0a0a0a]">
