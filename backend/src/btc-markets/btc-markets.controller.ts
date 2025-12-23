@@ -38,6 +38,12 @@ export class BtcMarketsController {
         return { success: true, message: `Market created for ${interval}m interval` };
     }
 
+    @Post('batch-create')
+    async batchCreateMarkets() {
+        await this.btcMarketsService.batchCreateDailyMarkets();
+        return { success: true, message: 'Batch market creation triggered' };
+    }
+
     @Post('resolve/:marketId')
     async resolveMarketManually(@Param('marketId') marketId: string) {
         await this.btcMarketsService.resolveMarket(marketId);
@@ -52,7 +58,8 @@ export class BtcMarketsController {
             privateKey: process.env.PRIVATE_KEY ? 'SET (hidden)' : 'NOT SET',
             currentTime: new Date().toISOString(),
             currentUTCTime: new Date().toUTCString(),
-            nextCronRun: 'Every minute at :00 seconds'
+            nextBatchCron: 'Daily at 00:00:00 UTC',
+            nextResolutionCron: 'Every minute at :30 seconds'
         };
     }
 }
