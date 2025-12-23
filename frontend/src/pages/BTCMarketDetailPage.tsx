@@ -321,7 +321,7 @@ export function BTCMarketDetailPage() {
     const timeRemaining = getTimeRemaining();
 
     return (
-        <div className="bg-black min-h-screen text-white">
+        <div className="bg-black min-h-screen text-white pt-[58px]">
             {/* Top Header */}
             <div className="max-w-[1920px] mx-auto px-3 pt-3">
                 <div className="border rounded-lg bg-[#0a0a0a] shadow-lg" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' }}>

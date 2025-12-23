@@ -446,7 +446,7 @@ export function MarketPage() {
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="bg-black min-h-screen text-white">
+      <div className="bg-black min-h-screen text-white pt-[58px]">
         {/* Top Navbar */}
 
 

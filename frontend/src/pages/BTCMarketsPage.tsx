@@ -49,7 +49,7 @@ export function BTCMarketsPage() {
                 const response = await fetch(`${API_URL}/btc-markets/interval/${activeInterval}`);
                 const data = await response.json();
                 // Filter out markets with null contract addresses
-                const validMarkets = data.filter((m: any) => 
+                const validMarkets = data.filter((m: any) =>
                     m.contract_address && m.contract_address !== '0x0000000000000000000000000000000000000000'
                 );
                 console.log(`Filtered ${data.length - validMarkets.length} invalid markets`);
@@ -81,7 +81,7 @@ export function BTCMarketsPage() {
     const intervals: IntervalType[] = [15, 60, 360, 720];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-[58px]">
 
             <div className="container mx-auto px-4 py-8">
                 {/* Header with Current BTC Price */}
