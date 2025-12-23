@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Footer } from '../components/Footer';
 import { getPendingMarkets, approveMarket, rejectMarket, getMarkets, getAdminMarkets } from '../lib/api';
 import { getContract, ABIS, CONTRACTS } from '../lib/contracts';
 import { CheckCircle, XCircle, AlertCircle, Loader2, Gavel, CheckSquare, ShieldX, TrendingUp, Users, BarChart3, Clock, Activity, ExternalLink } from 'lucide-react';
@@ -513,7 +512,6 @@ export function AdminPage() {
                     )}
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

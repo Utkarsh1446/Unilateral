@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { Footer } from '../components/Footer';
 import { PositionCard } from '../components/PositionCard';
 import { StatCard } from '../components/StatCard';
 import { TrendingUp, TrendingDown, DollarSign, Activity, Target, BarChart3, Loader2, Star, StarOff } from 'lucide-react';
@@ -117,7 +116,6 @@ export function PortfolioPage() {
                         <p className="text-sm text-muted-foreground">Track positions, analyze performance, and manage your watchlist</p>
                     </div>
                 </div>
-                <Footer />
             </>
         );
     }
@@ -349,7 +347,6 @@ export function PortfolioPage() {
                     )}
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Footer } from '../components/Footer';
 import { MarketCard } from '../components/MarketCard';
 import { FilterPanel } from '../components/FilterPanel';
 import { Search, TrendingUp, Clock, Sparkles, SlidersHorizontal, Loader2 } from 'lucide-react';
@@ -266,7 +265,6 @@ export function DiscoverPage() {
                     )}
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

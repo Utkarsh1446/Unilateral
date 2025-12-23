@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { TrendingUp, TrendingDown, Search, Users, BadgeCheck, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -314,7 +313,6 @@ export function CreatorsPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Footer } from '../components/Footer';
 import { OrderBook } from '../components/OrderBook';
 import { PriceChart } from '../components/PriceChart';
 import { Loader2, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
@@ -387,7 +386,6 @@ export function TradingTerminalPage() {
                     </div>
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

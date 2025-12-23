@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { ArrowLeft, CheckCircle, XCircle, Loader2, UserX, Upload, Image as ImageIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -231,7 +230,6 @@ export function CreateMarketPage() {
             </div>
           </div>
         </div>
-        <Footer />
       </>
     );
   }
@@ -425,7 +423,6 @@ export function CreateMarketPage() {
         </div>
       )}
 
-      <Footer />
     </>
   );
 }

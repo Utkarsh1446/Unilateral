@@ -1,6 +1,5 @@
 import { TrendingUp, TrendingDown, Users, DollarSign } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/Footer';
 import { MarketCard } from '../components/MarketCard';
 import { useNavigate } from 'react-router-dom';
 import avatar1 from 'figma:asset/d5f3cf6e0ede9bba3fde8f3aae85b53f0dd4ad84.png';
@@ -199,7 +198,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer />
     </>
   );
 }

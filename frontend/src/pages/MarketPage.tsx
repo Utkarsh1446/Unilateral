@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import { ArrowLeft, Loader2, Copy, ExternalLink, Settings, ChevronDown } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
@@ -1888,7 +1887,6 @@ export function MarketPage() {
           </div>
         )}
 
-        <Footer />
       </div>
     </>
   );

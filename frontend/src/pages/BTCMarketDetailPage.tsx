@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Footer } from '../components/Footer';
 import { TrendingUp, TrendingDown, Clock, DollarSign, ArrowLeft, Copy, ExternalLink, Settings } from 'lucide-react';
 import { ethers } from 'ethers';
 import { CONTRACTS, ABIS } from '../lib/contracts';
@@ -728,7 +727,6 @@ export function BTCMarketDetailPage() {
                 </div>
             </div>
 
-            <Footer />
         </div>
     );
 }

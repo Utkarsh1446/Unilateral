@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { MarketCard } from '../components/MarketCard';
 import { TrendingUp, Twitter, Globe, Users, DollarSign, TrendingDown, Award, ArrowLeft, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -544,7 +543,6 @@ export function CreatorPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

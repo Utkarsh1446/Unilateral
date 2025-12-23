@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Footer } from '../components/Footer';
 import { TradeCard } from '../components/TradeCard';
 import { TraderCard } from '../components/TraderCard';
 import { StatCard } from '../components/StatCard';
@@ -229,7 +228,6 @@ export function WhalesPage() {
                     </div>
                 </div>
             </div>
-            <Footer />
         </>
     );
 }

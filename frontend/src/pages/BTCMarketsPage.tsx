@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Footer } from '../components/Footer';
 import { TrendingUp, TrendingDown, Clock, DollarSign } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3001';
@@ -156,7 +155,6 @@ export function BTCMarketsPage() {
                 )}
             </div>
 
-            <Footer />
         </div>
     );
 }

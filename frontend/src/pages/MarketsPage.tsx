@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { Search, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -45,7 +44,7 @@ export function MarketsPage() {
 
   return (
     <>
-      <div className="bg-black min-h-screen text-white">
+      <div className="bg-black min-h-screen text-white pt-[58px]">
         <div className="max-w-[1920px] mx-auto px-6 py-6">
           <div className="flex gap-6">
             {/* Left Sidebar */}
@@ -221,7 +220,6 @@ export function MarketsPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

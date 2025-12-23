@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { TrendingUp, TrendingDown, Wallet, DollarSign, TrendingUp as Growth, Users, BadgeCheck, ArrowLeft, Loader2, BarChart3, Coins, Clock, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DividendClaimPopup } from '../components/DividendClaimPopup';
@@ -450,7 +449,6 @@ export function ProfilePage() {
           <p className="text-muted-foreground">Connect your wallet to view your profile and portfolio.</p>
         </div>
       </div>
-      <Footer />
     </div>
   );
 
@@ -978,7 +976,6 @@ export function ProfilePage() {
 
         </div>
       </div>
-      <Footer />
       <DividendClaimPopup
         state={claimState}
         amount={claimedAmount}

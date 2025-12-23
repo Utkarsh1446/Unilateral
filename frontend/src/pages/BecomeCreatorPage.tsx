@@ -1,4 +1,3 @@
-import { Footer } from '../components/Footer';
 import { ArrowLeft, CheckCircle, XCircle, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -388,7 +387,6 @@ export function BecomeCreatorPage() {
           </div>
         </div>
       )}
-      <Footer />
     </>
   );
 }
