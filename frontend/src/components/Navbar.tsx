@@ -110,7 +110,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-[#A4E977]/20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black backdrop-blur-md border-b border-[#A4E977]/20">
       <div className="max-w-[1920px] mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Left: Logo and Navigation */}
@@ -141,14 +141,14 @@ export function Navbar() {
                 className="text-gray-400 font-medium hover:text-white transition-colors"
                 style={{ fontFamily: 'Inter', fontSize: '14px' }}
               >
-                BTC MARKETS
+                Quick Markets
               </button>
               <button
                 onClick={() => navigate('/creators')}
                 className="text-gray-400 font-medium hover:text-white transition-colors"
                 style={{ fontFamily: 'Inter', fontSize: '14px' }}
               >
-                CREATORS
+                Creators
               </button>
               <button
                 onClick={() => navigate('/how-it-works')}
