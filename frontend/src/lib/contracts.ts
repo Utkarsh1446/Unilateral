@@ -6,9 +6,9 @@ export const CONTRACTS = {
     FeeCollector: "0x8D99A4C5C13885350A9Be5Fa810Deb9f75e7056d",
     AdminController: "0x1cCe371908eBEb0ce1A78e9af69D7Bb14D97ec8a",
     CreatorShareFactory: "0x5b8037A726f99B9aB2b5a63928BAA22Fb1036b54",
-    OrderBook: "0x7CBE1B7ed9fA1926E745c57ea6Db9F7beBC6ba63", // NEW - BTC Markets OrderBook
+    OrderBook: "0x54fC379D88bF6be411E1F4719fAF4bC84725616A", // BTC Markets OrderBook (from DEPLOYMENT.md)
     OpinionMarketFactory: "0x9D2519b4c40E4E7A3d814e0E4f61A6a15DbC7AF0", // Updated: Immediate resolution support
-    BTCMarketFactory: "0x8E1a5BB4E4bE012cd3B8c7Ae372f2c1c7dF25afc" // NEW - With BTC OrderBook
+    BTCMarketFactory: "0x75f92fEbA7129fB8e90dBC4047Fb49F35185ea8C" // With Oracle Integration (from DEPLOYMENT.md)
 };
 
 export const ABIS = {
