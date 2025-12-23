@@ -2956,3 +2956,13 @@ input[type="range"].slider-thumb::-moz-range-thumb:hover {
   background: #8FD65E;
   box-shadow: 0 0 0 3px #A4E977;
 }
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
