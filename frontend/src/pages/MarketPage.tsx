@@ -89,6 +89,17 @@ export function MarketPage() {
   const [alertPrice, setAlertPrice] = useState('');
   const [alertType, setAlertType] = useState<'above' | 'below'>('above');
   const [showDepthChart, setShowDepthChart] = useState(false);
+  const [showMarketSelector, setShowMarketSelector] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [relatedMarkets] = useState([
+    { id: 1, description: "BTC >$100k by EOY 2024?", image_url: "/Superpumped_SVG.svg", volume: "125000", liquidity: "50000", category: "Crypto", endDate: "2024-12-31", outcomePrices: ["65"] },
+    { id: 2, description: "ETH to flip BTC in 2025?", image_url: "/Superpumped_SVG.svg", volume: "89000", liquidity: "35000", category: "Crypto", endDate: "2025-12-31", outcomePrices: ["25"] },
+    { id: 3, description: "SOL >$200 in Q1 2025?", image_url: "/Superpumped_SVG.svg", volume: "67000", liquidity: "28000", category: "Crypto", endDate: "2025-03-31", outcomePrices: ["45"] },
+    { id: 4, description: "Trump wins 2024 election?", image_url: "/Superpumped_SVG.svg", volume: "250000", liquidity: "120000", category: "Politics", endDate: "2024-11-05", outcomePrices: ["52"] },
+    { id: 5, description: "Lakers win NBA Championship?", image_url: "/Superpumped_SVG.svg", volume: "45000", liquidity: "18000", category: "Sports", endDate: "2025-06-30", outcomePrices: ["30"] },
+  ]);
+
+
 
 
 
@@ -447,6 +458,17 @@ export function MarketPage() {
               <div className="flex items-start justify-between">
                 {/* Left: Market Title and Volume */}
                 <div className="flex items-start gap-4">
+                  {/* Market Selector Button */}
+                  <button
+                    onClick={() => setShowMarketSelector(!showMarketSelector)}
+                    className="w-14 h-14 rounded-lg bg-[#0f0f0f] text-white flex items-center justify-center transition-colors focus:outline-none"
+                    style={{ borderWidth: '1px', borderColor: 'rgba(164, 233, 119, 0.35)' }}
+                    title="Select Market"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                   {displayMarket.image_url && (
                     <img
                       src={displayMarket.image_url}
@@ -921,7 +943,7 @@ export function MarketPage() {
               </div>
 
               {/* Bottom Tabs */}
-              <div className="p-3 pt-0">
+              <div className="pl-3 pb-3 pt-0">
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
                     {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
@@ -1226,14 +1248,14 @@ export function MarketPage() {
                 </div>
 
                 <div className="p-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
-                      <span className="text-[10px] font-medium text-gray-400">Yes</span>
-                      <span className={`text-base font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
+                  <div className="grid grid-cols-2 gap-3 mx-3">
+                    <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                      <span className="text-sm font-medium text-gray-400">Yes</span>
+                      <span className={`text-sm font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
                     </button>
-                    <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
-                      <span className="text-[10px] font-medium text-gray-400">No</span>
-                      <span className={`text-base font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
+                    <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                      <span className="text-sm font-medium text-gray-400">No</span>
+                      <span className={`text-sm font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
                     </button>
                   </div>
                 </div>
@@ -1521,6 +1543,202 @@ export function MarketPage() {
             </div>
           </div>
         </div>
+
+        {/* Market Selector Overlay */}
+        {showMarketSelector && (
+          <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-40 pt-20" onClick={() => setShowMarketSelector(false)}>
+            <div className="bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg max-w-6xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
+                <h3 className="text-lg font-bold text-white">Select Market</h3>
+                <button onClick={() => setShowMarketSelector(false)} className="text-gray-400 hover:text-white transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Search for a market or paste in a market link"
+                    className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#A4E977] focus:outline-none"
+                  />
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`px-4 py-2 bg-[#1a1a1a] rounded text-sm transition-colors flex items-center gap-2 ${showFilters
+                        ? 'border-2 border-[#A4E977] text-white'
+                        : 'border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-[#A4E977]'
+                      }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Filters
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Buttons - Collapsible */}
+              {showFilters && (
+                <div className="px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
+                  {/* Horizontal Filter Boxes */}
+                  <div className="flex gap-3 flex-wrap">
+                    {/* Status Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Status</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Open</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Closed</button>
+                      </div>
+                    </div>
+
+                    {/* Closing Time Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Closing Time</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;24h</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;7d</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;90d</button>
+                      </div>
+                    </div>
+
+                    {/* Market Duration Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Market Duration</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">15min</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">1hr</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">4hr</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">24hr</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Week</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Month</button>
+                      </div>
+                    </div>
+
+                    {/* Probability Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Probability</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;40%</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;60%</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;80%</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;98%</button>
+                      </div>
+                    </div>
+
+                    {/* Liquidity Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Liquidity</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;K</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;10K</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;100K</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;1M</button>
+                      </div>
+                    </div>
+
+                    {/* Volume Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Volume</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;K</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;10K</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;100K</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;1M</button>
+                      </div>
+                    </div>
+
+                    {/* Categories Filter Box */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
+                      <div className="text-xs text-gray-400 mb-2 font-medium">Market Categories</div>
+                      <div className="flex gap-2">
+                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">Show All</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-[#A4E977] text-xs font-medium rounded border border-[#A4E977]">Crypto</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Sports</button>
+                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Politics</button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* Markets Table */}
+              <div className="overflow-y-auto max-h-[calc(80vh-380px)]">
+                <table className="w-full">
+                  <thead className="sticky top-0 bg-[#0f0f0f] border-b border-[rgba(140,180,130,0.35)]">
+                    <tr>
+                      <th className="text-left text-xs font-medium text-gray-400 p-3">Market</th>
+                      <th className="text-right text-xs font-medium text-gray-400 p-3">Probability</th>
+                      <th className="text-right text-xs font-medium text-gray-400 p-3">Volume</th>
+                      <th className="text-right text-xs font-medium text-gray-400 p-3">24h Change</th>
+                      <th className="text-right text-xs font-medium text-gray-400 p-3">Liquidity</th>
+                      <th className="text-right text-xs font-medium text-gray-400 p-3">Closing Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {relatedMarkets.map((market: any, index: number) => (
+                      <tr
+                        key={index}
+                        onClick={() => {
+                          navigate(`/market/${market.id}`);
+                          setShowMarketSelector(false);
+                        }}
+                        className="border-b border-gray-800/50 hover:bg-[#1a1a1a] cursor-pointer transition-colors"
+                      >
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            {market.image_url && (
+                              <img src={market.image_url} alt="" className="w-10 h-10 rounded object-cover" />
+                            )}
+                            <div className="max-w-md">
+                              <div className="text-sm font-medium text-white line-clamp-1">{market.description}</div>
+                              <div className="text-xs text-gray-500">{market.category || 'Crypto'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-right p-3">
+                          <span className="text-sm font-bold text-[#A4E977]">
+                            {market.outcomePrices?.[0] || '50'}%
+                          </span>
+                        </td>
+                        <td className="text-right p-3">
+                          <span className="text-sm text-white">
+                            ${parseFloat(market.volume || '0').toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="text-right p-3">
+                          <span className={`text-sm font-medium ${Math.random() > 0.5 ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                            {Math.random() > 0.5 ? '+' : '-'}{(Math.random() * 10).toFixed(1)}%
+                          </span>
+                        </td>
+                        <td className="text-right p-3">
+                          <span className="text-sm text-gray-300">
+                            ${(parseFloat(market.liquidity || '0') / 1000).toFixed(1)}K
+                          </span>
+                        </td>
+                        <td className="text-right p-3">
+                          <span className="text-xs text-gray-500">
+                            {new Date(market.endDate).toLocaleDateString()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Price Alert Modal */}
         {showAlertModal && (
