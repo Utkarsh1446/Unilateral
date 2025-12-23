@@ -117,8 +117,12 @@ export function MarketsPage() {
                           className="block group"
                         >
                           <div
-                            className="bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-3xl p-5 hover:border-[#A4E977] transition-all duration-200 hover:shadow-lg hover:shadow-[#A4E977]/20"
-                            style={{ width: '375px', height: '192px' }}
+                            className="bg-[#171717] rounded-3xl p-5 hover:shadow-lg hover:shadow-[#35A921]/20 transition-all duration-200"
+                            style={{
+                              width: '375px',
+                              height: '192px',
+                              border: '1px solid rgba(211, 211, 211, 0.2)'
+                            }}
                           >
                             {/* Title with Image */}
                             <div className="flex items-start gap-3 mb-3">
@@ -140,36 +144,52 @@ export function MarketsPage() {
                               </h3>
                             </div>
 
-                            {/* Percentage Display */}
-                            <div className="mb-3">
-                              <span className="text-3xl font-bold text-[#A4E977]">{yesPrice}%</span>
-                              <span className="text-base font-normal text-gray-400 ml-2">Chances</span>
+                            {/* Percentage Display - Aligned with title start */}
+                            <div className="mb-3 ml-[52px]">
+                              <span className="text-3xl font-bold text-[#35A921]">{yesPrice}% Chances</span>
                             </div>
 
                             {/* YES/NO Buttons */}
-                            <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="flex gap-3 mb-3 ml-[52px]">
                               <button
-                                className="py-2.5 bg-[#A4E977] text-black text-sm font-bold hover:bg-[#8FD65E] transition-colors uppercase tracking-wide"
-                                style={{ borderRadius: '9999px' }}
+                                className="bg-[#35A921] text-white hover:bg-[#2d8f1c] transition-colors"
+                                style={{
+                                  width: '150px',
+                                  height: '36px',
+                                  borderRadius: '9999px',
+                                  fontFamily: 'Inter',
+                                  fontWeight: 500,
+                                  fontSize: '14px',
+                                  lineHeight: '20px'
+                                }}
                               >
                                 YES
                               </button>
                               <button
-                                className="py-2.5 bg-[#1f1f1f] text-white text-sm font-bold hover:bg-[#2a2a2a] transition-colors border border-gray-700/50 uppercase tracking-wide"
-                                style={{ borderRadius: '9999px' }}
+                                className="bg-[#1f1f1f] text-white hover:bg-[#2a2a2a] transition-colors"
+                                style={{
+                                  width: '150px',
+                                  height: '36px',
+                                  borderRadius: '9999px',
+                                  border: '1px solid rgba(211, 211, 211, 0.2)',
+                                  fontFamily: 'Inter',
+                                  fontWeight: 500,
+                                  fontSize: '14px',
+                                  lineHeight: '20px'
+                                }}
                               >
                                 NO
                               </button>
                             </div>
 
                             {/* Footer - Volume Left, Market by Right */}
-                            <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center justify-between text-xs ml-[52px]">
                               <div className="text-gray-400">
                                 ${volume} Volume
                               </div>
                               <div className="flex items-center gap-1.5 text-gray-500">
                                 <span>Market by Super Pumped</span>
-                                <svg className="w-3.5 h-3.5 text-[#A4E977]" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-3.5 h-3.5 text-[#35A921]" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
                               </div>
