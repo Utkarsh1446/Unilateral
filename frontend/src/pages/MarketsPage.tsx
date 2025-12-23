@@ -68,8 +68,8 @@ export function MarketsPage() {
                       key={category}
                       onClick={() => setSelectedCategory(category)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === category
-                          ? 'bg-[#A4E977]/20 text-[#A4E977] font-medium'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                        ? 'bg-[#A4E977]/20 text-[#A4E977] font-medium'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
                         }`}
                     >
                       {category}
@@ -116,47 +116,46 @@ export function MarketsPage() {
                           to={`/market/${market.id}`}
                           className="block group"
                         >
-                          <div className="bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-4 hover:border-[#A4E977] transition-all duration-200 hover:shadow-lg hover:shadow-[#A4E977]/20">
+                          <div className="bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-5 hover:border-[#A4E977] transition-all duration-200 hover:shadow-lg hover:shadow-[#A4E977]/20">
                             {/* Icon Badge */}
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/50 flex items-center justify-center">
-                                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="mb-4">
+                              <div className="w-10 h-10 rounded-full bg-purple-600/30 border-2 border-purple-500/60 flex items-center justify-center">
+                                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
                               </div>
                             </div>
 
                             {/* Market Question */}
-                            <h3 className="text-sm font-medium text-white mb-3 line-clamp-2 min-h-[40px]">
+                            <h3 className="text-base font-normal text-white mb-4 line-clamp-2 leading-snug">
                               {market.question}
                             </h3>
 
                             {/* Percentage Display */}
                             <div className="mb-4">
-                              <div className="text-2xl font-bold text-[#A4E977]">
-                                {yesPrice}% <span className="text-sm font-normal text-gray-400">Chances</span>
-                              </div>
+                              <span className="text-3xl font-bold text-[#A4E977]">{yesPrice}%</span>
+                              <span className="text-base font-normal text-gray-400 ml-2">Chances</span>
                             </div>
 
                             {/* YES/NO Buttons */}
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                              <button className="py-2 bg-[#A4E977] text-black rounded-lg text-sm font-semibold hover:bg-[#8FD65E] transition-colors">
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                              <button className="py-2.5 bg-[#A4E977] text-black rounded-lg text-sm font-bold hover:bg-[#8FD65E] transition-colors uppercase tracking-wide">
                                 YES
                               </button>
-                              <button className="py-2 bg-[#1a1a1a] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors border border-gray-700">
+                              <button className="py-2.5 bg-[#1f1f1f] text-white rounded-lg text-sm font-bold hover:bg-[#2a2a2a] transition-colors border border-gray-700/50 uppercase tracking-wide">
                                 NO
                               </button>
                             </div>
 
                             {/* Volume */}
-                            <div className="text-xs text-gray-400 mb-2">
+                            <div className="text-sm text-gray-400 mb-3">
                               ${volume} Volume
                             </div>
 
                             {/* Footer */}
                             <div className="flex items-center gap-1.5 text-xs text-gray-500">
                               <span>Market by Super Pumped</span>
-                              <svg className="w-3 h-3 text-[#A4E977]" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-3.5 h-3.5 text-[#A4E977]" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
                             </div>
