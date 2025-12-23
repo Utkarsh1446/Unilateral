@@ -131,29 +131,29 @@ export function Navbar() {
             <div className="hidden md:flex items-center gap-6">
               <button
                 onClick={() => navigate('/markets')}
-                className="text-[#A4E977] font-medium hover:text-white transition-colors"
-                style={{ fontFamily: 'Inter', fontSize: '14px' }}
+                className="text-[#A4E977] hover:text-white transition-colors"
+                style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 Markets
               </button>
               <button
                 onClick={() => navigate('/btc-markets')}
-                className="text-gray-400 font-medium hover:text-white transition-colors"
-                style={{ fontFamily: 'Inter', fontSize: '14px' }}
+                className="text-gray-400 hover:text-white transition-colors"
+                style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 Quick Markets
               </button>
               <button
                 onClick={() => navigate('/creators')}
-                className="text-gray-400 font-medium hover:text-white transition-colors"
-                style={{ fontFamily: 'Inter', fontSize: '14px' }}
+                className="text-gray-400 hover:text-white transition-colors"
+                style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 Creators
               </button>
               <button
                 onClick={() => navigate('/how-it-works')}
-                className="text-gray-400 font-medium hover:text-white transition-colors"
-                style={{ fontFamily: 'Inter', fontSize: '14px' }}
+                className="text-gray-400 hover:text-white transition-colors"
+                style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 How it works
               </button>
