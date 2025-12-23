@@ -1,15 +1,13 @@
 import { Footer } from '../components/Footer';
-import { TrendingUp, TrendingDown, Search, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getMarkets } from '../lib/api';
-import { MarketCard } from '../components/MarketCard';
 
 export function MarketsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Markets');
-  const [selectedStatus, setSelectedStatus] = useState('active');
   const [markets, setMarkets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,10 +29,9 @@ export function MarketsPage() {
   const categories = [
     'All Markets',
     'Crypto',
-    'Sports',
     'Politics',
     'Entertainment',
-    'Tech',
+    'Technology',
     'Finance',
     'Gaming',
   ];
@@ -42,127 +39,58 @@ export function MarketsPage() {
   const filteredMarkets = markets.filter(market => {
     const matchesSearch = market.question.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All Markets' || market.category === selectedCategory;
-
-    // Status filter logic
-    let matchesStatus = true;
-    if (selectedStatus === 'active') matchesStatus = !market.resolved && new Date(market.deadline) > new Date();
-    if (selectedStatus === 'resolved') matchesStatus = market.resolved;
-    // 'all' shows everything - no additional filter needed
-
-    return matchesSearch && matchesCategory && matchesStatus;
+    const isActive = !market.resolved && new Date(market.deadline) > new Date();
+    return matchesSearch && matchesCategory && isActive;
   });
 
   return (
     <>
-      <div className="bg-muted/20 min-h-screen">
-        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 md:py-6">
+      <div className="bg-black min-h-screen text-white">
+        <div className="max-w-[1920px] mx-auto px-6 py-6">
           <div className="flex gap-6">
-            {/* Left Sidebar - Hidden on mobile */}
-            <div className="hidden lg:block w-64 flex-shrink-0">
-              <div className="bg-background rounded-xl border border-foreground/10 p-4 sticky top-6">
-                {/* Create Market Button */}
+            {/* Left Sidebar */}
+            <div className="w-[200px] flex-shrink-0">
+              <div className="bg-[#A4E977] rounded-lg p-4 mb-4">
                 <button
                   onClick={() => navigate('/create-market')}
-                  className="w-full py-2.5 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity text-sm mb-6"
-                  style={{ fontWeight: 600 }}
+                  className="w-full py-2.5 bg-black text-[#A4E977] rounded-lg hover:bg-gray-900 transition-colors text-sm font-semibold"
                 >
-                  + Create Market
+                  Create Market
                 </button>
-
-                {/* Categories */}
-                <div className="mb-6">
-                  <h3 className="text-xs text-muted-foreground mb-3 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>
-                    Categories
-                  </h3>
-                  <div className="space-y-1">
-                    {categories.map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => setSelectedCategory(category)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === category
-                          ? 'bg-foreground/5 text-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                          }`}
-                        style={{ fontWeight: selectedCategory === category ? 600 : 400 }}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Status Filters */}
-                <div>
-                  <h3 className="text-xs text-muted-foreground mb-3 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>
-                    Status
-                  </h3>
-                  <div className="space-y-1">
-                    <button
-                      onClick={() => setSelectedStatus('all')}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedStatus === 'all'
-                        ? 'bg-foreground/5 text-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                        }`}
-                      style={{ fontWeight: selectedStatus === 'all' ? 600 : 400 }}
-                    >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setSelectedStatus('active')}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedStatus === 'active'
-                        ? 'bg-foreground/5 text-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                        }`}
-                      style={{ fontWeight: selectedStatus === 'active' ? 600 : 400 }}
-                    >
-                      Active
-                    </button>
-                    <button
-                      onClick={() => setSelectedStatus('resolved')}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedStatus === 'resolved'
-                        ? 'bg-foreground/5 text-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                        }`}
-                      style={{ fontWeight: selectedStatus === 'resolved' ? 600 : 400 }}
-                    >
-                      Resolved
-                    </button>
-                  </div>
-                </div>
               </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="flex-1">
-              {/* Mobile Category Filters - Horizontal Scroll */}
-              <div className="lg:hidden mb-4 -mx-4 px-4">
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {/* Categories */}
+              <div className="bg-[#0f0f0f] rounded-lg border border-[rgba(140,180,130,0.35)] p-4">
+                <h3 className="text-sm font-semibold text-white mb-3">Categories</h3>
+                <div className="space-y-1">
                   {categories.map((category) => (
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`flex-shrink-0 px-4 py-2 rounded-full text-xs transition-all ${selectedCategory === category
-                        ? 'bg-foreground text-background'
-                        : 'bg-background border border-foreground/10 text-muted-foreground'
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === category
+                          ? 'bg-[#A4E977]/20 text-[#A4E977] font-medium'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
                         }`}
-                      style={{ fontWeight: selectedCategory === category ? 600 : 400 }}
                     >
                       {category}
                     </button>
                   ))}
                 </div>
               </div>
+            </div>
 
+            {/* Main Content */}
+            <div className="flex-1">
               {/* Search Bar */}
-              <div className="mb-4 md:mb-6">
+              <div className="mb-6">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search markets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 md:py-2.5 bg-background border border-foreground/10 rounded-lg focus:border-foreground/30 outline-none transition-colors text-sm"
+                    className="w-full pl-11 pr-4 py-3 bg-[#0f0f0f] border border-[rgba(140,180,130,0.35)] rounded-lg focus:border-[#A4E977] outline-none transition-colors text-sm text-white placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -170,36 +98,69 @@ export function MarketsPage() {
               {/* Loading State */}
               {loading ? (
                 <div className="flex justify-center py-20">
-                  <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+                  <Loader2 className="animate-spin w-8 h-8 text-[#A4E977]" />
                 </div>
               ) : (
                 <>
-                  {/* Markets Grid - Smaller Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Markets Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {filteredMarkets.map((market) => {
-                      // Mock data for missing fields if API doesn't return them yet
                       const yesOutcome = market.outcomes?.find((o: any) => o.name === 'Yes');
                       const yesPrice = yesOutcome ? Math.round(Number(yesOutcome.current_price) * 100) : 50;
                       const noPrice = 100 - yesPrice;
-                      const priceChange = market.priceChange || 0;
-                      const volume = market.volume ? `${Number(market.volume).toLocaleString()}` : '0';
-                      const creatorName = market.creator?.display_name || market.creator?.twitter_handle || 'Guessly User';
+                      const volume = market.volume ? `${(Number(market.volume) / 1000).toFixed(0)}k` : '0';
 
                       return (
                         <Link
                           key={market.id}
                           to={`/market/${market.id}`}
-                          className="block hover:scale-[1.02] transition-transform duration-200"
+                          className="block group"
                         >
-                          <MarketCard
-                            title={market.question}
-                            creator={creatorName}
-                            yesPrice={yesPrice}
-                            noPrice={noPrice}
-                            volume={volume}
-                            priceChange={priceChange}
-                            imageUrl={market.image_url}
-                          />
+                          <div className="bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-4 hover:border-[#A4E977] transition-all duration-200 hover:shadow-lg hover:shadow-[#A4E977]/20">
+                            {/* Icon Badge */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/50 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                              </div>
+                            </div>
+
+                            {/* Market Question */}
+                            <h3 className="text-sm font-medium text-white mb-3 line-clamp-2 min-h-[40px]">
+                              {market.question}
+                            </h3>
+
+                            {/* Percentage Display */}
+                            <div className="mb-4">
+                              <div className="text-2xl font-bold text-[#A4E977]">
+                                {yesPrice}% <span className="text-sm font-normal text-gray-400">Chances</span>
+                              </div>
+                            </div>
+
+                            {/* YES/NO Buttons */}
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                              <button className="py-2 bg-[#A4E977] text-black rounded-lg text-sm font-semibold hover:bg-[#8FD65E] transition-colors">
+                                YES
+                              </button>
+                              <button className="py-2 bg-[#1a1a1a] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors border border-gray-700">
+                                NO
+                              </button>
+                            </div>
+
+                            {/* Volume */}
+                            <div className="text-xs text-gray-400 mb-2">
+                              ${volume} Volume
+                            </div>
+
+                            {/* Footer */}
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                              <span>Market by Super Pumped</span>
+                              <svg className="w-3 h-3 text-[#A4E977]" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
                         </Link>
                       );
                     })}
@@ -207,16 +168,14 @@ export function MarketsPage() {
 
                   {/* Empty State */}
                   {filteredMarkets.length === 0 && (
-                    <div className="text-center py-16 bg-background rounded-xl border border-foreground/10">
-                      <p className="text-muted-foreground mb-2">No markets found</p>
+                    <div className="text-center py-16 bg-[#0a0a0a] rounded-lg border border-[rgba(140,180,130,0.35)]">
+                      <p className="text-gray-400 mb-2">No markets found</p>
                       <button
                         onClick={() => {
                           setSearchQuery('');
                           setSelectedCategory('All Markets');
-                          setSelectedStatus('all');
                         }}
-                        className="text-sm text-foreground hover:opacity-60 transition-opacity"
-                        style={{ fontWeight: 500 }}
+                        className="text-sm text-[#A4E977] hover:opacity-60 transition-opacity font-medium"
                       >
                         Clear filters
                       </button>
