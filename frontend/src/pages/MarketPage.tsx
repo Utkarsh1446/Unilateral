@@ -550,11 +550,11 @@ export function MarketPage() {
 
         {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[84%_16%] gap-0">
-            {/* LEFT: Chart Section with Order Book Inside */}
+          <div className="grid grid-cols-1 lg:grid-cols-[85%_15%] gap-0">
+            {/* LEFT: Chart and Order Book Stacked Vertically */}
             <div className="lg:border-r border-gray-800/50 h-full">
-              <div className="grid grid-cols-1 xl:grid-cols-[85.35%_14.65%] gap-3 p-3">
-                {/* Chart Area */}
+              {/* Chart Area - Full Width on Left */}
+              <div className="p-3">
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-3 bg-[#0a0a0a]">
                     <div className="flex items-center justify-between gap-4 mb-4">
@@ -788,8 +788,10 @@ export function MarketPage() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Order Book - INSIDE Chart Section */}
+              {/* Order Book - Below Chart */}
+              <div className="px-3 pb-3">
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="px-3 py-3 border-b border-[#A4E977]">
                     <div className="flex items-center justify-between mb-3">
