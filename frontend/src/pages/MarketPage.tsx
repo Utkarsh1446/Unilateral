@@ -451,7 +451,7 @@ export function MarketPage() {
 
 
         {/* Top Header */}
-        <div className="max-w-[1920px] mx-auto px-3 pt-3">
+        <div className="max-w-[1920px] mx-auto px-3 pt-3 pb-3">
           <div className="border rounded-lg bg-[#0a0a0a] shadow-lg" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' }}>
             <div className="px-5 py-3">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -782,7 +782,7 @@ export function MarketPage() {
 
               {/* Positions and Trade History Tabs */}
               <div>
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[344px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
                     {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
                       <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
@@ -982,56 +982,10 @@ export function MarketPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Related Markets Panel */}
-              <div>
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl max-h-[200px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-white">Related Markets</h3>
-                      <button
-                        onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto">
-                      {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
-                        <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {relatedMarketsExpanded && (
-                    <div className="overflow-y-auto flex-1 p-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                      <div className="space-y-2">
-                        {relatedMarkets.map((market: any, index: number) => (
-                          <div
-                            key={index}
-                            onClick={() => navigate(`/market/${market.id}`)}
-                            className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
-                          >
-                            {market.image_url && (
-                              <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-white truncate">{market.description}</div>
-                            </div>
-                            <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
 
-            {/* MIDDLE COLUMN: Order Book */}
-            <div className="flex flex-col h-full">
+            {/* MIDDLE COLUMN: Order Book + Related Markets */}
+            <div className="flex flex-col gap-3 h-full">
               <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '572px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                 <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
                   <div className="flex items-center justify-between mb-3">
@@ -1128,6 +1082,50 @@ export function MarketPage() {
                         })()}
                         {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
                       </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Related Markets Panel */}
+              <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-white">Related Markets</h3>
+                    <button
+                      onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto">
+                    {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
+                      <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {relatedMarketsExpanded && (
+                  <div className="overflow-y-auto flex-1 p-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div className="space-y-2">
+                      {relatedMarkets.map((market: any, index: number) => (
+                        <div
+                          key={index}
+                          onClick={() => navigate(`/market/${market.id}`)}
+                          className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
+                        >
+                          {market.image_url && (
+                            <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-white truncate">{market.description}</div>
+                          </div>
+                          <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
