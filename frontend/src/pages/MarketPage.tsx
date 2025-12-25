@@ -1032,7 +1032,7 @@ export function MarketPage() {
 
             {/* MIDDLE COLUMN: Order Book */}
             <div className="flex flex-col h-full">
-              <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-full flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '572px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                 <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-white">Order Book</h3>
