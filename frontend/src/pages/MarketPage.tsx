@@ -539,7 +539,7 @@ export function MarketPage() {
 
         {/* Main Content - THREE COLUMN LAYOUT: Chart+Positions+Related LEFT, Order Book MIDDLE, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid gap-3 px-3" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
+          <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
             {/* LEFT COLUMN: Chart, Positions, Related Markets */}
             <div className="flex flex-col gap-3 h-full">
               {/* Chart Area */}
@@ -1134,7 +1134,7 @@ export function MarketPage() {
 
             {/* RIGHT COLUMN: Trading Panel */}
             <div className="flex flex-col h-full">
-              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-full" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[926px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                 <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
                   <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                   <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
