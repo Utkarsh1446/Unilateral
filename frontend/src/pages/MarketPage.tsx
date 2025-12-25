@@ -537,13 +537,13 @@ export function MarketPage() {
           </div>
         </div>
 
-        {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
+        {/* Main Content - THREE COLUMN LAYOUT: Chart+Positions+Related LEFT, Order Book MIDDLE, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
           <div className="grid gap-3 px-3" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
-            {/* LEFT: Chart and Order Book Stacked Vertically */}
-            <div className="lg:border-r border-gray-800/50 h-full">
-              {/* Chart Area - Full Width on Left */}
-              <div className="p-3">
+            {/* LEFT COLUMN: Chart, Positions, Related Markets */}
+            <div className="flex flex-col gap-3 h-full">
+              {/* Chart Area */}
+              <div>
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-3 bg-[#0a0a0a]">
                     <div className="flex items-center justify-between gap-4 mb-4">
@@ -779,159 +779,9 @@ export function MarketPage() {
                 </div>
               </div>
 
-              {/* Order Book - Below Chart */}
-              <div className="px-3 pb-3">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[569px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>`r`n                  <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">Order Book</h3>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setShowDepthChart(!showDepthChart)}
-                          className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
-                        >
-                          {showDepthChart ? 'Table' : 'Depth'}
-                        </button>
-                        <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
-                          Others <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
-                      <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
-                    </div>
-                  </div>
 
-                  {/* Market Depth Chart or Order Book Table */}
-                  {showDepthChart ? (
-                    <div className="px-3 py-4">
-                      <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
-                      <div className="relative h-[300px] bg-[#1a1a1a] rounded">
-                        {/* Depth Chart Visualization */}
-                        <svg className="w-full h-full" viewBox="0 0 400 300">
-                          {/* Bids (Green) - Left side */}
-                          <path
-                            d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z"
-                            fill="rgba(164, 233, 119, 0.2)"
-                            stroke="#A4E977"
-                            strokeWidth="2"
-                          />
-                          {/* Asks (Red) - Right side */}
-                          <path
-                            d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z"
-                            fill="rgba(239, 68, 68, 0.2)"
-                            stroke="#EF4444"
-                            strokeWidth="2"
-                          />
-                          {/* Center line */}
-                          <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
-                          {/* Labels */}
-                          <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
-                          <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
-                          <text x="200" y="20" fill="#666" fontSize="10" textAnchor="middle">{yesPrice}¢</text>
-                        </svg>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">`r`n                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
-                        <div>Price</div>
-                        <div className="text-right">Size</div>
-                        <div className="text-right">Cumulative</div>
-                        <div className="text-right">Total(USD)</div>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto">
-                        {/* Asks (Sell Orders) */}
-                        <div className="space-y-0.5 mb-2">
-                          {(() => {
-                            // Calculate cumulative volume for asks
-                            let cumulativeAsk = 0;
-                            const maxAskVolume = filteredAsks.reduce((max, ask) => Math.max(max, ask.amount), 0);
-
-                            return filteredAsks.slice(0, 10).map((ask, i) => {
-                              cumulativeAsk += ask.amount;
-                              const depthPercentage = (ask.amount / maxAskVolume) * 100;
-
-                              return (
-                                <div key={i} className="relative group">
-                                  {/* Depth visualization bar */}
-                                  <div
-                                    className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20"
-                                    style={{ width: `${depthPercentage}%` }}
-                                  />
-
-                                  {/* Order data */}
-                                  <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
-                                    <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(4)}¢</div>
-                                    <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
-                                    <div className="text-right text-gray-400 text-[10px]">{cumulativeAsk.toFixed(2)}</div>
-                                    <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                          {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
-                        </div>
-
-                        {/* Spread Indicator */}
-                        <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-[#1a1a1a]">
-                          <div className="text-[11px] text-gray-400 space-y-0.5">
-                            <div>
-                              Spread: <span className="text-[#A4E977] font-mono font-semibold">
-                                {filteredAsks.length > 0 && filteredBids.length > 0
-                                  ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4)
-                                  : '0.0000'}¢
-                              </span>
-                            </div>
-                            <div className="text-[10px]">
-                              ({filteredAsks.length > 0 && filteredBids.length > 0
-                                ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2)
-                                : '0.00'}%)
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Bids (Buy Orders) */}
-                        <div className="space-y-0.5">
-                          {(() => {
-                            // Calculate cumulative volume for bids
-                            let cumulativeBid = 0;
-                            const maxBidVolume = filteredBids.reduce((max, bid) => Math.max(max, bid.amount), 0);
-
-                            return filteredBids.slice(0, 10).map((bid, i) => {
-                              cumulativeBid += bid.amount;
-                              const depthPercentage = (bid.amount / maxBidVolume) * 100;
-
-                              return (
-                                <div key={i} className="relative group">
-                                  {/* Depth visualization bar */}
-                                  <div
-                                    className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20"
-                                    style={{ width: `${depthPercentage}%` }}
-                                  />
-
-                                  {/* Order data */}
-                                  <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
-                                    <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(4)}¢</div>
-                                    <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
-                                    <div className="text-right text-gray-400 text-[10px]">{cumulativeBid.toFixed(2)}</div>
-                                    <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                          {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Bottom Tabs */}
-              <div className="pl-3 pb-3 pt-0">
+              {/* Positions and Trade History Tabs */}
+              <div>
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
                     {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
@@ -1133,8 +983,8 @@ export function MarketPage() {
                 </div>
               </div>
 
-              {/* Related Markets Panel - Below Positions */}
-              <div className="pl-3 pb-3 pt-3">
+              {/* Related Markets Panel */}
+              <div>
                 <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl max-h-[200px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
                     <div className="flex items-center justify-between mb-2">
@@ -1180,9 +1030,113 @@ export function MarketPage() {
               </div>
             </div>
 
-            {/* RIGHT: Trading Panel ONLY */}
-            <div className="bg-black flex flex-col p-3 h-full">
-              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl min-h-[1050px]" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+            {/* MIDDLE COLUMN: Order Book */}
+            <div className="flex flex-col h-full">
+              <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-full flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-white">Order Book</h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowDepthChart(!showDepthChart)}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
+                      >
+                        {showDepthChart ? 'Table' : 'Depth'}
+                      </button>
+                      <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                        Others <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
+                    <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
+                  </div>
+                </div>
+
+                {/* Market Depth Chart or Order Book Table */}
+                {showDepthChart ? (
+                  <div className="px-3 py-4 flex-1 overflow-auto">
+                    <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
+                    <div className="relative h-[300px] bg-[#1a1a1a] rounded">
+                      <svg className="w-full h-full" viewBox="0 0 400 300">
+                        <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
+                        <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
+                        <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
+                        <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
+                        <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
+                        <text x="200" y="20" fill="#666" fontSize="10" textAnchor="middle">{yesPrice}¢</text>
+                      </svg>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">
+                    <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
+                      <div>Price</div>
+                      <div className="text-right">Size</div>
+                      <div className="text-right">Cumulative</div>
+                      <div className="text-right">Total(USD)</div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="space-y-0.5 mb-2">
+                        {(() => {
+                          let cumulativeAsk = 0;
+                          const maxAskVolume = filteredAsks.reduce((max, ask) => Math.max(max, ask.amount), 0);
+                          return filteredAsks.slice(0, 10).map((ask, i) => {
+                            cumulativeAsk += ask.amount;
+                            const depthPercentage = (ask.amount / maxAskVolume) * 100;
+                            return (
+                              <div key={i} className="relative group">
+                                <div className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20" style={{ width: `${depthPercentage}%` }} />
+                                <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
+                                  <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(4)}¢</div>
+                                  <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
+                                  <div className="text-right text-gray-400 text-[10px]">{cumulativeAsk.toFixed(2)}</div>
+                                  <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                        {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
+                      </div>
+                      <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-[#1a1a1a]">
+                        <div className="text-[11px] text-gray-400 space-y-0.5">
+                          <div>Spread: <span className="text-[#A4E977] font-mono font-semibold">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4) : '0.0000'}¢</span></div>
+                          <div className="text-[10px]">({filteredAsks.length > 0 && filteredBids.length > 0 ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2) : '0.00'}%)</div>
+                        </div>
+                      </div>
+                      <div className="space-y-0.5">
+                        {(() => {
+                          let cumulativeBid = 0;
+                          const maxBidVolume = filteredBids.reduce((max, bid) => Math.max(max, bid.amount), 0);
+                          return filteredBids.slice(0, 10).map((bid, i) => {
+                            cumulativeBid += bid.amount;
+                            const depthPercentage = (bid.amount / maxBidVolume) * 100;
+                            return (
+                              <div key={i} className="relative group">
+                                <div className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20" style={{ width: `${depthPercentage}%` }} />
+                                <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
+                                  <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(4)}¢</div>
+                                  <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
+                                  <div className="text-right text-gray-400 text-[10px]">{cumulativeBid.toFixed(2)}</div>
+                                  <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                        {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Trading Panel */}
+            <div className="flex flex-col h-full">
+              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-full" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                 <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
                   <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                   <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
