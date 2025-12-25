@@ -539,7 +539,7 @@ export function MarketPage() {
 
         {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[85%_15%] gap-0">
+          <div className="grid gap-3 px-3" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
             {/* LEFT: Chart and Order Book Stacked Vertically */}
             <div className="lg:border-r border-gray-800/50 h-full">
               {/* Chart Area - Full Width on Left */}
@@ -781,8 +781,7 @@ export function MarketPage() {
 
               {/* Order Book - Below Chart */}
               <div className="px-3 pb-3">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="px-3 py-3 border-b border-[#A4E977]">
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[569px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>`r`n                  <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-white">Order Book</h3>
                       <div className="flex items-center gap-2">
@@ -834,15 +833,14 @@ export function MarketPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="px-3 py-2">
-                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3">
+                    <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">`r`n                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
                         <div>Price</div>
                         <div className="text-right">Size</div>
                         <div className="text-right">Cumulative</div>
                         <div className="text-right">Total(USD)</div>
                       </div>
 
-                      <div className="max-h-[500px] overflow-y-auto">
+                      <div className="flex-1 overflow-y-auto">
                         {/* Asks (Sell Orders) */}
                         <div className="space-y-0.5 mb-2">
                           {(() => {
