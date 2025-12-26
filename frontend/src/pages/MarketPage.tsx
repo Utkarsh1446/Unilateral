@@ -1794,7 +1794,7 @@ export function MarketPage() {
 
           {/* Trading Panel */}
           {activeMobilePanel === 'trading' && (
-            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl overflow-y-auto scrollbar-hide" style={{ height: '80vh', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
               <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
                 <button onClick={() => setTradeType('buy')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                 <button onClick={() => setTradeType('sell')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
@@ -1913,6 +1913,30 @@ export function MarketPage() {
                   />
                 </div>
               )}
+
+              {/* Take Profit / Stop Loss */}
+              <div className="px-3 pb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-2 block">Take Profit</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-2 block">Stop Loss</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+              </div>
 
               <div className="px-3 pb-3">
                 <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
