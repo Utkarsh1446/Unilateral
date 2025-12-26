@@ -447,7 +447,7 @@ export function MarketPage() {
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="bg-black min-h-screen text-white pt-[58px]">
+      <div className="bg-black min-h-screen text-white pt-[58px] overflow-x-hidden">
         {/* Top Navbar */}
 
 
@@ -539,39 +539,39 @@ export function MarketPage() {
         </div>
 
         {/* Mobile Tab Navigation - Only visible on mobile */}
-        <div className="lg:hidden px-3 pb-3">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2">
+        <div className="lg:hidden pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2 justify-center mx-3">
             <button
               onClick={() => setActiveMobilePanel('chart')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Chart
             </button>
             <button
               onClick={() => setActiveMobilePanel('orderbook')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Order Book
             </button>
             <button
               onClick={() => setActiveMobilePanel('positions')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Positions
             </button>
             <button
               onClick={() => setActiveMobilePanel('related')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
-              Related
+              Related Markets
             </button>
             <button
               onClick={() => setActiveMobilePanel('trading')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Trade
@@ -1561,7 +1561,7 @@ export function MarketPage() {
                   <div className="flex items-center gap-1 border border-gray-700 rounded p-0.5">
                     <button
                       onClick={() => setChartType('line')}
-                      className={`p-1 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
                       title="Line"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1570,7 +1570,7 @@ export function MarketPage() {
                     </button>
                     <button
                       onClick={() => setChartType('candle')}
-                      className={`p-1 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
                       title="Candle"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1580,7 +1580,7 @@ export function MarketPage() {
                     </button>
                     <button
                       onClick={() => setChartType('area')}
-                      className={`p-1 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
                       title="Area"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1794,7 +1794,7 @@ export function MarketPage() {
 
           {/* Trading Panel */}
           {activeMobilePanel === 'trading' && (
-            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl overflow-y-auto" style={{ maxHeight: '80vh', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl overflow-y-auto scrollbar-hide" style={{ height: '80vh', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
               <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
                 <button onClick={() => setTradeType('buy')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                 <button onClick={() => setTradeType('sell')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
@@ -1805,9 +1805,9 @@ export function MarketPage() {
                 <span className="text-xs text-gray-400">One-Click Trading</span>
                 <button
                   onClick={() => setOneClickTrading(!oneClickTrading)}
-                  className={`relative w-11 h-6 rounded-full transition-colors flex items-center ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'}`}
+                  className={`relative w-[75px] h-3.5 rounded-full transition-colors flex items-center ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6 ml-1' : 'ml-1'}`} />
+                  <div className={`w-3 h-3 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-[51px] ml-[7.5px]' : 'ml-[7.5px]'}`} />
                 </button>
               </div>
 
@@ -1815,7 +1815,7 @@ export function MarketPage() {
                 {/* Order Type Tabs */}
                 <div className="flex gap-2 mb-3">
                   {(['market', 'limit', 'pro'] as const).map((type) => (
-                    <button key={type} onClick={() => setOrderType(type)} className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                    <button key={type} onClick={() => setOrderType(type)} className={`px-5 py-1 text-xs font-medium rounded-full transition-colors text-center ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                     </button>
                   ))}
@@ -1843,11 +1843,11 @@ export function MarketPage() {
 
               <div className="p-3">
                 <div className="grid grid-cols-2 gap-2 mx-3">
-                  <button onClick={() => setSelectedOutcome(0)} className={`p-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                  <button onClick={() => setSelectedOutcome(0)} className={`px-[30px] py-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
                     <span className="text-xs font-medium text-gray-400">Yes</span>
                     <span className={`text-xs font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}¢</span>
                   </button>
-                  <button onClick={() => setSelectedOutcome(1)} className={`p-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                  <button onClick={() => setSelectedOutcome(1)} className={`px-[30px] py-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
                     <span className="text-xs font-medium text-gray-400">No</span>
                     <span className={`text-xs font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}¢</span>
                   </button>
