@@ -1,7 +1,7 @@
 import { Navbar } from '../components/Navbar';
 import { ArrowLeft, Loader2, Copy, ExternalLink, Settings } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Area, Scatter, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Area, Scatter, Cell, ReferenceLine } from 'recharts';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { toast, Toaster } from 'sonner';
@@ -659,68 +659,64 @@ export function MarketPage() {
                             </defs>
 
                             <CartesianGrid
-                              strokeDasharray="3 3"
+                              strokeDasharray="0"
                               stroke="#1a1a1a"
                               vertical={false}
-                              opacity={0.5}
+                              opacity={0.3}
+                              horizontalPoints={[20, 40, 60, 80]}
                             />
 
                             <XAxis
                               dataKey="date"
-                              stroke="#666666"
-                              style={{ fontSize: '11px' }}
-                              axisLine={{ stroke: '#2a2a2a' }}
+                              stroke="transparent"
+                              style={{ fontSize: '10px' }}
+                              axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#888888' }}
+                              tick={{ fill: '#666666' }}
+                              dy={10}
                             />
 
                             {/* Left Y-Axis for Price (Percentage) */}
                             <YAxis
                               yAxisId="left"
-                              stroke="#6B7280"
-                              style={{ fontSize: '11px' }}
+                              stroke="transparent"
+                              style={{ fontSize: '10px' }}
                               domain={[0, 100]}
-                              axisLine={{ stroke: '#374151' }}
+                              axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#9CA3AF' }}
-                              tickFormatter={(value) => `${value}%`}
+                              tick={{ fill: '#666666' }}
+                              tickFormatter={(value) => `$${value}`}
+                              dx={-5}
                             />
 
                             {/* Right Y-Axis for Volume */}
                             <YAxis
                               yAxisId="right"
                               orientation="right"
-                              stroke="#666666"
-                              style={{ fontSize: '11px' }}
-                              axisLine={{ stroke: '#2a2a2a' }}
+                              stroke="transparent"
+                              style={{ fontSize: '10px' }}
+                              axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#888888' }}
+                              tick={{ fill: '#666666' }}
                               tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
+                              hide={true}
                             />
 
                             <Tooltip
                               contentStyle={{
                                 backgroundColor: '#0a0a0a',
                                 border: '1px solid #2a2a2a',
-                                borderRadius: '4px'
+                                borderRadius: '8px',
+                                padding: '8px 12px'
                               }}
-                              labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
-                              itemStyle={{ color: '#A4E977', padding: '4px 0' }}
+                              labelStyle={{ color: '#888888', fontSize: '11px', marginBottom: '4px' }}
+                              itemStyle={{ color: '#A4E977', fontSize: '12px', fontWeight: '600' }}
                               formatter={(value: any, name: string) => {
-                                if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
+                                if (name === 'YES') return [`$${Number(value).toFixed(2)}`, 'Price'];
                                 if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
                                 return [value, name];
                               }}
-                              cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
-                            />
-
-                            {/* Volume Bars */}
-                            <Bar
-                              yAxisId="right"
-                              dataKey="volume"
-                              fill="#A4E977"
-                              opacity={0.3}
-                              radius={[2, 2, 0, 0]}
+                              cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '3 3', opacity: 0.3 }}
                             />
 
                             {/* Area Chart */}
@@ -730,7 +726,7 @@ export function MarketPage() {
                                 type="monotone"
                                 dataKey="YES"
                                 stroke="#A4E977"
-                                strokeWidth={2}
+                                strokeWidth={3}
                                 fill="url(#colorYES)"
                                 dot={false}
                               />
@@ -743,12 +739,20 @@ export function MarketPage() {
                                 type="monotone"
                                 dataKey="YES"
                                 stroke="#A4E977"
-                                strokeWidth={2}
+                                strokeWidth={3}
                                 dot={false}
-                                activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
+                                activeDot={{ r: 5, fill: '#A4E977', stroke: '#0a0a0a', strokeWidth: 2 }}
                               />
                             )}
 
+                            {/* Reference Line - Dotted horizontal line at current price */}
+                            <ReferenceLine
+                              yAxisId="left"
+                              y={yesPrice}
+                              stroke="#3a4a2a"
+                              strokeDasharray="3 3"
+                              strokeWidth={1}
+                            />
 
                             {/* Candlestick Chart */}
                             {chartType === 'candle' && (
@@ -1599,14 +1603,14 @@ export function MarketPage() {
                           <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                      <XAxis dataKey="time" stroke="#666" tick={{ fontSize: 10 }} />
-                      <YAxis yAxisId="left" stroke="#A4E977" tick={{ fontSize: 10 }} domain={[0, 100]} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#888" tick={{ fontSize: 10 }} />
-                      <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #A4E977', borderRadius: '8px', fontSize: '12px' }} />
-                      {chartType === 'area' && <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} fillOpacity={1} fill="url(#colorYesMobile)" />}
-                      {chartType === 'line' && <Line yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} dot={false} />}
-                      <Bar yAxisId="right" dataKey="volume" fill="#444" opacity={0.3} radius={[4, 4, 0, 0]} />
+                      <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} opacity={0.3} />
+                      <XAxis dataKey="time" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} axisLine={false} tickLine={false} />
+                      <YAxis yAxisId="left" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                      <YAxis yAxisId="right" orientation="right" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} axisLine={false} tickLine={false} hide={true} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px', padding: '8px 12px' }} labelStyle={{ color: '#888888', fontSize: '11px' }} itemStyle={{ color: '#A4E977', fontWeight: '600' }} />
+                      <ReferenceLine yAxisId="left" y={yesPrice} stroke="#3a4a2a" strokeDasharray="3 3" strokeWidth={1} />
+                      {chartType === 'area' && <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={3} fillOpacity={1} fill="url(#colorYesMobile)" dot={false} />}
+                      {chartType === 'line' && <Line yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={3} dot={false} activeDot={{ r: 5, fill: '#A4E977', stroke: '#0a0a0a', strokeWidth: 2 }} />}
                     </ComposedChart>
                   </ResponsiveContainer>
 
