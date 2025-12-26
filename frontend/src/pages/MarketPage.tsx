@@ -1,7 +1,7 @@
 import { Navbar } from '../components/Navbar';
 import { ArrowLeft, Loader2, Copy, ExternalLink, Settings } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Area, Scatter, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Area, Scatter, Cell, ReferenceLine } from 'recharts';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { toast, Toaster } from 'sonner';
@@ -447,7 +447,7 @@ export function MarketPage() {
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="bg-black min-h-screen text-white pt-[58px]">
+      <div className="bg-black min-h-screen text-white pt-[58px] overflow-x-hidden">
         {/* Top Navbar */}
 
 
@@ -539,39 +539,39 @@ export function MarketPage() {
         </div>
 
         {/* Mobile Tab Navigation - Only visible on mobile */}
-        <div className="lg:hidden px-3 pb-3">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2">
+        <div className="lg:hidden pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2 justify-center mx-3">
             <button
               onClick={() => setActiveMobilePanel('chart')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Chart
             </button>
             <button
               onClick={() => setActiveMobilePanel('orderbook')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Order Book
             </button>
             <button
               onClick={() => setActiveMobilePanel('positions')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Positions
             </button>
             <button
               onClick={() => setActiveMobilePanel('related')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
-              Related
+              Related Markets
             </button>
             <button
               onClick={() => setActiveMobilePanel('trading')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Trade
@@ -582,7 +582,7 @@ export function MarketPage() {
         {/* Main Content - THREE COLUMN LAYOUT (Desktop/Tablet) */}
         <div className="max-w-[1920px] mx-auto">
           <div className="hidden lg:block">
-            <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
+            <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1.3fr 0.3fr 0.4fr', minHeight: 'calc(100vh - 150px)' }}>
               {/* LEFT COLUMN: Chart, Positions, Related Markets */}
               <div className="flex flex-col gap-3 h-full">
                 {/* Chart Area */}
@@ -659,68 +659,64 @@ export function MarketPage() {
                             </defs>
 
                             <CartesianGrid
-                              strokeDasharray="3 3"
+                              strokeDasharray="0"
                               stroke="#1a1a1a"
                               vertical={false}
-                              opacity={0.5}
+                              opacity={0.3}
+                              horizontalPoints={[20, 40, 60, 80]}
                             />
 
                             <XAxis
                               dataKey="date"
-                              stroke="#666666"
-                              style={{ fontSize: '11px' }}
-                              axisLine={{ stroke: '#2a2a2a' }}
+                              stroke="transparent"
+                              style={{ fontSize: '10px' }}
+                              axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#888888' }}
+                              tick={{ fill: '#666666' }}
+                              dy={10}
                             />
 
                             {/* Left Y-Axis for Price (Percentage) */}
                             <YAxis
                               yAxisId="left"
-                              stroke="#6B7280"
-                              style={{ fontSize: '11px' }}
+                              stroke="transparent"
+                              style={{ fontSize: '10px' }}
                               domain={[0, 100]}
-                              axisLine={{ stroke: '#374151' }}
+                              axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#9CA3AF' }}
-                              tickFormatter={(value) => `${value}%`}
+                              tick={{ fill: '#666666' }}
+                              tickFormatter={(value) => `$${value}`}
+                              dx={-5}
                             />
 
                             {/* Right Y-Axis for Volume */}
                             <YAxis
                               yAxisId="right"
                               orientation="right"
-                              stroke="#666666"
-                              style={{ fontSize: '11px' }}
-                              axisLine={{ stroke: '#2a2a2a' }}
+                              stroke="transparent"
+                              style={{ fontSize: '10px' }}
+                              axisLine={false}
                               tickLine={false}
-                              tick={{ fill: '#888888' }}
+                              tick={{ fill: '#666666' }}
                               tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
+                              hide={true}
                             />
 
                             <Tooltip
                               contentStyle={{
                                 backgroundColor: '#0a0a0a',
                                 border: '1px solid #2a2a2a',
-                                borderRadius: '4px'
+                                borderRadius: '8px',
+                                padding: '8px 12px'
                               }}
-                              labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
-                              itemStyle={{ color: '#A4E977', padding: '4px 0' }}
+                              labelStyle={{ color: '#888888', fontSize: '11px', marginBottom: '4px' }}
+                              itemStyle={{ color: '#A4E977', fontSize: '12px', fontWeight: '600' }}
                               formatter={(value: any, name: string) => {
-                                if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
+                                if (name === 'YES') return [`$${Number(value).toFixed(2)}`, 'Price'];
                                 if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
                                 return [value, name];
                               }}
-                              cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
-                            />
-
-                            {/* Volume Bars */}
-                            <Bar
-                              yAxisId="right"
-                              dataKey="volume"
-                              fill="#A4E977"
-                              opacity={0.3}
-                              radius={[2, 2, 0, 0]}
+                              cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '3 3', opacity: 0.3 }}
                             />
 
                             {/* Area Chart */}
@@ -730,7 +726,7 @@ export function MarketPage() {
                                 type="monotone"
                                 dataKey="YES"
                                 stroke="#A4E977"
-                                strokeWidth={2}
+                                strokeWidth={3}
                                 fill="url(#colorYES)"
                                 dot={false}
                               />
@@ -743,12 +739,20 @@ export function MarketPage() {
                                 type="monotone"
                                 dataKey="YES"
                                 stroke="#A4E977"
-                                strokeWidth={2}
+                                strokeWidth={3}
                                 dot={false}
-                                activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
+                                activeDot={{ r: 5, fill: '#A4E977', stroke: '#0a0a0a', strokeWidth: 2 }}
                               />
                             )}
 
+                            {/* Reference Line - Dotted horizontal line at current price */}
+                            <ReferenceLine
+                              yAxisId="left"
+                              y={yesPrice}
+                              stroke="#3a4a2a"
+                              strokeDasharray="3 3"
+                              strokeWidth={1}
+                            />
 
                             {/* Candlestick Chart */}
                             {chartType === 'candle' && (
@@ -1561,7 +1565,7 @@ export function MarketPage() {
                   <div className="flex items-center gap-1 border border-gray-700 rounded p-0.5">
                     <button
                       onClick={() => setChartType('line')}
-                      className={`p-1 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
                       title="Line"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1570,7 +1574,7 @@ export function MarketPage() {
                     </button>
                     <button
                       onClick={() => setChartType('candle')}
-                      className={`p-1 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
                       title="Candle"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1580,7 +1584,7 @@ export function MarketPage() {
                     </button>
                     <button
                       onClick={() => setChartType('area')}
-                      className={`p-1 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
                       title="Area"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1599,14 +1603,14 @@ export function MarketPage() {
                           <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                      <XAxis dataKey="time" stroke="#666" tick={{ fontSize: 10 }} />
-                      <YAxis yAxisId="left" stroke="#A4E977" tick={{ fontSize: 10 }} domain={[0, 100]} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#888" tick={{ fontSize: 10 }} />
-                      <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #A4E977', borderRadius: '8px', fontSize: '12px' }} />
-                      {chartType === 'area' && <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} fillOpacity={1} fill="url(#colorYesMobile)" />}
-                      {chartType === 'line' && <Line yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} dot={false} />}
-                      <Bar yAxisId="right" dataKey="volume" fill="#444" opacity={0.3} radius={[4, 4, 0, 0]} />
+                      <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} opacity={0.3} />
+                      <XAxis dataKey="time" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} axisLine={false} tickLine={false} />
+                      <YAxis yAxisId="left" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                      <YAxis yAxisId="right" orientation="right" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} axisLine={false} tickLine={false} hide={true} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px', padding: '8px 12px' }} labelStyle={{ color: '#888888', fontSize: '11px' }} itemStyle={{ color: '#A4E977', fontWeight: '600' }} />
+                      <ReferenceLine yAxisId="left" y={yesPrice} stroke="#3a4a2a" strokeDasharray="3 3" strokeWidth={1} />
+                      {chartType === 'area' && <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={3} fillOpacity={1} fill="url(#colorYesMobile)" dot={false} />}
+                      {chartType === 'line' && <Line yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={3} dot={false} activeDot={{ r: 5, fill: '#A4E977', stroke: '#0a0a0a', strokeWidth: 2 }} />}
                     </ComposedChart>
                   </ResponsiveContainer>
 
@@ -1794,7 +1798,7 @@ export function MarketPage() {
 
           {/* Trading Panel */}
           {activeMobilePanel === 'trading' && (
-            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl overflow-y-auto" style={{ maxHeight: '80vh', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
               <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
                 <button onClick={() => setTradeType('buy')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                 <button onClick={() => setTradeType('sell')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
@@ -1805,9 +1809,9 @@ export function MarketPage() {
                 <span className="text-xs text-gray-400">One-Click Trading</span>
                 <button
                   onClick={() => setOneClickTrading(!oneClickTrading)}
-                  className={`relative w-11 h-6 rounded-full transition-colors flex items-center ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'}`}
+                  className={`relative w-[75px] h-3.5 rounded-full transition-colors flex items-center ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6 ml-1' : 'ml-1'}`} />
+                  <div className={`w-3 h-3 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-[51px] ml-[7.5px]' : 'ml-[7.5px]'}`} />
                 </button>
               </div>
 
@@ -1815,7 +1819,7 @@ export function MarketPage() {
                 {/* Order Type Tabs */}
                 <div className="flex gap-2 mb-3">
                   {(['market', 'limit', 'pro'] as const).map((type) => (
-                    <button key={type} onClick={() => setOrderType(type)} className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                    <button key={type} onClick={() => setOrderType(type)} className={`px-5 py-1 text-xs font-medium rounded-full transition-colors text-center ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                     </button>
                   ))}
@@ -1843,11 +1847,11 @@ export function MarketPage() {
 
               <div className="p-3">
                 <div className="grid grid-cols-2 gap-2 mx-3">
-                  <button onClick={() => setSelectedOutcome(0)} className={`p-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                  <button onClick={() => setSelectedOutcome(0)} className={`px-[30px] py-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
                     <span className="text-xs font-medium text-gray-400">Yes</span>
                     <span className={`text-xs font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}¢</span>
                   </button>
-                  <button onClick={() => setSelectedOutcome(1)} className={`p-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                  <button onClick={() => setSelectedOutcome(1)} className={`px-[30px] py-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
                     <span className="text-xs font-medium text-gray-400">No</span>
                     <span className={`text-xs font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}¢</span>
                   </button>
@@ -1913,6 +1917,30 @@ export function MarketPage() {
                   />
                 </div>
               )}
+
+              {/* Take Profit / Stop Loss */}
+              <div className="px-3 pb-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-2 block">Take Profit</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-2 block">Stop Loss</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+              </div>
 
               <div className="px-3 pb-3">
                 <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
