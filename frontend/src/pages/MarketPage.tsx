@@ -582,7 +582,7 @@ export function MarketPage() {
         {/* Main Content - THREE COLUMN LAYOUT (Desktop/Tablet) */}
         <div className="max-w-[1920px] mx-auto">
           <div className="hidden lg:block">
-            <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
+            <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1.3fr 0.3fr 0.4fr', minHeight: 'calc(100vh - 150px)' }}>
               {/* LEFT COLUMN: Chart, Positions, Related Markets */}
               <div className="flex flex-col gap-3 h-full">
                 {/* Chart Area */}
