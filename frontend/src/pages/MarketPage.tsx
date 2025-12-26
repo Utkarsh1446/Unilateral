@@ -67,6 +67,7 @@ export function MarketPage() {
   const [sliderValue, setSliderValue] = useState(0);
   const [takeProfitStopLoss, setTakeProfitStopLoss] = useState(false);
   const [relatedMarketsExpanded, setRelatedMarketsExpanded] = useState(true);
+  const [activeMobilePanel, setActiveMobilePanel] = useState<'chart' | 'orderbook' | 'positions' | 'related' | 'trading'>('chart');
 
   // Advanced Trading State
   const [oneClickTrading, setOneClickTrading] = useState(false);
@@ -537,960 +538,1256 @@ export function MarketPage() {
           </div>
         </div>
 
-        {/* Main Content - THREE COLUMN LAYOUT: Chart+Positions+Related LEFT, Order Book MIDDLE, Trading Panel RIGHT */}
+        {/* Mobile Tab Navigation - Only visible on mobile */}
+        <div className="lg:hidden px-3 pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2">
+            <button
+              onClick={() => setActiveMobilePanel('chart')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Chart
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('orderbook')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Order Book
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('positions')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Positions
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('related')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Related
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('trading')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Trade
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content - THREE COLUMN LAYOUT (Desktop/Tablet) */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
-            {/* LEFT COLUMN: Chart, Positions, Related Markets */}
-            <div className="flex flex-col gap-3 h-full">
-              {/* Chart Area */}
-              <div>
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="p-3 bg-[#0a0a0a]">
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      {/* Time Range Buttons - LEFT */}
-                      <div className="flex items-center gap-2">
-                        {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+          <div className="hidden lg:block">
+            <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
+              {/* LEFT COLUMN: Chart, Positions, Related Markets */}
+              <div className="flex flex-col gap-3 h-full">
+                {/* Chart Area */}
+                <div>
+                  <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                    <div className="p-3 bg-[#0a0a0a]">
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        {/* Time Range Buttons - LEFT */}
+                        <div className="flex items-center gap-2">
+                          {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+                            <button
+                              key={range}
+                              onClick={() => setTimeRange(range)}
+                              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                            >
+                              {range.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Chart Type Switcher - RIGHT */}
+                        <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
                           <button
-                            key={range}
-                            onClick={() => setTimeRange(range)}
-                            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                            onClick={() => setChartType('line')}
+                            className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                            title="Line Chart"
                           >
-                            {range.toUpperCase()}
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setChartType('candle')}
+                            className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                            title="Candlestick Chart"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="9" y1="2" x2="9" y2="22" />
+                              <rect x="7" y="6" width="4" height="10" fill="currentColor" />
+                              <line x1="15" y1="2" x2="15" y2="22" />
+                              <rect x="13" y="8" width="4" height="8" fill="currentColor" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setChartType('area')}
+                            className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                            title="Area Chart"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                              <path d="M3 18h18" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="h-[500px] bg-[#0a0a0a] relative">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart
+                            data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
+                              ...d,
+                              volume: Math.random() * 1000 + 500 // Simulated volume data
+                            })) : [
+                              { date: 'Start', YES: 50, volume: 500 },
+                              { date: 'Now', YES: yesPrice, volume: 800 }
+                            ]}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="colorYES" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#1a1a1a"
+                              vertical={false}
+                              opacity={0.5}
+                            />
+
+                            <XAxis
+                              dataKey="date"
+                              stroke="#666666"
+                              style={{ fontSize: '11px' }}
+                              axisLine={{ stroke: '#2a2a2a' }}
+                              tickLine={false}
+                              tick={{ fill: '#888888' }}
+                            />
+
+                            {/* Left Y-Axis for Price (Percentage) */}
+                            <YAxis
+                              yAxisId="left"
+                              stroke="#6B7280"
+                              style={{ fontSize: '11px' }}
+                              domain={[0, 100]}
+                              axisLine={{ stroke: '#374151' }}
+                              tickLine={false}
+                              tick={{ fill: '#9CA3AF' }}
+                              tickFormatter={(value) => `${value}%`}
+                            />
+
+                            {/* Right Y-Axis for Volume */}
+                            <YAxis
+                              yAxisId="right"
+                              orientation="right"
+                              stroke="#666666"
+                              style={{ fontSize: '11px' }}
+                              axisLine={{ stroke: '#2a2a2a' }}
+                              tickLine={false}
+                              tick={{ fill: '#888888' }}
+                              tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
+                            />
+
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#0a0a0a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '4px'
+                              }}
+                              labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
+                              itemStyle={{ color: '#A4E977', padding: '4px 0' }}
+                              formatter={(value: any, name: string) => {
+                                if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
+                                if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
+                                return [value, name];
+                              }}
+                              cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
+                            />
+
+                            {/* Volume Bars */}
+                            <Bar
+                              yAxisId="right"
+                              dataKey="volume"
+                              fill="#A4E977"
+                              opacity={0.3}
+                              radius={[2, 2, 0, 0]}
+                            />
+
+                            {/* Area Chart */}
+                            {chartType === 'area' && (
+                              <Area
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="YES"
+                                stroke="#A4E977"
+                                strokeWidth={2}
+                                fill="url(#colorYES)"
+                                dot={false}
+                              />
+                            )}
+
+                            {/* Line Chart */}
+                            {chartType === 'line' && (
+                              <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="YES"
+                                stroke="#A4E977"
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
+                              />
+                            )}
+
+
+                            {/* Candlestick Chart */}
+                            {chartType === 'candle' && (
+                              <Scatter
+                                yAxisId="left"
+                                data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
+                                  ...d,
+                                  volume: Math.random() * 1000 + 500
+                                })) : [
+                                  { date: 'Start', YES: 50, open: 50, high: 52, low: 48, close: 50, volume: 500 },
+                                  { date: 'Now', YES: yesPrice, open: 50, high: yesPrice + 2, low: yesPrice - 2, close: yesPrice, volume: 800 }
+                                ]}
+                                shape={(props: any) => {
+                                  const { cx, cy, payload } = props;
+                                  if (!payload || !payload.open || !payload.close) return <></>;
+
+                                  const isGrowing = payload.close > payload.open;
+                                  const color = isGrowing ? '#A4E977' : '#EF4444';
+                                  const candleWidth = 8;
+
+                                  // Calculate Y positions based on the chart's scale
+                                  const yScale = (value: number) => {
+                                    const chartHeight = 400; // Approximate chart height
+                                    const priceRange = 100; // 0-100%
+                                    return cy - ((value - payload.close) / priceRange) * chartHeight;
+                                  };
+
+                                  const highY = yScale(payload.high);
+                                  const lowY = yScale(payload.low);
+                                  const openY = yScale(payload.open);
+                                  const closeY = yScale(payload.close);
+                                  const bodyTop = Math.min(openY, closeY);
+                                  const bodyHeight = Math.abs(openY - closeY) || 1;
+
+                                  return (
+                                    <g>
+                                      {/* Wick (High-Low line) */}
+                                      <line
+                                        x1={cx}
+                                        y1={highY}
+                                        x2={cx}
+                                        y2={lowY}
+                                        stroke={color}
+                                        strokeWidth={1.5}
+                                      />
+                                      {/* Candle Body */}
+                                      <rect
+                                        x={cx - candleWidth / 2}
+                                        y={bodyTop}
+                                        width={candleWidth}
+                                        height={bodyHeight}
+                                        fill={color}
+                                        stroke={color}
+                                        strokeWidth={1}
+                                      />
+                                    </g>
+                                  );
+                                }}
+                              />
+                            )}
+                          </ComposedChart>
+                        </ResponsiveContainer>
+
+                        {/* Price indicator overlay */}
+                        <div className="absolute top-4 left-4 bg-[#0a0a0a]/90 border border-gray-800 rounded px-2.5 py-1.5">
+                          <div className="text-[10px] text-gray-500">Current Price</div>
+                          <div className="text-base font-bold text-[#A4E977]">{yesPrice}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                {/* Positions and Trade History Tabs */}
+                <div>
+                  <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[344px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                    <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
+                      {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
+                        <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-4 min-h-[200px]">
+                      {/* Filters and Search */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="px-3 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          />
+                          <select
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value as any)}
+                            className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="buy">Buy Only</option>
+                            <option value="sell">Sell Only</option>
+                          </select>
+                          <select
+                            value={filterOutcome}
+                            onChange={(e) => setFilterOutcome(e.target.value as any)}
+                            className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          >
+                            <option value="all">All Outcomes</option>
+                            <option value="yes">YES Only</option>
+                            <option value="no">NO Only</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {activeTab === 'positions' && (
+                        <div>
+                          {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b border-gray-800">
+                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Size</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Entry Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Current Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L %</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Liq. Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {parseFloat(positions[0]) > 0 && (
+                                    <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                      <td className="py-3">
+                                        <span className="text-xs font-semibold text-[#A4E977]">YES</span>
+                                      </td>
+                                      <td className="text-right text-xs text-white">
+                                        {parseFloat(positions[0]).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-300">
+                                        {(yesPrice * 0.95).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right text-xs text-white font-medium">
+                                        {yesPrice}.00¢
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +${((parseFloat(positions[0]) * (yesPrice / 100)) * 0.05).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +5.26%
+                                      </td>
+                                      <td className="text-right text-xs text-red-400">
+                                        {(yesPrice * 0.80).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right">
+                                        <div className="flex gap-1 justify-end">
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                            Close
+                                          </button>
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                            Edit
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                  {parseFloat(positions[1]) > 0 && (
+                                    <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                      <td className="py-3">
+                                        <span className="text-xs font-semibold text-red-400">NO</span>
+                                      </td>
+                                      <td className="text-right text-xs text-white">
+                                        {parseFloat(positions[1]).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-300">
+                                        {(noPrice * 0.95).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right text-xs text-white font-medium">
+                                        {noPrice}.00¢
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +${((parseFloat(positions[1]) * (noPrice / 100)) * 0.05).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +5.26%
+                                      </td>
+                                      <td className="text-right text-xs text-red-400">
+                                        {(noPrice * 0.80).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right">
+                                        <div className="flex gap-1 justify-end">
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                            Close
+                                          </button>
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                            Edit
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
+                          )}
+                        </div>
+                      )}
+                      {activeTab === 'trade-history' && (
+                        <div>
+                          {recentTrades.length > 0 ? (
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b border-gray-800">
+                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Type</th>
+                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Amount</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Total</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Time</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Tx Hash</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {recentTrades.slice(0, 10).map((trade, i) => (
+                                    <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                      <td className="py-3">
+                                        <span className={`text-xs font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                                          {trade.type}
+                                        </span>
+                                      </td>
+                                      <td className="text-xs text-gray-300">
+                                        {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
+                                      </td>
+                                      <td className="text-right text-xs text-white">
+                                        {trade.amountOut}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-300">
+                                        {(trade.price * 100).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right text-xs text-white font-medium">
+                                        ${trade.amountIn}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-400">
+                                        {new Date(trade.timestamp).toLocaleTimeString()}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-500 font-mono">
+                                        {trade.txHash.slice(0, 6)}...{trade.txHash.slice(-4)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
+                          )}
+                        </div>
+                      )}
+                      {activeTab === 'open-orders' && (
+                        <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
+                      )}
+                      {activeTab === 'order-history' && (
+                        <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
+                      )}
+                      {(activeTab === 'twap' || activeTab === 'funding-history') && (
+                        <div className="text-center py-12 text-gray-500 text-sm">Coming soon</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* MIDDLE COLUMN: Order Book + Related Markets */}
+              <div className="flex flex-col gap-3 h-full">
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '572px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-white">Order Book</h3>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setShowDepthChart(!showDepthChart)}
+                          className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
+                        >
+                          {showDepthChart ? 'Table' : 'Depth'}
+                        </button>
+                        <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                          Others <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
+                      <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
+                    </div>
+                  </div>
+
+                  {/* Market Depth Chart or Order Book Table */}
+                  {showDepthChart ? (
+                    <div className="px-3 py-4 flex-1 overflow-auto">
+                      <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
+                      <div className="relative h-[300px] bg-[#1a1a1a] rounded">
+                        <svg className="w-full h-full" viewBox="0 0 400 300">
+                          <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
+                          <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
+                          <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
+                          <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
+                          <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
+                          <text x="200" y="20" fill="#666" fontSize="10" textAnchor="middle">{yesPrice}¢</text>
+                        </svg>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">
+                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
+                        <div>Price</div>
+                        <div className="text-right">Size</div>
+                        <div className="text-right">Cumulative</div>
+                        <div className="text-right">Total(USD)</div>
+                      </div>
+                      <div className="flex-1 overflow-y-auto">
+                        <div className="space-y-0.5 mb-2">
+                          {(() => {
+                            let cumulativeAsk = 0;
+                            const maxAskVolume = filteredAsks.reduce((max, ask) => Math.max(max, ask.amount), 0);
+                            return filteredAsks.slice(0, 10).map((ask, i) => {
+                              cumulativeAsk += ask.amount;
+                              const depthPercentage = (ask.amount / maxAskVolume) * 100;
+                              return (
+                                <div key={i} className="relative group">
+                                  <div className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20" style={{ width: `${depthPercentage}%` }} />
+                                  <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
+                                    <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(4)}¢</div>
+                                    <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400 text-[10px]">{cumulativeAsk.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                          {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
+                        </div>
+                        <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-[#1a1a1a]">
+                          <div className="text-[11px] text-gray-400 space-y-0.5">
+                            <div>Spread: <span className="text-[#A4E977] font-mono font-semibold">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4) : '0.0000'}¢</span></div>
+                            <div className="text-[10px]">({filteredAsks.length > 0 && filteredBids.length > 0 ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2) : '0.00'}%)</div>
+                          </div>
+                        </div>
+                        <div className="space-y-0.5">
+                          {(() => {
+                            let cumulativeBid = 0;
+                            const maxBidVolume = filteredBids.reduce((max, bid) => Math.max(max, bid.amount), 0);
+                            return filteredBids.slice(0, 10).map((bid, i) => {
+                              cumulativeBid += bid.amount;
+                              const depthPercentage = (bid.amount / maxBidVolume) * 100;
+                              return (
+                                <div key={i} className="relative group">
+                                  <div className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20" style={{ width: `${depthPercentage}%` }} />
+                                  <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
+                                    <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(4)}¢</div>
+                                    <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400 text-[10px]">{cumulativeBid.toFixed(2)}</div>
+                                    <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                          {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Related Markets Panel */}
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-white">Related Markets</h3>
+                      <button
+                        onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto">
+                      {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
+                        <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {relatedMarketsExpanded && (
+                    <div className="overflow-y-auto flex-1 p-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                      <div className="space-y-2">
+                        {relatedMarkets.map((market: any, index: number) => (
+                          <div
+                            key={index}
+                            onClick={() => navigate(`/market/${market.id}`)}
+                            className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
+                          >
+                            {market.image_url && (
+                              <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{market.description}</div>
+                            </div>
+                            <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Trading Panel */}
+              <div className="flex flex-col h-full">
+                <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[926px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
+                    <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
+                    <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
+                  </div>
+
+                  {/* One-Click Trading Toggle */}
+                  <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
+                    <span className="text-xs text-gray-400">One-Click Trading</span>
+                    <button
+                      onClick={() => setOneClickTrading(!oneClickTrading)}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'
+                        }`}
+                    >
+                      <div
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="p-3 border-b border-[#A4E977]">
+                    {/* Order Type Tabs */}
+                    <div className="flex gap-2 mb-3">
+                      {(['market', 'limit', 'pro'] as const).map((type) => (
+                        <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Advanced Order Types (when Pro is selected) */}
+                    {orderType === 'pro' && (
+                      <div className="space-y-2 mb-3">
+                        <label className="text-xs text-gray-400">Advanced Order Type</label>
+                        <select
+                          value={advancedOrderType}
+                          onChange={(e) => setAdvancedOrderType(e.target.value as any)}
+                          className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                        >
+                          <option value="none">Standard</option>
+                          <option value="stop-limit">Stop-Limit</option>
+                          <option value="trailing-stop">Trailing Stop</option>
+                        </select>
+
+                        {advancedOrderType === 'stop-limit' && (
+                          <div className="space-y-2">
+                            <input
+                              type="number"
+                              placeholder="Stop Price"
+                              value={stopLossPrice}
+                              onChange={(e) => setStopLossPrice(e.target.value)}
+                              className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                            />
+                            <input
+                              type="number"
+                              placeholder="Limit Price"
+                              value={limitPrice}
+                              onChange={(e) => setLimitPrice(e.target.value)}
+                              className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                            />
+                          </div>
+                        )}
+
+                        {advancedOrderType === 'trailing-stop' && (
+                          <input
+                            type="number"
+                            placeholder="Trailing %"
+                            value={trailingStopPercent}
+                            onChange={(e) => setTrailingStopPercent(e.target.value)}
+                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Leverage Selector */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs text-gray-400">Leverage</label>
+                        <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 5, 10].map((lev) => (
+                          <button
+                            key={lev}
+                            onClick={() => setLeverage(lev)}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
+                              ? 'bg-[#A4E977] text-black'
+                              : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'
+                              }`}
+                          >
+                            {lev}x
                           </button>
                         ))}
                       </div>
-
-                      {/* Chart Type Switcher - RIGHT */}
-                      <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
-                        <button
-                          onClick={() => setChartType('line')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
-                          title="Line Chart"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setChartType('candle')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
-                          title="Candlestick Chart"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="9" y1="2" x2="9" y2="22" />
-                            <rect x="7" y="6" width="4" height="10" fill="currentColor" />
-                            <line x1="15" y1="2" x2="15" y2="22" />
-                            <rect x="13" y="8" width="4" height="8" fill="currentColor" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setChartType('area')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
-                          title="Area Chart"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-                            <path d="M3 18h18" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="h-[500px] bg-[#0a0a0a] relative">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart
-                          data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
-                            ...d,
-                            volume: Math.random() * 1000 + 500 // Simulated volume data
-                          })) : [
-                            { date: 'Start', YES: 50, volume: 500 },
-                            { date: 'Now', YES: yesPrice, volume: 800 }
-                          ]}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                        >
-                          <defs>
-                            <linearGradient id="colorYES" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#1a1a1a"
-                            vertical={false}
-                            opacity={0.5}
-                          />
-
-                          <XAxis
-                            dataKey="date"
-                            stroke="#666666"
-                            style={{ fontSize: '11px' }}
-                            axisLine={{ stroke: '#2a2a2a' }}
-                            tickLine={false}
-                            tick={{ fill: '#888888' }}
-                          />
-
-                          {/* Left Y-Axis for Price (Percentage) */}
-                          <YAxis
-                            yAxisId="left"
-                            stroke="#6B7280"
-                            style={{ fontSize: '11px' }}
-                            domain={[0, 100]}
-                            axisLine={{ stroke: '#374151' }}
-                            tickLine={false}
-                            tick={{ fill: '#9CA3AF' }}
-                            tickFormatter={(value) => `${value}%`}
-                          />
-
-                          {/* Right Y-Axis for Volume */}
-                          <YAxis
-                            yAxisId="right"
-                            orientation="right"
-                            stroke="#666666"
-                            style={{ fontSize: '11px' }}
-                            axisLine={{ stroke: '#2a2a2a' }}
-                            tickLine={false}
-                            tick={{ fill: '#888888' }}
-                            tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
-                          />
-
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: '#0a0a0a',
-                              border: '1px solid #2a2a2a',
-                              borderRadius: '4px'
-                            }}
-                            labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
-                            itemStyle={{ color: '#A4E977', padding: '4px 0' }}
-                            formatter={(value: any, name: string) => {
-                              if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
-                              if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
-                              return [value, name];
-                            }}
-                            cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
-                          />
-
-                          {/* Volume Bars */}
-                          <Bar
-                            yAxisId="right"
-                            dataKey="volume"
-                            fill="#A4E977"
-                            opacity={0.3}
-                            radius={[2, 2, 0, 0]}
-                          />
-
-                          {/* Area Chart */}
-                          {chartType === 'area' && (
-                            <Area
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="YES"
-                              stroke="#A4E977"
-                              strokeWidth={2}
-                              fill="url(#colorYES)"
-                              dot={false}
-                            />
-                          )}
-
-                          {/* Line Chart */}
-                          {chartType === 'line' && (
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="YES"
-                              stroke="#A4E977"
-                              strokeWidth={2}
-                              dot={false}
-                              activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
-                            />
-                          )}
-
-
-                          {/* Candlestick Chart */}
-                          {chartType === 'candle' && (
-                            <Scatter
-                              yAxisId="left"
-                              data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
-                                ...d,
-                                volume: Math.random() * 1000 + 500
-                              })) : [
-                                { date: 'Start', YES: 50, open: 50, high: 52, low: 48, close: 50, volume: 500 },
-                                { date: 'Now', YES: yesPrice, open: 50, high: yesPrice + 2, low: yesPrice - 2, close: yesPrice, volume: 800 }
-                              ]}
-                              shape={(props: any) => {
-                                const { cx, cy, payload } = props;
-                                if (!payload || !payload.open || !payload.close) return <></>;
-
-                                const isGrowing = payload.close > payload.open;
-                                const color = isGrowing ? '#A4E977' : '#EF4444';
-                                const candleWidth = 8;
-
-                                // Calculate Y positions based on the chart's scale
-                                const yScale = (value: number) => {
-                                  const chartHeight = 400; // Approximate chart height
-                                  const priceRange = 100; // 0-100%
-                                  return cy - ((value - payload.close) / priceRange) * chartHeight;
-                                };
-
-                                const highY = yScale(payload.high);
-                                const lowY = yScale(payload.low);
-                                const openY = yScale(payload.open);
-                                const closeY = yScale(payload.close);
-                                const bodyTop = Math.min(openY, closeY);
-                                const bodyHeight = Math.abs(openY - closeY) || 1;
-
-                                return (
-                                  <g>
-                                    {/* Wick (High-Low line) */}
-                                    <line
-                                      x1={cx}
-                                      y1={highY}
-                                      x2={cx}
-                                      y2={lowY}
-                                      stroke={color}
-                                      strokeWidth={1.5}
-                                    />
-                                    {/* Candle Body */}
-                                    <rect
-                                      x={cx - candleWidth / 2}
-                                      y={bodyTop}
-                                      width={candleWidth}
-                                      height={bodyHeight}
-                                      fill={color}
-                                      stroke={color}
-                                      strokeWidth={1}
-                                    />
-                                  </g>
-                                );
-                              }}
-                            />
-                          )}
-                        </ComposedChart>
-                      </ResponsiveContainer>
-
-                      {/* Price indicator overlay */}
-                      <div className="absolute top-4 left-4 bg-[#0a0a0a]/90 border border-gray-800 rounded px-2.5 py-1.5">
-                        <div className="text-[10px] text-gray-500">Current Price</div>
-                        <div className="text-base font-bold text-[#A4E977]">{yesPrice}%</div>
-                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-
-              {/* Positions and Trade History Tabs */}
-              <div>
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[344px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-                    {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
-                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
-                        {tab}
+                  <div className="p-3">
+                    <div className="grid grid-cols-2 gap-3 mx-3">
+                      <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                        <span className="text-sm font-medium text-gray-400">Yes</span>
+                        <span className={`text-sm font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
                       </button>
-                    ))}
-                  </div>
-                  <div className="p-4 min-h-[200px]">
-                    {/* Filters and Search */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Search..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="px-3 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
-                        />
-                        <select
-                          value={filterType}
-                          onChange={(e) => setFilterType(e.target.value as any)}
-                          className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
-                        >
-                          <option value="all">All Types</option>
-                          <option value="buy">Buy Only</option>
-                          <option value="sell">Sell Only</option>
-                        </select>
-                        <select
-                          value={filterOutcome}
-                          onChange={(e) => setFilterOutcome(e.target.value as any)}
-                          className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
-                        >
-                          <option value="all">All Outcomes</option>
-                          <option value="yes">YES Only</option>
-                          <option value="no">NO Only</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {activeTab === 'positions' && (
-                      <div>
-                        {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full">
-                              <thead>
-                                <tr className="border-b border-gray-800">
-                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Size</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Entry Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Current Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L %</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Liq. Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {parseFloat(positions[0]) > 0 && (
-                                  <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                    <td className="py-3">
-                                      <span className="text-xs font-semibold text-[#A4E977]">YES</span>
-                                    </td>
-                                    <td className="text-right text-xs text-white">
-                                      {parseFloat(positions[0]).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-300">
-                                      {(yesPrice * 0.95).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right text-xs text-white font-medium">
-                                      {yesPrice}.00¢
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +${((parseFloat(positions[0]) * (yesPrice / 100)) * 0.05).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +5.26%
-                                    </td>
-                                    <td className="text-right text-xs text-red-400">
-                                      {(yesPrice * 0.80).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right">
-                                      <div className="flex gap-1 justify-end">
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
-                                          Close
-                                        </button>
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
-                                          Edit
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                                {parseFloat(positions[1]) > 0 && (
-                                  <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                    <td className="py-3">
-                                      <span className="text-xs font-semibold text-red-400">NO</span>
-                                    </td>
-                                    <td className="text-right text-xs text-white">
-                                      {parseFloat(positions[1]).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-300">
-                                      {(noPrice * 0.95).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right text-xs text-white font-medium">
-                                      {noPrice}.00¢
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +${((parseFloat(positions[1]) * (noPrice / 100)) * 0.05).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +5.26%
-                                    </td>
-                                    <td className="text-right text-xs text-red-400">
-                                      {(noPrice * 0.80).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right">
-                                      <div className="flex gap-1 justify-end">
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
-                                          Close
-                                        </button>
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
-                                          Edit
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
-                        )}
-                      </div>
-                    )}
-                    {activeTab === 'trade-history' && (
-                      <div>
-                        {recentTrades.length > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full">
-                              <thead>
-                                <tr className="border-b border-gray-800">
-                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Type</th>
-                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Amount</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Total</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Time</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Tx Hash</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {recentTrades.slice(0, 10).map((trade, i) => (
-                                  <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                    <td className="py-3">
-                                      <span className={`text-xs font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
-                                        {trade.type}
-                                      </span>
-                                    </td>
-                                    <td className="text-xs text-gray-300">
-                                      {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
-                                    </td>
-                                    <td className="text-right text-xs text-white">
-                                      {trade.amountOut}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-300">
-                                      {(trade.price * 100).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right text-xs text-white font-medium">
-                                      ${trade.amountIn}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-400">
-                                      {new Date(trade.timestamp).toLocaleTimeString()}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-500 font-mono">
-                                      {trade.txHash.slice(0, 6)}...{trade.txHash.slice(-4)}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
-                        )}
-                      </div>
-                    )}
-                    {activeTab === 'open-orders' && (
-                      <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
-                    )}
-                    {activeTab === 'order-history' && (
-                      <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
-                    )}
-                    {(activeTab === 'twap' || activeTab === 'funding-history') && (
-                      <div className="text-center py-12 text-gray-500 text-sm">Coming soon</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* MIDDLE COLUMN: Order Book + Related Markets */}
-            <div className="flex flex-col gap-3 h-full">
-              <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '572px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-white">Order Book</h3>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowDepthChart(!showDepthChart)}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
-                      >
-                        {showDepthChart ? 'Table' : 'Depth'}
-                      </button>
-                      <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
-                        Others <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                        <span className="text-sm font-medium text-gray-400">No</span>
+                        <span className={`text-sm font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
-                    <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
-                  </div>
-                </div>
 
-                {/* Market Depth Chart or Order Book Table */}
-                {showDepthChart ? (
-                  <div className="px-3 py-4 flex-1 overflow-auto">
-                    <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
-                    <div className="relative h-[300px] bg-[#1a1a1a] rounded">
-                      <svg className="w-full h-full" viewBox="0 0 400 300">
-                        <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
-                        <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
-                        <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
-                        <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
-                        <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
-                        <text x="200" y="20" fill="#666" fontSize="10" textAnchor="middle">{yesPrice}¢</text>
-                      </svg>
+                  <div className="px-3 pb-3">
+                    <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
+                    <div className="relative mb-2">
+                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
+                      <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">
-                    <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
-                      <div>Price</div>
-                      <div className="text-right">Size</div>
-                      <div className="text-right">Cumulative</div>
-                      <div className="text-right">Total(USD)</div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
-                      <div className="space-y-0.5 mb-2">
-                        {(() => {
-                          let cumulativeAsk = 0;
-                          const maxAskVolume = filteredAsks.reduce((max, ask) => Math.max(max, ask.amount), 0);
-                          return filteredAsks.slice(0, 10).map((ask, i) => {
-                            cumulativeAsk += ask.amount;
-                            const depthPercentage = (ask.amount / maxAskVolume) * 100;
-                            return (
-                              <div key={i} className="relative group">
-                                <div className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20" style={{ width: `${depthPercentage}%` }} />
-                                <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
-                                  <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(4)}¢</div>
-                                  <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
-                                  <div className="text-right text-gray-400 text-[10px]">{cumulativeAsk.toFixed(2)}</div>
-                                  <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
-                        {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
-                      </div>
-                      <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-[#1a1a1a]">
-                        <div className="text-[11px] text-gray-400 space-y-0.5">
-                          <div>Spread: <span className="text-[#A4E977] font-mono font-semibold">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4) : '0.0000'}¢</span></div>
-                          <div className="text-[10px]">({filteredAsks.length > 0 && filteredBids.length > 0 ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2) : '0.00'}%)</div>
-                        </div>
-                      </div>
-                      <div className="space-y-0.5">
-                        {(() => {
-                          let cumulativeBid = 0;
-                          const maxBidVolume = filteredBids.reduce((max, bid) => Math.max(max, bid.amount), 0);
-                          return filteredBids.slice(0, 10).map((bid, i) => {
-                            cumulativeBid += bid.amount;
-                            const depthPercentage = (bid.amount / maxBidVolume) * 100;
-                            return (
-                              <div key={i} className="relative group">
-                                <div className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20" style={{ width: `${depthPercentage}%` }} />
-                                <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
-                                  <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(4)}¢</div>
-                                  <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
-                                  <div className="text-right text-gray-400 text-[10px]">{cumulativeBid.toFixed(2)}</div>
-                                  <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
-                        {filteredBids.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No buy orders</div>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
 
-              {/* Related Markets Panel */}
-              <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-white">Related Markets</h3>
-                    <button
-                      onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto">
-                    {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
-                      <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {relatedMarketsExpanded && (
-                  <div className="overflow-y-auto flex-1 p-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                    <div className="space-y-2">
-                      {relatedMarkets.map((market: any, index: number) => (
-                        <div
-                          key={index}
-                          onClick={() => navigate(`/market/${market.id}`)}
-                          className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
-                        >
-                          {market.image_url && (
-                            <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs text-white truncate">{market.description}</div>
-                          </div>
-                          <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* RIGHT COLUMN: Trading Panel */}
-            <div className="flex flex-col h-full">
-              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[926px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
-                  <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
-                  <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
-                </div>
-
-                {/* One-Click Trading Toggle */}
-                <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
-                  <span className="text-xs text-gray-400">One-Click Trading</span>
-                  <button
-                    onClick={() => setOneClickTrading(!oneClickTrading)}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'
-                      }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="p-3 border-b border-[#A4E977]">
-                  {/* Order Type Tabs */}
-                  <div className="flex gap-2 mb-3">
-                    {(['market', 'limit', 'pro'] as const).map((type) => (
-                      <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Advanced Order Types (when Pro is selected) */}
-                  {orderType === 'pro' && (
-                    <div className="space-y-2 mb-3">
-                      <label className="text-xs text-gray-400">Advanced Order Type</label>
-                      <select
-                        value={advancedOrderType}
-                        onChange={(e) => setAdvancedOrderType(e.target.value as any)}
-                        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                      >
-                        <option value="none">Standard</option>
-                        <option value="stop-limit">Stop-Limit</option>
-                        <option value="trailing-stop">Trailing Stop</option>
-                      </select>
-
-                      {advancedOrderType === 'stop-limit' && (
-                        <div className="space-y-2">
-                          <input
-                            type="number"
-                            placeholder="Stop Price"
-                            value={stopLossPrice}
-                            onChange={(e) => setStopLossPrice(e.target.value)}
-                            className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                          />
-                          <input
-                            type="number"
-                            placeholder="Limit Price"
-                            value={limitPrice}
-                            onChange={(e) => setLimitPrice(e.target.value)}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                          />
-                        </div>
-                      )}
-
-                      {advancedOrderType === 'trailing-stop' && (
-                        <input
-                          type="number"
-                          placeholder="Trailing %"
-                          value={trailingStopPercent}
-                          onChange={(e) => setTrailingStopPercent(e.target.value)}
-                          className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Leverage Selector */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs text-gray-400">Leverage</label>
-                      <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
-                    </div>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 5, 10].map((lev) => (
+                    {/* Quick Order Buttons */}
+                    <div className="grid grid-cols-4 gap-1 mb-3">
+                      {[10, 25, 50, 100].map((val) => (
                         <button
-                          key={lev}
-                          onClick={() => setLeverage(lev)}
-                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
-                            ? 'bg-[#A4E977] text-black'
-                            : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'
-                            }`}
+                          key={val}
+                          onClick={() => setAmount(val.toString())}
+                          className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
                         >
-                          {lev}x
+                          ${val}
                         </button>
                       ))}
                     </div>
-                  </div>
-                </div>
 
-                <div className="p-3">
-                  <div className="grid grid-cols-2 gap-3 mx-3">
-                    <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
-                      <span className="text-sm font-medium text-gray-400">Yes</span>
-                      <span className={`text-sm font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
-                    </button>
-                    <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
-                      <span className="text-sm font-medium text-gray-400">No</span>
-                      <span className={`text-sm font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-3 pb-3">
-                  <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
-                  <div className="relative mb-2">
-                    <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
-                    <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
-                  </div>
-
-                  {/* Quick Order Buttons */}
-                  <div className="grid grid-cols-4 gap-1 mb-3">
-                    {[10, 25, 50, 100].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => setAmount(val.toString())}
-                        className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
-                      >
-                        ${val}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Position Size Calculator */}
-                  <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Est. Shares:</span>
-                      <span className="text-white font-medium">
-                        {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Total Cost:</span>
-                      <span className="text-white font-medium">
-                        ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
-                      </span>
-                    </div>
-                    {leverage > 1 && (
+                    {/* Position Size Calculator */}
+                    <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-gray-500">Liq. Price:</span>
-                        <span className="text-red-400 font-medium">
-                          {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
+                        <span className="text-gray-500">Est. Shares:</span>
+                        <span className="text-white font-medium">
+                          {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
                         </span>
                       </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Limit Price - Only for Limit orders */}
-                {orderType === 'limit' && (
-                  <div className="px-3 pb-3">
-                    <label className="text-xs text-gray-400 mb-2 block">Limit Price</label>
-                    <input
-                      type="number"
-                      value={limitPrice}
-                      onChange={(e) => setLimitPrice(e.target.value)}
-                      className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none"
-                      placeholder="0.50"
-                      step="0.01"
-                    />
-                  </div>
-                )}
-
-                <div className="px-3 pb-3">
-                  <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={sliderValue}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value);
-                      setSliderValue(val);
-                      const maxAmount = parseFloat(balance) || 0;
-                      setAmount(((maxAmount * val) / 100).toFixed(2));
-                    }}
-                    className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
-                    style={{
-                      background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
-                    }}
-                  />
-                  <div className="flex justify-between mt-2">
-                    {[0, 25, 50, 75, 100].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => {
-                          setSliderValue(val);
-                          const maxAmount = parseFloat(balance) || 0;
-                          setAmount(((maxAmount * val) / 100).toFixed(2));
-                        }}
-                        className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
-                      >
-                        {val}%
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="px-3 pb-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-400">Available to Trade</span>
-                    <span className="text-white font-medium">${parseFloat(balance).toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <div className="px-3 pb-3">
-                  <div className="flex items-center justify-between text-sm mb-3">
-                    <span className="text-gray-300 font-medium">Potential Payout</span>
-                    <span className="text-white font-bold">${calculatePotentialPayout()}</span>
-                  </div>
-
-                  {/* Risk/Reward Calculator */}
-                  <div className="bg-[#1a1a1a] rounded p-3 space-y-2">
-                    <div className="text-xs text-gray-400 font-semibold mb-2">Risk/Reward Analysis</div>
-
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Potential Profit:</span>
-                      <span className="text-[#A4E977] font-medium">
-                        ${amount && yesPrice
-                          ? ((parseFloat(amount) * leverage) * ((100 - yesPrice) / yesPrice)).toFixed(2)
-                          : '0.00'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Max Loss:</span>
-                      <span className="text-red-400 font-medium">
-                        -${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Risk/Reward Ratio:</span>
-                      <span className="text-white font-medium">
-                        1:{amount && yesPrice && yesPrice > 0
-                          ? ((100 - yesPrice) / yesPrice).toFixed(2)
-                          : '0.00'}
-                      </span>
-                    </div>
-
-                    {/* Visual Risk/Reward Bar */}
-                    <div className="mt-2">
-                      <div className="flex justify-between text-[9px] text-gray-500 mb-1">
-                        <span>Risk</span>
-                        <span>Reward</span>
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Total Cost:</span>
+                        <span className="text-white font-medium">
+                          ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                        </span>
                       </div>
-                      <div className="h-2 bg-red-500/20 rounded-full overflow-hidden flex">
-                        <div
-                          className="bg-red-500"
-                          style={{
-                            width: `${yesPrice && yesPrice > 0 ? (yesPrice / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
-                          }}
-                        />
-                        <div
-                          className="bg-[#A4E977]"
-                          style={{
-                            width: `${yesPrice && yesPrice > 0 ? ((100 - yesPrice) / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between text-[10px] pt-2 border-t border-gray-800">
-                      <span className="text-gray-500">Est. ROI:</span>
-                      <span className={`font-medium ${amount && yesPrice && yesPrice > 0 && ((100 - yesPrice) / yesPrice) > 1
-                        ? 'text-[#A4E977]'
-                        : 'text-gray-400'
-                        }`}>
-                        {amount && yesPrice && yesPrice > 0
-                          ? `+${(((100 - yesPrice) / yesPrice) * 100).toFixed(0)}%`
-                          : '0%'}
-                      </span>
+                      {leverage > 1 && (
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-gray-500">Liq. Price:</span>
+                          <span className="text-red-400 font-medium">
+                            {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
 
-                <div className="px-3 pb-3">
-                  <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
-                </div>
-
-                <div className="px-3 pb-4 border-b border-[#A4E977]">
-                  <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={takeProfitStopLoss}
-                      onChange={(e) => setTakeProfitStopLoss(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-700 bg-black"
-                    />
-                    <span>Take Profit / Stop Loss</span>
-                    <span className="text-gray-600">ⓘ</span>
-                  </label>
-
-                  {takeProfitStopLoss && (
-                    <div className="mt-3 space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">TP Price</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">Gain</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">SL Price</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">Loss</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
-                          </div>
-                        </div>
-                      </div>
+                  {/* Limit Price - Only for Limit orders */}
+                  {orderType === 'limit' && (
+                    <div className="px-3 pb-3">
+                      <label className="text-xs text-gray-400 mb-2 block">Limit Price</label>
+                      <input
+                        type="number"
+                        value={limitPrice}
+                        onChange={(e) => setLimitPrice(e.target.value)}
+                        className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                        placeholder="0.50"
+                        step="0.01"
+                      />
                     </div>
                   )}
+
+                  <div className="px-3 pb-3">
+                    <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={sliderValue}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setSliderValue(val);
+                        const maxAmount = parseFloat(balance) || 0;
+                        setAmount(((maxAmount * val) / 100).toFixed(2));
+                      }}
+                      className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
+                      style={{
+                        background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div className="flex justify-between mt-2">
+                      {[0, 25, 50, 75, 100].map((val) => (
+                        <button
+                          key={val}
+                          onClick={() => {
+                            setSliderValue(val);
+                            const maxAmount = parseFloat(balance) || 0;
+                            setAmount(((maxAmount * val) / 100).toFixed(2));
+                          }}
+                          className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                          {val}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Available to Trade</span>
+                      <span className="text-white font-medium">${parseFloat(balance).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <div className="flex items-center justify-between text-sm mb-3">
+                      <span className="text-gray-300 font-medium">Potential Payout</span>
+                      <span className="text-white font-bold">${calculatePotentialPayout()}</span>
+                    </div>
+
+                    {/* Risk/Reward Calculator */}
+                    <div className="bg-[#1a1a1a] rounded p-3 space-y-2">
+                      <div className="text-xs text-gray-400 font-semibold mb-2">Risk/Reward Analysis</div>
+
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Potential Profit:</span>
+                        <span className="text-[#A4E977] font-medium">
+                          ${amount && yesPrice
+                            ? ((parseFloat(amount) * leverage) * ((100 - yesPrice) / yesPrice)).toFixed(2)
+                            : '0.00'}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Max Loss:</span>
+                        <span className="text-red-400 font-medium">
+                          -${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Risk/Reward Ratio:</span>
+                        <span className="text-white font-medium">
+                          1:{amount && yesPrice && yesPrice > 0
+                            ? ((100 - yesPrice) / yesPrice).toFixed(2)
+                            : '0.00'}
+                        </span>
+                      </div>
+
+                      {/* Visual Risk/Reward Bar */}
+                      <div className="mt-2">
+                        <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                          <span>Risk</span>
+                          <span>Reward</span>
+                        </div>
+                        <div className="h-2 bg-red-500/20 rounded-full overflow-hidden flex">
+                          <div
+                            className="bg-red-500"
+                            style={{
+                              width: `${yesPrice && yesPrice > 0 ? (yesPrice / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
+                            }}
+                          />
+                          <div
+                            className="bg-[#A4E977]"
+                            style={{
+                              width: `${yesPrice && yesPrice > 0 ? ((100 - yesPrice) / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between text-[10px] pt-2 border-t border-gray-800">
+                        <span className="text-gray-500">Est. ROI:</span>
+                        <span className={`font-medium ${amount && yesPrice && yesPrice > 0 && ((100 - yesPrice) / yesPrice) > 1
+                          ? 'text-[#A4E977]'
+                          : 'text-gray-400'
+                          }`}>
+                          {amount && yesPrice && yesPrice > 0
+                            ? `+${(((100 - yesPrice) / yesPrice) * 100).toFixed(0)}%`
+                            : '0%'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
+                  </div>
+
+                  <div className="px-3 pb-4 border-b border-[#A4E977]">
+                    <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={takeProfitStopLoss}
+                        onChange={(e) => setTakeProfitStopLoss(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-700 bg-black"
+                      />
+                      <span>Take Profit / Stop Loss</span>
+                      <span className="text-gray-600">ⓘ</span>
+                    </label>
+
+                    {takeProfitStopLoss && (
+                      <div className="mt-3 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">TP Price</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">Gain</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">SL Price</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">Loss</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Mobile Single Panel View - Only visible on mobile */}
+        <div className="lg:hidden px-3 pb-4">
+          {/* Chart Panel */}
+          {activeMobilePanel === 'chart' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="p-3 bg-[#0a0a0a]">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div className="flex gap-1 flex-wrap">
+                    {['1h', '4h', '1d', '1w'].map((range) => (
+                      <button key={range} onClick={() => setTimeRange(range as any)} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'}`}>{range}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-[400px] bg-[#0a0a0a] relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={getFilteredData().length > 0 ? getFilteredData().map(d => ({ ...d, volume: Math.random() * 1000 + 500 })) : [{ time: new Date().toLocaleTimeString(), YES: yesPrice, NO: noPrice, volume: 0 }]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorYesMobile" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                      <XAxis dataKey="time" stroke="#666" tick={{ fontSize: 10 }} />
+                      <YAxis yAxisId="left" stroke="#A4E977" tick={{ fontSize: 10 }} domain={[0, 100]} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#888" tick={{ fontSize: 10 }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #A4E977', borderRadius: '8px', fontSize: '12px' }} />
+                      <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} fillOpacity={1} fill="url(#colorYesMobile)" />
+                      <Bar yAxisId="right" dataKey="volume" fill="#444" opacity={0.3} radius={[4, 4, 0, 0]} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Order Book Panel */}
+          {activeMobilePanel === 'orderbook' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '600px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-white">Order Book</h3>
+                  <button onClick={() => setShowDepthChart(!showDepthChart)} className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}>
+                    {showDepthChart ? 'Table' : 'Depth'}
+                  </button>
+                </div>
+                <div className="flex gap-1">
+                  <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
+                  <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
+                </div>
+              </div>
+
+              {showDepthChart ? (
+                <div className="px-3 py-4 flex-1 overflow-auto">
+                  <div className="text-xs text-gray-400 mb-3 text-center">Market Depth</div>
+                  <div className="relative h-[300px] bg-[#1a1a1a] rounded">
+                    <svg className="w-full h-full" viewBox="0 0 400 300">
+                      <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
+                      <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
+                      <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
+                      <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
+                      <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">
+                  <div className="grid grid-cols-[1fr_0.7fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
+                    <div>Price</div>
+                    <div className="text-right">Size</div>
+                    <div className="text-right">Total</div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="space-y-0.5 mb-2">
+                      {filteredAsks.slice(0, 8).map((ask, i) => (
+                        <div key={i} className="grid grid-cols-[1fr_0.7fr_0.9fr] gap-2 text-xs py-1">
+                          <div className="text-red-400 font-mono">{(ask.price * 100).toFixed(2)}¢</div>
+                          <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
+                          <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
+                        </div>
+                      ))}
+                      {filteredAsks.length === 0 && <div className="text-center py-4 text-gray-600 text-xs">No sell orders</div>}
+                    </div>
+                    <div className="py-2 text-center border-y border-gray-800/50 mb-2">
+                      <div className="text-xs text-gray-400">Spread: <span className="text-[#A4E977]">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(2) : '0.00'}¢</span></div>
+                    </div>
+                    <div className="space-y-0.5">
+                      {filteredBids.slice(0, 8).map((bid, i) => (
+                        <div key={i} className="grid grid-cols-[1fr_0.7fr_0.9fr] gap-2 text-xs py-1">
+                          <div className="text-[#A4E977] font-mono">{(bid.price * 100).toFixed(2)}¢</div>
+                          <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
+                          <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
+                        </div>
+                      ))}
+                      {filteredBids.length === 0 && <div className="text-center py-4 text-gray-600 text-xs">No buy orders</div>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Positions Panel */}
+          {activeMobilePanel === 'positions' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ minHeight: '500px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f] overflow-x-auto">
+                {['Positions', 'Open Orders', 'Trade History'].map((tab) => (
+                  <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {activeTab === 'positions' && (
+                  Array.isArray(positions) && positions.length > 0 && typeof positions[0] === 'object' ? (
+                    <div className="space-y-3">
+                      {positions.filter((pos): pos is any => typeof pos === 'object' && pos !== null).map((pos, i) => (
+                        <div key={i} className="bg-[#1a1a1a] rounded-lg p-3 border border-gray-800">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="text-xs text-white font-medium">{pos?.outcome === 0 ? 'YES' : 'NO'}</div>
+                            <div className={`text-xs font-semibold ${(pos?.pnl ?? 0) >= 0 ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                              {(pos?.pnl ?? 0) >= 0 ? '+' : ''}{(pos?.pnl ?? 0).toFixed(2)}%
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                            <div><span className="text-gray-500">Size:</span> <span className="text-white">{pos?.shares ?? 0}</span></div>
+                            <div><span className="text-gray-500">Avg Price:</span> <span className="text-white">{pos?.avgPrice ?? 0}¢</span></div>
+                            <div><span className="text-gray-500">Value:</span> <span className="text-white">${pos?.value ?? 0}</span></div>
+                            <div><span className="text-gray-500">Current:</span> <span className="text-white">{pos?.currentPrice ?? 0}¢</span></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
+                  )
+                )}
+                {activeTab === 'open-orders' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
+                )}
+                {activeTab === 'trade-history' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No trade history</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Related Markets Panel */}
+          {activeMobilePanel === 'related' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ minHeight: '500px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-white">Related Markets</h3>
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
+                    <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 p-4">
+                <div className="space-y-2">
+                  {relatedMarkets.map((market: any, index: number) => (
+                    <div key={index} onClick={() => navigate(`/market/${market.id}`)} className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors">
+                      {market.image_url && (
+                        <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-white truncate">{market.description}</div>
+                      </div>
+                      <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Trading Panel */}
+          {activeMobilePanel === 'trading' && (
+            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl overflow-y-auto" style={{ maxHeight: '80vh', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
+                <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
+                <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* One-Click Trading Toggle */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">One-Click Trading</span>
+                  <button onClick={() => setOneClickTrading(!oneClickTrading)} className={`relative w-10 h-5 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-gray-700'}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${oneClickTrading ? 'translate-x-5' : ''}`} />
+                  </button>
+                </div>
+
+                {/* Outcome Selection */}
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-400">Outcome</label>
+                  <div className="flex gap-2">
+                    <button onClick={() => setSelectedOutcome(0)} className={`flex-1 py-2 text-xs font-semibold rounded transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'}`}>Yes {yesPrice}¢</button>
+                    <button onClick={() => setSelectedOutcome(1)} className={`flex-1 py-2 text-xs font-semibold rounded transition-colors ${selectedOutcome === 1 ? 'bg-red-500 text-white' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'}`}>No {noPrice}¢</button>
+                  </div>
+                </div>
+
+                {/* Order Type */}
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-400">Order Type</label>
+                  <div className="flex gap-1">
+                    {['market', 'limit', 'pro'].map((type) => (
+                      <button key={type} onClick={() => setOrderType(type as any)} className={`flex-1 px-2 py-1.5 text-xs font-medium rounded transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'}`}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Leverage */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs text-gray-400">Leverage</label>
+                    <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
+                  </div>
+                  <div className="flex gap-1">
+                    {[1, 2, 5, 10].map((lev) => (
+                      <button key={lev} onClick={() => setLeverage(lev)} className={`flex-1 px-2 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'}`}>{lev}x</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Order Size */}
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-400">Order Size</label>
+                  <div className="relative">
+                    <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none" />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">USDC</div>
+                  </div>
+                  <div className="flex gap-1">
+                    {['$10', '$25', '$50', '$100'].map((amt) => (
+                      <button key={amt} onClick={() => setAmount(amt.replace('$', ''))} className="flex-1 px-2 py-1 text-[10px] font-medium rounded bg-[#1a1a1a] text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors">{amt}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Connect/Trade Button */}
+                <button className="w-full bg-[#A4E977] hover:bg-[#8fd65a] text-black font-semibold py-3 rounded-lg transition-colors text-sm">
+                  {account ? `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${selectedOutcome === 0 ? 'Yes' : 'No'}` : 'Connect to Trade'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
 
