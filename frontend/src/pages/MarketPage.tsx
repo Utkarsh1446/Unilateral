@@ -1,5 +1,5 @@
 import { Navbar } from '../components/Navbar';
-import { ArrowLeft, Loader2, Copy, ExternalLink, Settings, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Loader2, Copy, ExternalLink, Settings } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Area, Scatter, Cell } from 'recharts';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -67,6 +67,7 @@ export function MarketPage() {
   const [sliderValue, setSliderValue] = useState(0);
   const [takeProfitStopLoss, setTakeProfitStopLoss] = useState(false);
   const [relatedMarketsExpanded, setRelatedMarketsExpanded] = useState(true);
+  const [activeMobilePanel, setActiveMobilePanel] = useState<'chart' | 'orderbook' | 'positions' | 'related' | 'trading'>('chart');
 
   // Advanced Trading State
   const [oneClickTrading, setOneClickTrading] = useState(false);
@@ -88,7 +89,7 @@ export function MarketPage() {
   const [alertPrice, setAlertPrice] = useState('');
   const [alertType, setAlertType] = useState<'above' | 'below'>('above');
   const [showDepthChart, setShowDepthChart] = useState(false);
-  const [showMarketSelector, setShowMarketSelector] = useState(false);
+
   const [showFilters, setShowFilters] = useState(false);
   const [relatedMarkets] = useState([
     { id: 1, description: "BTC >$100k by EOY 2024?", image_url: "/Superpumped_SVG.svg", volume: "125000", liquidity: "50000", category: "Crypto", endDate: "2024-12-31", outcomePrices: ["65"] },
@@ -451,23 +452,12 @@ export function MarketPage() {
 
 
         {/* Top Header */}
-        <div className="max-w-[1920px] mx-auto px-3 pt-3">
+        <div className="max-w-[1920px] mx-auto px-3 pt-3 pb-3">
           <div className="border rounded-lg bg-[#0a0a0a] shadow-lg" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)' }}>
             <div className="px-5 py-3">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 {/* Left: Market Title and Volume */}
                 <div className="flex items-start gap-2 md:gap-4">
-                  {/* Market Selector Button */}
-                  <button
-                    onClick={() => setShowMarketSelector(!showMarketSelector)}
-                    className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-[#0f0f0f] text-white flex items-center justify-center transition-colors focus:outline-none flex-shrink-0"
-                    style={{ borderWidth: '1px', borderColor: 'rgba(164, 233, 119, 0.35)' }}
-                    title="Select Market"
-                  >
-                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
                   {displayMarket.image_url && (
                     <img
                       src={displayMarket.image_url}
@@ -548,252 +538,499 @@ export function MarketPage() {
           </div>
         </div>
 
-        {/* Main Content - Chart+OrderBook LEFT, Trading Panel RIGHT */}
+        {/* Mobile Tab Navigation - Only visible on mobile */}
+        <div className="lg:hidden px-3 pb-3">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2">
+            <button
+              onClick={() => setActiveMobilePanel('chart')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Chart
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('orderbook')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Order Book
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('positions')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Positions
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('related')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Related
+            </button>
+            <button
+              onClick={() => setActiveMobilePanel('trading')}
+              className={`px-4 py-2 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                }`}
+            >
+              Trade
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content - THREE COLUMN LAYOUT (Desktop/Tablet) */}
         <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[85%_15%] gap-0">
-            {/* LEFT: Chart and Order Book Stacked Vertically */}
-            <div className="lg:border-r border-gray-800/50 h-full">
-              {/* Chart Area - Full Width on Left */}
-              <div className="p-3">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="p-3 bg-[#0a0a0a]">
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      {/* Time Range Buttons - LEFT */}
-                      <div className="flex items-center gap-2">
-                        {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+          <div className="hidden lg:block">
+            <div className="grid gap-3 px-3 pb-4" style={{ gridTemplateColumns: '1fr 0.4fr 0.6fr', minHeight: 'calc(100vh - 150px)' }}>
+              {/* LEFT COLUMN: Chart, Positions, Related Markets */}
+              <div className="flex flex-col gap-3 h-full">
+                {/* Chart Area */}
+                <div>
+                  <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                    <div className="p-3 bg-[#0a0a0a]">
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        {/* Time Range Buttons - LEFT */}
+                        <div className="flex items-center gap-2">
+                          {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+                            <button
+                              key={range}
+                              onClick={() => setTimeRange(range)}
+                              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                            >
+                              {range.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Chart Type Switcher - RIGHT */}
+                        <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
                           <button
-                            key={range}
-                            onClick={() => setTimeRange(range)}
-                            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                            onClick={() => setChartType('line')}
+                            className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                            title="Line Chart"
                           >
-                            {range.toUpperCase()}
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
                           </button>
-                        ))}
+                          <button
+                            onClick={() => setChartType('candle')}
+                            className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                            title="Candlestick Chart"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="9" y1="2" x2="9" y2="22" />
+                              <rect x="7" y="6" width="4" height="10" fill="currentColor" />
+                              <line x1="15" y1="2" x2="15" y2="22" />
+                              <rect x="13" y="8" width="4" height="8" fill="currentColor" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setChartType('area')}
+                            className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
+                            title="Area Chart"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                              <path d="M3 18h18" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Chart Type Switcher - RIGHT */}
-                      <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
-                        <button
-                          onClick={() => setChartType('line')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
-                          title="Line Chart"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setChartType('candle')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
-                          title="Candlestick Chart"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="9" y1="2" x2="9" y2="22" />
-                            <rect x="7" y="6" width="4" height="10" fill="currentColor" />
-                            <line x1="15" y1="2" x2="15" y2="22" />
-                            <rect x="13" y="8" width="4" height="8" fill="currentColor" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setChartType('area')}
-                          className={`p-1.5 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white'}`}
-                          title="Area Chart"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-                            <path d="M3 18h18" strokeLinecap="round" />
-                          </svg>
-                        </button>
+                      <div className="h-[500px] bg-[#0a0a0a] relative">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart
+                            data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
+                              ...d,
+                              volume: Math.random() * 1000 + 500 // Simulated volume data
+                            })) : [
+                              { date: 'Start', YES: 50, volume: 500 },
+                              { date: 'Now', YES: yesPrice, volume: 800 }
+                            ]}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="colorYES" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#1a1a1a"
+                              vertical={false}
+                              opacity={0.5}
+                            />
+
+                            <XAxis
+                              dataKey="date"
+                              stroke="#666666"
+                              style={{ fontSize: '11px' }}
+                              axisLine={{ stroke: '#2a2a2a' }}
+                              tickLine={false}
+                              tick={{ fill: '#888888' }}
+                            />
+
+                            {/* Left Y-Axis for Price (Percentage) */}
+                            <YAxis
+                              yAxisId="left"
+                              stroke="#6B7280"
+                              style={{ fontSize: '11px' }}
+                              domain={[0, 100]}
+                              axisLine={{ stroke: '#374151' }}
+                              tickLine={false}
+                              tick={{ fill: '#9CA3AF' }}
+                              tickFormatter={(value) => `${value}%`}
+                            />
+
+                            {/* Right Y-Axis for Volume */}
+                            <YAxis
+                              yAxisId="right"
+                              orientation="right"
+                              stroke="#666666"
+                              style={{ fontSize: '11px' }}
+                              axisLine={{ stroke: '#2a2a2a' }}
+                              tickLine={false}
+                              tick={{ fill: '#888888' }}
+                              tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
+                            />
+
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#0a0a0a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '4px'
+                              }}
+                              labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
+                              itemStyle={{ color: '#A4E977', padding: '4px 0' }}
+                              formatter={(value: any, name: string) => {
+                                if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
+                                if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
+                                return [value, name];
+                              }}
+                              cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
+                            />
+
+                            {/* Volume Bars */}
+                            <Bar
+                              yAxisId="right"
+                              dataKey="volume"
+                              fill="#A4E977"
+                              opacity={0.3}
+                              radius={[2, 2, 0, 0]}
+                            />
+
+                            {/* Area Chart */}
+                            {chartType === 'area' && (
+                              <Area
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="YES"
+                                stroke="#A4E977"
+                                strokeWidth={2}
+                                fill="url(#colorYES)"
+                                dot={false}
+                              />
+                            )}
+
+                            {/* Line Chart */}
+                            {chartType === 'line' && (
+                              <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="YES"
+                                stroke="#A4E977"
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
+                              />
+                            )}
+
+
+                            {/* Candlestick Chart */}
+                            {chartType === 'candle' && (
+                              <Scatter
+                                yAxisId="left"
+                                data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
+                                  ...d,
+                                  volume: Math.random() * 1000 + 500
+                                })) : [
+                                  { date: 'Start', YES: 50, open: 50, high: 52, low: 48, close: 50, volume: 500 },
+                                  { date: 'Now', YES: yesPrice, open: 50, high: yesPrice + 2, low: yesPrice - 2, close: yesPrice, volume: 800 }
+                                ]}
+                                shape={(props: any) => {
+                                  const { cx, cy, payload } = props;
+                                  if (!payload || !payload.open || !payload.close) return <></>;
+
+                                  const isGrowing = payload.close > payload.open;
+                                  const color = isGrowing ? '#A4E977' : '#EF4444';
+                                  const candleWidth = 8;
+
+                                  // Calculate Y positions based on the chart's scale
+                                  const yScale = (value: number) => {
+                                    const chartHeight = 400; // Approximate chart height
+                                    const priceRange = 100; // 0-100%
+                                    return cy - ((value - payload.close) / priceRange) * chartHeight;
+                                  };
+
+                                  const highY = yScale(payload.high);
+                                  const lowY = yScale(payload.low);
+                                  const openY = yScale(payload.open);
+                                  const closeY = yScale(payload.close);
+                                  const bodyTop = Math.min(openY, closeY);
+                                  const bodyHeight = Math.abs(openY - closeY) || 1;
+
+                                  return (
+                                    <g>
+                                      {/* Wick (High-Low line) */}
+                                      <line
+                                        x1={cx}
+                                        y1={highY}
+                                        x2={cx}
+                                        y2={lowY}
+                                        stroke={color}
+                                        strokeWidth={1.5}
+                                      />
+                                      {/* Candle Body */}
+                                      <rect
+                                        x={cx - candleWidth / 2}
+                                        y={bodyTop}
+                                        width={candleWidth}
+                                        height={bodyHeight}
+                                        fill={color}
+                                        stroke={color}
+                                        strokeWidth={1}
+                                      />
+                                    </g>
+                                  );
+                                }}
+                              />
+                            )}
+                          </ComposedChart>
+                        </ResponsiveContainer>
+
+                        {/* Price indicator overlay */}
+                        <div className="absolute top-4 left-4 bg-[#0a0a0a]/90 border border-gray-800 rounded px-2.5 py-1.5">
+                          <div className="text-[10px] text-gray-500">Current Price</div>
+                          <div className="text-base font-bold text-[#A4E977]">{yesPrice}%</div>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </div>
 
-                    <div className="h-[500px] bg-[#0a0a0a] relative">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart
-                          data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
-                            ...d,
-                            volume: Math.random() * 1000 + 500 // Simulated volume data
-                          })) : [
-                            { date: 'Start', YES: 50, volume: 500 },
-                            { date: 'Now', YES: yesPrice, volume: 800 }
-                          ]}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                        >
-                          <defs>
-                            <linearGradient id="colorYES" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
 
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#1a1a1a"
-                            vertical={false}
-                            opacity={0.5}
+                {/* Positions and Trade History Tabs */}
+                <div>
+                  <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[344px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                    <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
+                      {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
+                        <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-4 min-h-[200px]">
+                      {/* Filters and Search */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="px-3 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                           />
-
-                          <XAxis
-                            dataKey="date"
-                            stroke="#666666"
-                            style={{ fontSize: '11px' }}
-                            axisLine={{ stroke: '#2a2a2a' }}
-                            tickLine={false}
-                            tick={{ fill: '#888888' }}
-                          />
-
-                          {/* Left Y-Axis for Price (Percentage) */}
-                          <YAxis
-                            yAxisId="left"
-                            stroke="#6B7280"
-                            style={{ fontSize: '11px' }}
-                            domain={[0, 100]}
-                            axisLine={{ stroke: '#374151' }}
-                            tickLine={false}
-                            tick={{ fill: '#9CA3AF' }}
-                            tickFormatter={(value) => `${value}%`}
-                          />
-
-                          {/* Right Y-Axis for Volume */}
-                          <YAxis
-                            yAxisId="right"
-                            orientation="right"
-                            stroke="#666666"
-                            style={{ fontSize: '11px' }}
-                            axisLine={{ stroke: '#2a2a2a' }}
-                            tickLine={false}
-                            tick={{ fill: '#888888' }}
-                            tickFormatter={(value) => `${(value / 1000).toFixed(1)}K`}
-                          />
-
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: '#0a0a0a',
-                              border: '1px solid #2a2a2a',
-                              borderRadius: '4px'
-                            }}
-                            labelStyle={{ color: '#9CA3AF', marginBottom: '8px' }}
-                            itemStyle={{ color: '#A4E977', padding: '4px 0' }}
-                            formatter={(value: any, name: string) => {
-                              if (name === 'YES') return [`${Number(value).toFixed(2)}%`, 'Price'];
-                              if (name === 'volume') return [`${Number(value).toFixed(0)}`, 'Volume'];
-                              return [value, name];
-                            }}
-                            cursor={{ stroke: '#A4E977', strokeWidth: 1, strokeDasharray: '5 5' }}
-                          />
-
-                          {/* Volume Bars */}
-                          <Bar
-                            yAxisId="right"
-                            dataKey="volume"
-                            fill="#A4E977"
-                            opacity={0.3}
-                            radius={[2, 2, 0, 0]}
-                          />
-
-                          {/* Area Chart */}
-                          {chartType === 'area' && (
-                            <Area
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="YES"
-                              stroke="#A4E977"
-                              strokeWidth={2}
-                              fill="url(#colorYES)"
-                              dot={false}
-                            />
-                          )}
-
-                          {/* Line Chart */}
-                          {chartType === 'line' && (
-                            <Line
-                              yAxisId="left"
-                              type="monotone"
-                              dataKey="YES"
-                              stroke="#A4E977"
-                              strokeWidth={2}
-                              dot={false}
-                              activeDot={{ r: 4, fill: '#A4E977', stroke: '#000', strokeWidth: 2 }}
-                            />
-                          )}
-
-
-                          {/* Candlestick Chart */}
-                          {chartType === 'candle' && (
-                            <Scatter
-                              yAxisId="left"
-                              data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
-                                ...d,
-                                volume: Math.random() * 1000 + 500
-                              })) : [
-                                { date: 'Start', YES: 50, open: 50, high: 52, low: 48, close: 50, volume: 500 },
-                                { date: 'Now', YES: yesPrice, open: 50, high: yesPrice + 2, low: yesPrice - 2, close: yesPrice, volume: 800 }
-                              ]}
-                              shape={(props: any) => {
-                                const { cx, cy, payload } = props;
-                                if (!payload || !payload.open || !payload.close) return <></>;
-
-                                const isGrowing = payload.close > payload.open;
-                                const color = isGrowing ? '#A4E977' : '#EF4444';
-                                const candleWidth = 8;
-
-                                // Calculate Y positions based on the chart's scale
-                                const yScale = (value: number) => {
-                                  const chartHeight = 400; // Approximate chart height
-                                  const priceRange = 100; // 0-100%
-                                  return cy - ((value - payload.close) / priceRange) * chartHeight;
-                                };
-
-                                const highY = yScale(payload.high);
-                                const lowY = yScale(payload.low);
-                                const openY = yScale(payload.open);
-                                const closeY = yScale(payload.close);
-                                const bodyTop = Math.min(openY, closeY);
-                                const bodyHeight = Math.abs(openY - closeY) || 1;
-
-                                return (
-                                  <g>
-                                    {/* Wick (High-Low line) */}
-                                    <line
-                                      x1={cx}
-                                      y1={highY}
-                                      x2={cx}
-                                      y2={lowY}
-                                      stroke={color}
-                                      strokeWidth={1.5}
-                                    />
-                                    {/* Candle Body */}
-                                    <rect
-                                      x={cx - candleWidth / 2}
-                                      y={bodyTop}
-                                      width={candleWidth}
-                                      height={bodyHeight}
-                                      fill={color}
-                                      stroke={color}
-                                      strokeWidth={1}
-                                    />
-                                  </g>
-                                );
-                              }}
-                            />
-                          )}
-                        </ComposedChart>
-                      </ResponsiveContainer>
-
-                      {/* Price indicator overlay */}
-                      <div className="absolute top-4 left-4 bg-[#0a0a0a]/90 border border-gray-800 rounded px-2.5 py-1.5">
-                        <div className="text-[10px] text-gray-500">Current Price</div>
-                        <div className="text-base font-bold text-[#A4E977]">{yesPrice}%</div>
+                          <select
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value as any)}
+                            className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="buy">Buy Only</option>
+                            <option value="sell">Sell Only</option>
+                          </select>
+                          <select
+                            value={filterOutcome}
+                            onChange={(e) => setFilterOutcome(e.target.value as any)}
+                            className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                          >
+                            <option value="all">All Outcomes</option>
+                            <option value="yes">YES Only</option>
+                            <option value="no">NO Only</option>
+                          </select>
+                        </div>
                       </div>
+
+                      {activeTab === 'positions' && (
+                        <div>
+                          {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b border-gray-800">
+                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Size</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Entry Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Current Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L %</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Liq. Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {parseFloat(positions[0]) > 0 && (
+                                    <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                      <td className="py-3">
+                                        <span className="text-xs font-semibold text-[#A4E977]">YES</span>
+                                      </td>
+                                      <td className="text-right text-xs text-white">
+                                        {parseFloat(positions[0]).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-300">
+                                        {(yesPrice * 0.95).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right text-xs text-white font-medium">
+                                        {yesPrice}.00¢
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +${((parseFloat(positions[0]) * (yesPrice / 100)) * 0.05).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +5.26%
+                                      </td>
+                                      <td className="text-right text-xs text-red-400">
+                                        {(yesPrice * 0.80).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right">
+                                        <div className="flex gap-1 justify-end">
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                            Close
+                                          </button>
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                            Edit
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                  {parseFloat(positions[1]) > 0 && (
+                                    <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                      <td className="py-3">
+                                        <span className="text-xs font-semibold text-red-400">NO</span>
+                                      </td>
+                                      <td className="text-right text-xs text-white">
+                                        {parseFloat(positions[1]).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-300">
+                                        {(noPrice * 0.95).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right text-xs text-white font-medium">
+                                        {noPrice}.00¢
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +${((parseFloat(positions[1]) * (noPrice / 100)) * 0.05).toFixed(2)}
+                                      </td>
+                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                        +5.26%
+                                      </td>
+                                      <td className="text-right text-xs text-red-400">
+                                        {(noPrice * 0.80).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right">
+                                        <div className="flex gap-1 justify-end">
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                            Close
+                                          </button>
+                                          <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                            Edit
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
+                          )}
+                        </div>
+                      )}
+                      {activeTab === 'trade-history' && (
+                        <div>
+                          {recentTrades.length > 0 ? (
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b border-gray-800">
+                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Type</th>
+                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Amount</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Price</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Total</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Time</th>
+                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Tx Hash</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {recentTrades.slice(0, 10).map((trade, i) => (
+                                    <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
+                                      <td className="py-3">
+                                        <span className={`text-xs font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                                          {trade.type}
+                                        </span>
+                                      </td>
+                                      <td className="text-xs text-gray-300">
+                                        {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
+                                      </td>
+                                      <td className="text-right text-xs text-white">
+                                        {trade.amountOut}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-300">
+                                        {(trade.price * 100).toFixed(2)}¢
+                                      </td>
+                                      <td className="text-right text-xs text-white font-medium">
+                                        ${trade.amountIn}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-400">
+                                        {new Date(trade.timestamp).toLocaleTimeString()}
+                                      </td>
+                                      <td className="text-right text-xs text-gray-500 font-mono">
+                                        {trade.txHash.slice(0, 6)}...{trade.txHash.slice(-4)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
+                          )}
+                        </div>
+                      )}
+                      {activeTab === 'open-orders' && (
+                        <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
+                      )}
+                      {activeTab === 'order-history' && (
+                        <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
+                      )}
+                      {(activeTab === 'twap' || activeTab === 'funding-history') && (
+                        <div className="text-center py-12 text-gray-500 text-sm">Coming soon</div>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Order Book - Below Chart */}
-              <div className="px-3 pb-3">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="px-3 py-3 border-b border-[#A4E977]">
+              {/* MIDDLE COLUMN: Order Book + Related Markets */}
+              <div className="flex flex-col gap-3 h-full">
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '572px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-white">Order Book</h3>
                       <div className="flex items-center gap-2">
@@ -804,7 +1041,7 @@ export function MarketPage() {
                           {showDepthChart ? 'Table' : 'Depth'}
                         </button>
                         <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
-                          Others <ChevronDown className="w-3 h-3" />
+                          Others <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         </button>
                       </div>
                     </div>
@@ -816,28 +1053,13 @@ export function MarketPage() {
 
                   {/* Market Depth Chart or Order Book Table */}
                   {showDepthChart ? (
-                    <div className="px-3 py-4">
+                    <div className="px-3 py-4 flex-1 overflow-auto">
                       <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
                       <div className="relative h-[300px] bg-[#1a1a1a] rounded">
-                        {/* Depth Chart Visualization */}
                         <svg className="w-full h-full" viewBox="0 0 400 300">
-                          {/* Bids (Green) - Left side */}
-                          <path
-                            d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z"
-                            fill="rgba(164, 233, 119, 0.2)"
-                            stroke="#A4E977"
-                            strokeWidth="2"
-                          />
-                          {/* Asks (Red) - Right side */}
-                          <path
-                            d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z"
-                            fill="rgba(239, 68, 68, 0.2)"
-                            stroke="#EF4444"
-                            strokeWidth="2"
-                          />
-                          {/* Center line */}
+                          <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
+                          <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
                           <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
-                          {/* Labels */}
                           <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
                           <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
                           <text x="200" y="20" fill="#666" fontSize="10" textAnchor="middle">{yesPrice}¢</text>
@@ -845,35 +1067,24 @@ export function MarketPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="px-3 py-2">
-                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3">
+                    <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">
+                      <div className="grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
                         <div>Price</div>
                         <div className="text-right">Size</div>
                         <div className="text-right">Cumulative</div>
                         <div className="text-right">Total(USD)</div>
                       </div>
-
-                      <div className="max-h-[500px] overflow-y-auto">
-                        {/* Asks (Sell Orders) */}
+                      <div className="flex-1 overflow-y-auto">
                         <div className="space-y-0.5 mb-2">
                           {(() => {
-                            // Calculate cumulative volume for asks
                             let cumulativeAsk = 0;
                             const maxAskVolume = filteredAsks.reduce((max, ask) => Math.max(max, ask.amount), 0);
-
                             return filteredAsks.slice(0, 10).map((ask, i) => {
                               cumulativeAsk += ask.amount;
                               const depthPercentage = (ask.amount / maxAskVolume) * 100;
-
                               return (
                                 <div key={i} className="relative group">
-                                  {/* Depth visualization bar */}
-                                  <div
-                                    className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20"
-                                    style={{ width: `${depthPercentage}%` }}
-                                  />
-
-                                  {/* Order data */}
+                                  <div className="absolute right-0 top-0 h-full bg-red-500/10 transition-all group-hover:bg-red-500/20" style={{ width: `${depthPercentage}%` }} />
                                   <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
                                     <div className="text-red-400 font-mono font-semibold">{(ask.price * 100).toFixed(4)}¢</div>
                                     <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
@@ -886,45 +1097,22 @@ export function MarketPage() {
                           })()}
                           {filteredAsks.length === 0 && <div className="text-center py-6 text-gray-600 text-[10px]">No sell orders</div>}
                         </div>
-
-                        {/* Spread Indicator */}
                         <div className="py-2.5 text-center border-y border-gray-800/50 mb-2 bg-[#1a1a1a]">
                           <div className="text-[11px] text-gray-400 space-y-0.5">
-                            <div>
-                              Spread: <span className="text-[#A4E977] font-mono font-semibold">
-                                {filteredAsks.length > 0 && filteredBids.length > 0
-                                  ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4)
-                                  : '0.0000'}¢
-                              </span>
-                            </div>
-                            <div className="text-[10px]">
-                              ({filteredAsks.length > 0 && filteredBids.length > 0
-                                ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2)
-                                : '0.00'}%)
-                            </div>
+                            <div>Spread: <span className="text-[#A4E977] font-mono font-semibold">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(4) : '0.0000'}¢</span></div>
+                            <div className="text-[10px]">({filteredAsks.length > 0 && filteredBids.length > 0 ? (((filteredAsks[0].price - filteredBids[0].price) / filteredBids[0].price) * 100).toFixed(2) : '0.00'}%)</div>
                           </div>
                         </div>
-
-                        {/* Bids (Buy Orders) */}
                         <div className="space-y-0.5">
                           {(() => {
-                            // Calculate cumulative volume for bids
                             let cumulativeBid = 0;
                             const maxBidVolume = filteredBids.reduce((max, bid) => Math.max(max, bid.amount), 0);
-
                             return filteredBids.slice(0, 10).map((bid, i) => {
                               cumulativeBid += bid.amount;
                               const depthPercentage = (bid.amount / maxBidVolume) * 100;
-
                               return (
                                 <div key={i} className="relative group">
-                                  {/* Depth visualization bar */}
-                                  <div
-                                    className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20"
-                                    style={{ width: `${depthPercentage}%` }}
-                                  />
-
-                                  {/* Order data */}
+                                  <div className="absolute right-0 top-0 h-full bg-[#A4E977]/10 transition-all group-hover:bg-[#A4E977]/20" style={{ width: `${depthPercentage}%` }} />
                                   <div className="relative grid grid-cols-[1fr_0.7fr_0.8fr_0.9fr] gap-2 text-xs py-1.5 px-1 cursor-pointer">
                                     <div className="text-[#A4E977] font-mono font-semibold">{(bid.price * 100).toFixed(4)}¢</div>
                                     <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
@@ -941,214 +1129,9 @@ export function MarketPage() {
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* Bottom Tabs */}
-              <div className="pl-3 pb-3 pt-0">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-                    {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
-                      <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="p-4 min-h-[200px]">
-                    {/* Filters and Search */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Search..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="px-3 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
-                        />
-                        <select
-                          value={filterType}
-                          onChange={(e) => setFilterType(e.target.value as any)}
-                          className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
-                        >
-                          <option value="all">All Types</option>
-                          <option value="buy">Buy Only</option>
-                          <option value="sell">Sell Only</option>
-                        </select>
-                        <select
-                          value={filterOutcome}
-                          onChange={(e) => setFilterOutcome(e.target.value as any)}
-                          className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
-                        >
-                          <option value="all">All Outcomes</option>
-                          <option value="yes">YES Only</option>
-                          <option value="no">NO Only</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {activeTab === 'positions' && (
-                      <div>
-                        {parseFloat(positions[0]) > 0 || parseFloat(positions[1]) > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full">
-                              <thead>
-                                <tr className="border-b border-gray-800">
-                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Size</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Entry Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Current Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L %</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Liq. Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {parseFloat(positions[0]) > 0 && (
-                                  <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                    <td className="py-3">
-                                      <span className="text-xs font-semibold text-[#A4E977]">YES</span>
-                                    </td>
-                                    <td className="text-right text-xs text-white">
-                                      {parseFloat(positions[0]).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-300">
-                                      {(yesPrice * 0.95).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right text-xs text-white font-medium">
-                                      {yesPrice}.00¢
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +${((parseFloat(positions[0]) * (yesPrice / 100)) * 0.05).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +5.26%
-                                    </td>
-                                    <td className="text-right text-xs text-red-400">
-                                      {(yesPrice * 0.80).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right">
-                                      <div className="flex gap-1 justify-end">
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
-                                          Close
-                                        </button>
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
-                                          Edit
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                                {parseFloat(positions[1]) > 0 && (
-                                  <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                    <td className="py-3">
-                                      <span className="text-xs font-semibold text-red-400">NO</span>
-                                    </td>
-                                    <td className="text-right text-xs text-white">
-                                      {parseFloat(positions[1]).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-300">
-                                      {(noPrice * 0.95).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right text-xs text-white font-medium">
-                                      {noPrice}.00¢
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +${((parseFloat(positions[1]) * (noPrice / 100)) * 0.05).toFixed(2)}
-                                    </td>
-                                    <td className="text-right text-xs text-[#A4E977] font-medium">
-                                      +5.26%
-                                    </td>
-                                    <td className="text-right text-xs text-red-400">
-                                      {(noPrice * 0.80).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right">
-                                      <div className="flex gap-1 justify-end">
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
-                                          Close
-                                        </button>
-                                        <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
-                                          Edit
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
-                        )}
-                      </div>
-                    )}
-                    {activeTab === 'trade-history' && (
-                      <div>
-                        {recentTrades.length > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full">
-                              <thead>
-                                <tr className="border-b border-gray-800">
-                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Type</th>
-                                  <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Amount</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Price</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Total</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Time</th>
-                                  <th className="text-right text-xs font-medium text-gray-400 pb-3">Tx Hash</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {recentTrades.slice(0, 10).map((trade, i) => (
-                                  <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
-                                    <td className="py-3">
-                                      <span className={`text-xs font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
-                                        {trade.type}
-                                      </span>
-                                    </td>
-                                    <td className="text-xs text-gray-300">
-                                      {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
-                                    </td>
-                                    <td className="text-right text-xs text-white">
-                                      {trade.amountOut}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-300">
-                                      {(trade.price * 100).toFixed(2)}¢
-                                    </td>
-                                    <td className="text-right text-xs text-white font-medium">
-                                      ${trade.amountIn}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-400">
-                                      {new Date(trade.timestamp).toLocaleTimeString()}
-                                    </td>
-                                    <td className="text-right text-xs text-gray-500 font-mono">
-                                      {trade.txHash.slice(0, 6)}...{trade.txHash.slice(-4)}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
-                        )}
-                      </div>
-                    )}
-                    {activeTab === 'open-orders' && (
-                      <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
-                    )}
-                    {activeTab === 'order-history' && (
-                      <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
-                    )}
-                    {(activeTab === 'twap' || activeTab === 'funding-history') && (
-                      <div className="text-center py-12 text-gray-500 text-sm">Coming soon</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Related Markets Panel - Below Positions */}
-              <div className="pl-3 pb-3 pt-3">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl max-h-[200px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                {/* Related Markets Panel */}
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-semibold text-white">Related Markets</h3>
@@ -1191,619 +1174,807 @@ export function MarketPage() {
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* RIGHT: Trading Panel ONLY */}
-            <div className="bg-black flex flex-col p-3 h-full">
-              <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl min-h-[1050px]" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
-                  <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
-                  <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
-                </div>
-
-                {/* One-Click Trading Toggle */}
-                <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
-                  <span className="text-xs text-gray-400">One-Click Trading</span>
-                  <button
-                    onClick={() => setOneClickTrading(!oneClickTrading)}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'
-                      }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="p-3 border-b border-[#A4E977]">
-                  {/* Order Type Tabs */}
-                  <div className="flex gap-2 mb-3">
-                    {(['market', 'limit', 'pro'] as const).map((type) => (
-                      <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
-                      </button>
-                    ))}
+              {/* RIGHT COLUMN: Trading Panel */}
+              <div className="flex flex-col h-full">
+                <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[926px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
+                    <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
+                    <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
                   </div>
 
-                  {/* Advanced Order Types (when Pro is selected) */}
-                  {orderType === 'pro' && (
-                    <div className="space-y-2 mb-3">
-                      <label className="text-xs text-gray-400">Advanced Order Type</label>
-                      <select
-                        value={advancedOrderType}
-                        onChange={(e) => setAdvancedOrderType(e.target.value as any)}
-                        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                      >
-                        <option value="none">Standard</option>
-                        <option value="stop-limit">Stop-Limit</option>
-                        <option value="trailing-stop">Trailing Stop</option>
-                      </select>
+                  {/* One-Click Trading Toggle */}
+                  <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
+                    <span className="text-xs text-gray-400">One-Click Trading</span>
+                    <button
+                      onClick={() => setOneClickTrading(!oneClickTrading)}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'
+                        }`}
+                    >
+                      <div
+                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                      />
+                    </button>
+                  </div>
 
-                      {advancedOrderType === 'stop-limit' && (
-                        <div className="space-y-2">
+                  <div className="p-3 border-b border-[#A4E977]">
+                    {/* Order Type Tabs */}
+                    <div className="flex gap-2 mb-3">
+                      {(['market', 'limit', 'pro'] as const).map((type) => (
+                        <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Advanced Order Types (when Pro is selected) */}
+                    {orderType === 'pro' && (
+                      <div className="space-y-2 mb-3">
+                        <label className="text-xs text-gray-400">Advanced Order Type</label>
+                        <select
+                          value={advancedOrderType}
+                          onChange={(e) => setAdvancedOrderType(e.target.value as any)}
+                          className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                        >
+                          <option value="none">Standard</option>
+                          <option value="stop-limit">Stop-Limit</option>
+                          <option value="trailing-stop">Trailing Stop</option>
+                        </select>
+
+                        {advancedOrderType === 'stop-limit' && (
+                          <div className="space-y-2">
+                            <input
+                              type="number"
+                              placeholder="Stop Price"
+                              value={stopLossPrice}
+                              onChange={(e) => setStopLossPrice(e.target.value)}
+                              className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                            />
+                            <input
+                              type="number"
+                              placeholder="Limit Price"
+                              value={limitPrice}
+                              onChange={(e) => setLimitPrice(e.target.value)}
+                              className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
+                            />
+                          </div>
+                        )}
+
+                        {advancedOrderType === 'trailing-stop' && (
                           <input
                             type="number"
-                            placeholder="Stop Price"
-                            value={stopLossPrice}
-                            onChange={(e) => setStopLossPrice(e.target.value)}
-                            className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                          />
-                          <input
-                            type="number"
-                            placeholder="Limit Price"
-                            value={limitPrice}
-                            onChange={(e) => setLimitPrice(e.target.value)}
+                            placeholder="Trailing %"
+                            value={trailingStopPercent}
+                            onChange={(e) => setTrailingStopPercent(e.target.value)}
                             className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
                           />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Leverage Selector */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs text-gray-400">Leverage</label>
+                        <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 5, 10].map((lev) => (
+                          <button
+                            key={lev}
+                            onClick={() => setLeverage(lev)}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
+                              ? 'bg-[#A4E977] text-black'
+                              : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'
+                              }`}
+                          >
+                            {lev}x
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3">
+                    <div className="grid grid-cols-2 gap-3 mx-3">
+                      <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                        <span className="text-sm font-medium text-gray-400">Yes</span>
+                        <span className={`text-sm font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
+                      </button>
+                      <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                        <span className="text-sm font-medium text-gray-400">No</span>
+                        <span className={`text-sm font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
+                    <div className="relative mb-2">
+                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
+                      <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
+                    </div>
+
+                    {/* Quick Order Buttons */}
+                    <div className="grid grid-cols-4 gap-1 mb-3">
+                      {[10, 25, 50, 100].map((val) => (
+                        <button
+                          key={val}
+                          onClick={() => setAmount(val.toString())}
+                          className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
+                        >
+                          ${val}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Position Size Calculator */}
+                    <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Est. Shares:</span>
+                        <span className="text-white font-medium">
+                          {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Total Cost:</span>
+                        <span className="text-white font-medium">
+                          ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      {leverage > 1 && (
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-gray-500">Liq. Price:</span>
+                          <span className="text-red-400 font-medium">
+                            {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
+                          </span>
                         </div>
                       )}
+                    </div>
+                  </div>
 
-                      {advancedOrderType === 'trailing-stop' && (
-                        <input
-                          type="number"
-                          placeholder="Trailing %"
-                          value={trailingStopPercent}
-                          onChange={(e) => setTrailingStopPercent(e.target.value)}
-                          className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white focus:border-[#A4E977] focus:outline-none"
-                        />
-                      )}
+                  {/* Limit Price - Only for Limit orders */}
+                  {orderType === 'limit' && (
+                    <div className="px-3 pb-3">
+                      <label className="text-xs text-gray-400 mb-2 block">Limit Price</label>
+                      <input
+                        type="number"
+                        value={limitPrice}
+                        onChange={(e) => setLimitPrice(e.target.value)}
+                        className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                        placeholder="0.50"
+                        step="0.01"
+                      />
                     </div>
                   )}
 
-                  {/* Leverage Selector */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs text-gray-400">Leverage</label>
-                      <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
-                    </div>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 5, 10].map((lev) => (
+                  <div className="px-3 pb-3">
+                    <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={sliderValue}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setSliderValue(val);
+                        const maxAmount = parseFloat(balance) || 0;
+                        setAmount(((maxAmount * val) / 100).toFixed(2));
+                      }}
+                      className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
+                      style={{
+                        background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div className="flex justify-between mt-2">
+                      {[0, 25, 50, 75, 100].map((val) => (
                         <button
-                          key={lev}
-                          onClick={() => setLeverage(lev)}
-                          className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
-                            ? 'bg-[#A4E977] text-black'
-                            : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'
-                            }`}
+                          key={val}
+                          onClick={() => {
+                            setSliderValue(val);
+                            const maxAmount = parseFloat(balance) || 0;
+                            setAmount(((maxAmount * val) / 100).toFixed(2));
+                          }}
+                          className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
                         >
-                          {lev}x
+                          {val}%
                         </button>
                       ))}
                     </div>
                   </div>
-                </div>
 
-                <div className="p-3">
-                  <div className="grid grid-cols-2 gap-3 mx-3">
-                    <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
-                      <span className="text-sm font-medium text-gray-400">Yes</span>
-                      <span className={`text-sm font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
-                    </button>
-                    <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
-                      <span className="text-sm font-medium text-gray-400">No</span>
-                      <span className={`text-sm font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-3 pb-3">
-                  <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
-                  <div className="relative mb-2">
-                    <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
-                    <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
-                  </div>
-
-                  {/* Quick Order Buttons */}
-                  <div className="grid grid-cols-4 gap-1 mb-3">
-                    {[10, 25, 50, 100].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => setAmount(val.toString())}
-                        className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
-                      >
-                        ${val}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Position Size Calculator */}
-                  <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Est. Shares:</span>
-                      <span className="text-white font-medium">
-                        {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
-                      </span>
+                  <div className="px-3 pb-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Available to Trade</span>
+                      <span className="text-white font-medium">${parseFloat(balance).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Total Cost:</span>
-                      <span className="text-white font-medium">
-                        ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
-                      </span>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <div className="flex items-center justify-between text-sm mb-3">
+                      <span className="text-gray-300 font-medium">Potential Payout</span>
+                      <span className="text-white font-bold">${calculatePotentialPayout()}</span>
                     </div>
-                    {leverage > 1 && (
+
+                    {/* Risk/Reward Calculator */}
+                    <div className="bg-[#1a1a1a] rounded p-3 space-y-2">
+                      <div className="text-xs text-gray-400 font-semibold mb-2">Risk/Reward Analysis</div>
+
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-gray-500">Liq. Price:</span>
-                        <span className="text-red-400 font-medium">
-                          {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
+                        <span className="text-gray-500">Potential Profit:</span>
+                        <span className="text-[#A4E977] font-medium">
+                          ${amount && yesPrice
+                            ? ((parseFloat(amount) * leverage) * ((100 - yesPrice) / yesPrice)).toFixed(2)
+                            : '0.00'}
                         </span>
+                      </div>
+
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Max Loss:</span>
+                        <span className="text-red-400 font-medium">
+                          -${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-500">Risk/Reward Ratio:</span>
+                        <span className="text-white font-medium">
+                          1:{amount && yesPrice && yesPrice > 0
+                            ? ((100 - yesPrice) / yesPrice).toFixed(2)
+                            : '0.00'}
+                        </span>
+                      </div>
+
+                      {/* Visual Risk/Reward Bar */}
+                      <div className="mt-2">
+                        <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                          <span>Risk</span>
+                          <span>Reward</span>
+                        </div>
+                        <div className="h-2 bg-red-500/20 rounded-full overflow-hidden flex">
+                          <div
+                            className="bg-red-500"
+                            style={{
+                              width: `${yesPrice && yesPrice > 0 ? (yesPrice / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
+                            }}
+                          />
+                          <div
+                            className="bg-[#A4E977]"
+                            style={{
+                              width: `${yesPrice && yesPrice > 0 ? ((100 - yesPrice) / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between text-[10px] pt-2 border-t border-gray-800">
+                        <span className="text-gray-500">Est. ROI:</span>
+                        <span className={`font-medium ${amount && yesPrice && yesPrice > 0 && ((100 - yesPrice) / yesPrice) > 1
+                          ? 'text-[#A4E977]'
+                          : 'text-gray-400'
+                          }`}>
+                          {amount && yesPrice && yesPrice > 0
+                            ? `+${(((100 - yesPrice) / yesPrice) * 100).toFixed(0)}%`
+                            : '0%'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
+                  </div>
+
+                  <div className="px-3 pb-4 border-b border-[#A4E977]">
+                    <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={takeProfitStopLoss}
+                        onChange={(e) => setTakeProfitStopLoss(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-700 bg-black"
+                      />
+                      <span>Take Profit / Stop Loss</span>
+                      <span className="text-gray-600">ⓘ</span>
+                    </label>
+
+                    {takeProfitStopLoss && (
+                      <div className="mt-3 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">TP Price</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">Gain</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">SL Price</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 mb-1 block">Loss</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                {/* Limit Price - Only for Limit orders */}
-                {orderType === 'limit' && (
-                  <div className="px-3 pb-3">
-                    <label className="text-xs text-gray-400 mb-2 block">Limit Price</label>
-                    <input
-                      type="number"
-                      value={limitPrice}
-                      onChange={(e) => setLimitPrice(e.target.value)}
-                      className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none"
-                      placeholder="0.50"
-                      step="0.01"
-                    />
-                  </div>
-                )}
-
-                <div className="px-3 pb-3">
-                  <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={sliderValue}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value);
-                      setSliderValue(val);
-                      const maxAmount = parseFloat(balance) || 0;
-                      setAmount(((maxAmount * val) / 100).toFixed(2));
-                    }}
-                    className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
-                    style={{
-                      background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
-                    }}
-                  />
-                  <div className="flex justify-between mt-2">
-                    {[0, 25, 50, 75, 100].map((val) => (
+        {/* Mobile Single Panel View - Only visible on mobile */}
+        <div className="lg:hidden px-3 pb-4">
+          {/* Chart Panel */}
+          {activeMobilePanel === 'chart' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="p-3 bg-[#0a0a0a]">
+                <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+                  {/* Time Range Buttons */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
                       <button
-                        key={val}
-                        onClick={() => {
-                          setSliderValue(val);
-                          const maxAmount = parseFloat(balance) || 0;
-                          setAmount(((maxAmount * val) / 100).toFixed(2));
-                        }}
-                        className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
+                        key={range}
+                        onClick={() => setTimeRange(range)}
+                        className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
                       >
-                        {val}%
+                        {range.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Chart Type Switcher */}
+                  <div className="flex items-center gap-1 border border-gray-700 rounded p-0.5">
+                    <button
+                      onClick={() => setChartType('line')}
+                      className={`p-1 rounded transition-colors ${chartType === 'line' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      title="Line"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setChartType('candle')}
+                      className={`p-1 rounded transition-colors ${chartType === 'candle' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      title="Candle"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="9" y1="2" x2="9" y2="22" />
+                        <rect x="7" y="6" width="4" height="10" fill="currentColor" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setChartType('area')}
+                      className={`p-1 rounded transition-colors ${chartType === 'area' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400'}`}
+                      title="Area"
+                    >
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 12 L9 6 L15 12 L21 6 L21 18 L3 18 Z" fill="currentColor" opacity="0.3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="h-[400px] bg-[#0a0a0a] relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={getFilteredData().length > 0 ? getFilteredData().map(d => ({ ...d, volume: Math.random() * 1000 + 500 })) : [{ time: new Date().toLocaleTimeString(), YES: yesPrice, NO: noPrice, volume: 0 }]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorYesMobile" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#A4E977" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                      <XAxis dataKey="time" stroke="#666" tick={{ fontSize: 10 }} />
+                      <YAxis yAxisId="left" stroke="#A4E977" tick={{ fontSize: 10 }} domain={[0, 100]} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#888" tick={{ fontSize: 10 }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #A4E977', borderRadius: '8px', fontSize: '12px' }} />
+                      {chartType === 'area' && <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} fillOpacity={1} fill="url(#colorYesMobile)" />}
+                      {chartType === 'line' && <Line yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={2} dot={false} />}
+                      <Bar yAxisId="right" dataKey="volume" fill="#444" opacity={0.3} radius={[4, 4, 0, 0]} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+
+                  {/* Price indicator overlay */}
+                  <div className="absolute top-2 left-2 bg-[#0a0a0a]/90 border border-gray-800 rounded px-2 py-1">
+                    <div className="text-[9px] text-gray-500">Current Price</div>
+                    <div className="text-sm font-bold text-[#A4E977]">{yesPrice}%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Order Book Panel */}
+          {activeMobilePanel === 'orderbook' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '600px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-white">Order Book</h3>
+                  <button onClick={() => setShowDepthChart(!showDepthChart)} className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}>
+                    {showDepthChart ? 'Table' : 'Depth'}
+                  </button>
+                </div>
+                <div className="flex gap-1">
+                  <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
+                  <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
+                </div>
+              </div>
+
+              {showDepthChart ? (
+                <div className="px-3 py-4 flex-1 overflow-auto">
+                  <div className="text-xs text-gray-400 mb-3 text-center">Market Depth</div>
+                  <div className="relative h-[300px] bg-[#1a1a1a] rounded">
+                    <svg className="w-full h-full" viewBox="0 0 400 300">
+                      <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
+                      <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
+                      <line x1="200" y1="0" x2="200" y2="300" stroke="#666" strokeWidth="1" strokeDasharray="5,5" />
+                      <text x="100" y="290" fill="#A4E977" fontSize="12" textAnchor="middle">Bids</text>
+                      <text x="300" y="290" fill="#EF4444" fontSize="12" textAnchor="middle">Asks</text>
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <div className="px-3 py-2 flex-1 flex flex-col overflow-hidden">
+                  <div className="grid grid-cols-[1fr_0.7fr_0.9fr] gap-2 text-[10px] text-gray-500 font-medium mb-3 flex-shrink-0">
+                    <div>Price</div>
+                    <div className="text-right">Size</div>
+                    <div className="text-right">Total</div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="space-y-0.5 mb-2">
+                      {filteredAsks.slice(0, 8).map((ask, i) => (
+                        <div key={i} className="grid grid-cols-[1fr_0.7fr_0.9fr] gap-2 text-xs py-1">
+                          <div className="text-red-400 font-mono">{(ask.price * 100).toFixed(2)}¢</div>
+                          <div className="text-right text-gray-300">{ask.amount.toFixed(2)}</div>
+                          <div className="text-right text-gray-400">${(ask.price * ask.amount).toFixed(2)}</div>
+                        </div>
+                      ))}
+                      {filteredAsks.length === 0 && <div className="text-center py-4 text-gray-600 text-xs">No sell orders</div>}
+                    </div>
+                    <div className="py-2 text-center border-y border-gray-800/50 mb-2">
+                      <div className="text-xs text-gray-400">Spread: <span className="text-[#A4E977]">{filteredAsks.length > 0 && filteredBids.length > 0 ? ((filteredAsks[0].price - filteredBids[0].price) * 100).toFixed(2) : '0.00'}¢</span></div>
+                    </div>
+                    <div className="space-y-0.5">
+                      {filteredBids.slice(0, 8).map((bid, i) => (
+                        <div key={i} className="grid grid-cols-[1fr_0.7fr_0.9fr] gap-2 text-xs py-1">
+                          <div className="text-[#A4E977] font-mono">{(bid.price * 100).toFixed(2)}¢</div>
+                          <div className="text-right text-gray-300">{bid.amount.toFixed(2)}</div>
+                          <div className="text-right text-gray-400">${(bid.price * bid.amount).toFixed(2)}</div>
+                        </div>
+                      ))}
+                      {filteredBids.length === 0 && <div className="text-center py-4 text-gray-600 text-xs">No buy orders</div>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Positions Panel */}
+          {activeMobilePanel === 'positions' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ minHeight: '500px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f] overflow-x-auto scrollbar-hide">
+                {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
+                  <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-[10px] font-medium transition-colors whitespace-nowrap ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              <div className="p-3 flex-shrink-0">
+                {/* Search and Filter */}
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 px-2 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                  />
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as any)}
+                    className="px-2 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                  >
+                    <option value="all">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-3 pb-3">
+                {activeTab === 'positions' && (
+                  Array.isArray(positions) && positions.length > 0 && typeof positions[0] === 'object' ? (
+                    <div className="space-y-2">
+                      {positions.filter((pos): pos is any => typeof pos === 'object' && pos !== null).map((pos, i) => (
+                        <div key={i} className="bg-[#1a1a1a] rounded-lg p-3 border border-gray-800">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="text-xs text-white font-medium">{pos?.outcome === 0 ? 'YES' : 'NO'}</div>
+                            <div className={`text-xs font-semibold ${(pos?.pnl ?? 0) >= 0 ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                              {(pos?.pnl ?? 0) >= 0 ? '+' : ''}{(pos?.pnl ?? 0).toFixed(2)}%
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                            <div><span className="text-gray-500">Size:</span> <span className="text-white">{pos?.shares ?? 0}</span></div>
+                            <div><span className="text-gray-500">Avg Price:</span> <span className="text-white">{pos?.avgPrice ?? 0}¢</span></div>
+                            <div><span className="text-gray-500">Value:</span> <span className="text-white">${pos?.value ?? 0}</span></div>
+                            <div><span className="text-gray-500">Current:</span> <span className="text-white">{pos?.currentPrice ?? 0}¢</span></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
+                  )
+                )}
+                {activeTab === 'open-orders' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
+                )}
+                {activeTab === 'twap' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No TWAP orders</div>
+                )}
+                {activeTab === 'trade-history' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No trade history</div>
+                )}
+                {activeTab === 'funding-history' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No funding history</div>
+                )}
+                {activeTab === 'order-history' && (
+                  <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Related Markets Panel */}
+          {activeMobilePanel === 'related' && (
+            <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ minHeight: '500px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-white">Related Markets</h3>
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
+                    <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 p-4">
+                <div className="space-y-2">
+                  {relatedMarkets.map((market: any, index: number) => (
+                    <div key={index} onClick={() => navigate(`/market/${market.id}`)} className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors">
+                      {market.image_url && (
+                        <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-white truncate">{market.description}</div>
+                      </div>
+                      <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Trading Panel */}
+          {activeMobilePanel === 'trading' && (
+            <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl overflow-y-auto" style={{ maxHeight: '80vh', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+              <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
+                <button onClick={() => setTradeType('buy')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
+                <button onClick={() => setTradeType('sell')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
+              </div>
+
+              {/* One-Click Trading Toggle */}
+              <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
+                <span className="text-xs text-gray-400">One-Click Trading</span>
+                <button
+                  onClick={() => setOneClickTrading(!oneClickTrading)}
+                  className={`relative w-11 h-6 rounded-full transition-colors flex items-center ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6 ml-1' : 'ml-1'}`} />
+                </button>
+              </div>
+
+              <div className="p-3 border-b border-[#A4E977]">
+                {/* Order Type Tabs */}
+                <div className="flex gap-2 mb-3">
+                  {(['market', 'limit', 'pro'] as const).map((type) => (
+                    <button key={type} onClick={() => setOrderType(type)} className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Leverage Selector */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-gray-400">Leverage</label>
+                    <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
+                  </div>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 5, 10].map((lev) => (
+                      <button
+                        key={lev}
+                        onClick={() => setLeverage(lev)}
+                        className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'}`}
+                      >
+                        {lev}x
                       </button>
                     ))}
                   </div>
                 </div>
-
-                <div className="px-3 pb-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-400">Available to Trade</span>
-                    <span className="text-white font-medium">${parseFloat(balance).toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <div className="px-3 pb-3">
-                  <div className="flex items-center justify-between text-sm mb-3">
-                    <span className="text-gray-300 font-medium">Potential Payout</span>
-                    <span className="text-white font-bold">${calculatePotentialPayout()}</span>
-                  </div>
-
-                  {/* Risk/Reward Calculator */}
-                  <div className="bg-[#1a1a1a] rounded p-3 space-y-2">
-                    <div className="text-xs text-gray-400 font-semibold mb-2">Risk/Reward Analysis</div>
-
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Potential Profit:</span>
-                      <span className="text-[#A4E977] font-medium">
-                        ${amount && yesPrice
-                          ? ((parseFloat(amount) * leverage) * ((100 - yesPrice) / yesPrice)).toFixed(2)
-                          : '0.00'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Max Loss:</span>
-                      <span className="text-red-400 font-medium">
-                        -${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Risk/Reward Ratio:</span>
-                      <span className="text-white font-medium">
-                        1:{amount && yesPrice && yesPrice > 0
-                          ? ((100 - yesPrice) / yesPrice).toFixed(2)
-                          : '0.00'}
-                      </span>
-                    </div>
-
-                    {/* Visual Risk/Reward Bar */}
-                    <div className="mt-2">
-                      <div className="flex justify-between text-[9px] text-gray-500 mb-1">
-                        <span>Risk</span>
-                        <span>Reward</span>
-                      </div>
-                      <div className="h-2 bg-red-500/20 rounded-full overflow-hidden flex">
-                        <div
-                          className="bg-red-500"
-                          style={{
-                            width: `${yesPrice && yesPrice > 0 ? (yesPrice / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
-                          }}
-                        />
-                        <div
-                          className="bg-[#A4E977]"
-                          style={{
-                            width: `${yesPrice && yesPrice > 0 ? ((100 - yesPrice) / (yesPrice + (100 - yesPrice))) * 100 : 50}%`
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between text-[10px] pt-2 border-t border-gray-800">
-                      <span className="text-gray-500">Est. ROI:</span>
-                      <span className={`font-medium ${amount && yesPrice && yesPrice > 0 && ((100 - yesPrice) / yesPrice) > 1
-                        ? 'text-[#A4E977]'
-                        : 'text-gray-400'
-                        }`}>
-                        {amount && yesPrice && yesPrice > 0
-                          ? `+${(((100 - yesPrice) / yesPrice) * 100).toFixed(0)}%`
-                          : '0%'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="px-3 pb-3">
-                  <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
-                </div>
-
-                <div className="px-3 pb-4 border-b border-[#A4E977]">
-                  <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={takeProfitStopLoss}
-                      onChange={(e) => setTakeProfitStopLoss(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-700 bg-black"
-                    />
-                    <span>Take Profit / Stop Loss</span>
-                    <span className="text-gray-600">ⓘ</span>
-                  </label>
-
-                  {takeProfitStopLoss && (
-                    <div className="mt-3 space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">TP Price</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">Gain</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">SL Price</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 mb-1 block">Loss</label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                              placeholder="0"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Market Activity Section - Full Width */}
-        <div className="max-w-[1920px] mx-auto px-3 pb-3">
-          <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-              <h3 className="text-sm font-semibold text-white">Market Activity</h3>
-              <button className="text-xs text-gray-400 hover:text-white transition-colors">View All</button>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-5 gap-4">
-                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-[#A4E977]"></div>
-                  <div className="flex-1">
-                    <div className="text-xs text-white">Large buy order placed</div>
-                    <div className="text-[10px] text-gray-500">2 minutes ago</div>
-                  </div>
-                  <div className="text-xs text-[#A4E977] font-semibold">+$5,000</div>
-                </div>
-                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                  <div className="flex-1">
-                    <div className="text-xs text-white">Price dropped 5%</div>
-                    <div className="text-[10px] text-gray-500">15 minutes ago</div>
-                  </div>
-                  <div className="text-xs text-red-400 font-semibold">-5%</div>
-                </div>
-                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                  <div className="flex-1">
-                    <div className="text-xs text-white">New whale entered</div>
-                    <div className="text-[10px] text-gray-500">1 hour ago</div>
-                  </div>
-                  <div className="text-xs text-blue-400 font-semibold">$10K+</div>
-                </div>
-                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                  <div className="flex-1">
-                    <div className="text-xs text-white">Volume spike detected</div>
-                    <div className="text-[10px] text-gray-500">2 hours ago</div>
-                  </div>
-                  <div className="text-xs text-yellow-400 font-semibold">+150%</div>
-                </div>
-                <div className="flex items-center gap-3 p-2 rounded hover:bg-black/50 cursor-pointer transition-colors">
-                  <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                  <div className="flex-1">
-                    <div className="text-xs text-white">Liquidity increased</div>
-                    <div className="text-[10px] text-gray-500">3 hours ago</div>
-                  </div>
-                  <div className="text-xs text-purple-400 font-semibold">+$2,500</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        {/* Market Selector Overlay */}
-        {showMarketSelector && (
-          <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-40 pt-20" onClick={() => setShowMarketSelector(false)}>
-            <div className="bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg max-w-6xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-                <h3 className="text-lg font-bold text-white">Select Market</h3>
-                <button onClick={() => setShowMarketSelector(false)} className="text-gray-400 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
 
-              {/* Search Bar */}
-              <div className="px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Search for a market or paste in a market link"
-                    className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#A4E977] focus:outline-none"
-                  />
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 bg-[#1a1a1a] rounded text-sm transition-colors flex items-center gap-2 ${showFilters
-                      ? 'border-2 border-[#A4E977] text-white'
-                      : 'border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-[#A4E977]'
-                      }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filters
+              <div className="p-3">
+                <div className="grid grid-cols-2 gap-2 mx-3">
+                  <button onClick={() => setSelectedOutcome(0)} className={`p-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                    <span className="text-xs font-medium text-gray-400">Yes</span>
+                    <span className={`text-xs font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}¢</span>
+                  </button>
+                  <button onClick={() => setSelectedOutcome(1)} className={`p-2 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                    <span className="text-xs font-medium text-gray-400">No</span>
+                    <span className={`text-xs font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}¢</span>
                   </button>
                 </div>
               </div>
 
-              {/* Filter Buttons - Collapsible */}
-              {showFilters && (
-                <div className="px-4 py-3 border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-                  {/* Horizontal Filter Boxes */}
-                  <div className="flex gap-3 flex-wrap">
-                    {/* Status Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Status</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Open</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Closed</button>
-                      </div>
-                    </div>
+              <div className="px-3 pb-3">
+                <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
+                <div className="relative mb-2">
+                  <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
+                  <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
+                </div>
 
-                    {/* Closing Time Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Closing Time</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;24h</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;7d</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;90d</button>
-                      </div>
-                    </div>
+                {/* Quick Order Buttons */}
+                <div className="grid grid-cols-4 gap-1 mb-3">
+                  {[10, 25, 50, 100].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setAmount(val.toString())}
+                      className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
+                    >
+                      ${val}
+                    </button>
+                  ))}
+                </div>
 
-                    {/* Market Duration Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Market Duration</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">15min</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">1hr</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">4hr</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">24hr</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Week</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Month</button>
-                      </div>
-                    </div>
-
-                    {/* Probability Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Probability</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;40%</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;60%</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;80%</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;98%</button>
-                      </div>
-                    </div>
-
-                    {/* Liquidity Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Liquidity</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;K</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;10K</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;100K</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;1M</button>
-                      </div>
-                    </div>
-
-                    {/* Volume Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Volume</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&lt;K</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;10K</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;100K</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">&gt;1M</button>
-                      </div>
-                    </div>
-
-                    {/* Categories Filter Box */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded p-3 min-w-fit">
-                      <div className="text-xs text-gray-400 mb-2 font-medium">Market Categories</div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-[#A4E977] text-black text-xs font-medium rounded">Show All</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-[#A4E977] text-xs font-medium rounded border border-[#A4E977]">Crypto</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Sports</button>
-                        <button className="px-2 py-1 bg-[#0f0f0f] text-gray-400 text-xs font-medium rounded hover:text-white">Politics</button>
-                      </div>
-                    </div>
-
+                {/* Position Size Calculator */}
+                <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-gray-500">Est. Shares:</span>
+                    <span className="text-white font-medium">
+                      {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
+                    </span>
                   </div>
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-gray-500">Total Cost:</span>
+                    <span className="text-white font-medium">
+                      ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                    </span>
+                  </div>
+                  {leverage > 1 && (
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-500">Liq. Price:</span>
+                      <span className="text-red-400 font-medium">
+                        {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Limit Price - Only for Limit orders */}
+              {orderType === 'limit' && (
+                <div className="px-3 pb-3">
+                  <label className="text-xs text-gray-400 mb-2 block">Limit Price</label>
+                  <input
+                    type="number"
+                    value={limitPrice}
+                    onChange={(e) => setLimitPrice(e.target.value)}
+                    className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                    placeholder="0.50"
+                    step="0.01"
+                  />
                 </div>
               )}
 
-              {/* Markets Table */}
-              <div className="overflow-y-auto max-h-[calc(80vh-380px)]">
-                <table className="w-full">
-                  <thead className="sticky top-0 bg-[#0f0f0f] border-b border-[rgba(140,180,130,0.35)]">
-                    <tr>
-                      <th className="text-left text-xs font-medium text-gray-400 p-3">Market</th>
-                      <th className="text-right text-xs font-medium text-gray-400 p-3">Probability</th>
-                      <th className="text-right text-xs font-medium text-gray-400 p-3">Volume</th>
-                      <th className="text-right text-xs font-medium text-gray-400 p-3">24h Change</th>
-                      <th className="text-right text-xs font-medium text-gray-400 p-3">Liquidity</th>
-                      <th className="text-right text-xs font-medium text-gray-400 p-3">Closing Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {relatedMarkets.map((market: any, index: number) => (
-                      <tr
-                        key={index}
-                        onClick={() => {
-                          navigate(`/market/${market.id}`);
-                          setShowMarketSelector(false);
-                        }}
-                        className="border-b border-gray-800/50 hover:bg-[#1a1a1a] cursor-pointer transition-colors"
-                      >
-                        <td className="p-3">
-                          <div className="flex items-center gap-3">
-                            {market.image_url && (
-                              <img src={market.image_url} alt="" className="w-10 h-10 rounded object-cover" />
-                            )}
-                            <div className="max-w-md">
-                              <div className="text-sm font-medium text-white line-clamp-1">{market.description}</div>
-                              <div className="text-xs text-gray-500">{market.category || 'Crypto'}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className="text-sm font-bold text-[#A4E977]">
-                            {market.outcomePrices?.[0] || '50'}%
-                          </span>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className="text-sm text-white">
-                            ${parseFloat(market.volume || '0').toLocaleString()}
-                          </span>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className={`text-sm font-medium ${Math.random() > 0.5 ? 'text-[#A4E977]' : 'text-red-400'}`}>
-                            {Math.random() > 0.5 ? '+' : '-'}{(Math.random() * 10).toFixed(1)}%
-                          </span>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className="text-sm text-gray-300">
-                            ${(parseFloat(market.liquidity || '0') / 1000).toFixed(1)}K
-                          </span>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className="text-xs text-gray-500">
-                            {new Date(market.endDate).toLocaleDateString()}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="px-3 pb-3">
+                <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={sliderValue}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setSliderValue(val);
+                    const maxAmount = parseFloat(balance) || 0;
+                    setAmount(((maxAmount * val) / 100).toFixed(2));
+                  }}
+                  className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
+                  style={{
+                    background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
+                  }}
+                />
+                <div className="flex justify-between mt-2">
+                  {[0, 25, 50, 75, 100].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => {
+                        setSliderValue(val);
+                        const maxAmount = parseFloat(balance) || 0;
+                        setAmount(((maxAmount * val) / 100).toFixed(2));
+                      }}
+                      className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      {val}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="px-3 pb-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-400">Available to Trade</span>
+                  <span className="text-white font-medium">${parseFloat(balance).toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="px-3 pb-3">
+                <div className="flex items-center justify-between text-sm mb-3">
+                  <span className="text-gray-300 font-medium">Potential Payout</span>
+                  <span className="text-white font-bold">${calculatePotentialPayout()}</span>
+                </div>
+
+                {/* Trade Button */}
+                <button className="w-full bg-[#A4E977] hover:bg-[#8fd65a] text-black font-semibold py-2.5 rounded-lg transition-colors text-sm">
+                  {account ? `${tradeType === 'buy' ? 'Buy' : 'Sell'} ${selectedOutcome === 0 ? 'Yes' : 'No'}` : 'Connect to Trade'}
+                </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+
+
+
+
 
         {/* Price Alert Modal */}
         {showAlertModal && (
