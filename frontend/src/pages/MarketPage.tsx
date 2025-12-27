@@ -110,7 +110,7 @@ export function MarketPage() {
 
   // UI State
   const [activeTab, setActiveTab] = useState('positions');
-  const [timeRange, setTimeRange] = useState<'5m' | '15m' | '1h' | '5h' | '1d' | '1w' | 'all'>('all');
+  const [timeRange, setTimeRange] = useState<'1s' | '1m' | '1h' | '1d'>('1h');
   const [chartType, setChartType] = useState<'line' | 'candle' | 'area'>('line');
 
   // Wallet & Contract State
@@ -376,43 +376,77 @@ export function MarketPage() {
   };
 
   const getFilteredData = () => {
-    if (chartData.length === 0) return [];
-
-    // Filter by time range
+    // Generate realistic historical data for professional trading chart
     const now = Date.now();
     const ranges = {
-      '5m': 5 * 60 * 1000,
-      '15m': 15 * 60 * 1000,
-      '1h': 60 * 60 * 1000,
-      '5h': 5 * 60 * 60 * 1000,
-      '1d': 24 * 60 * 60 * 1000,
-      '1w': 7 * 24 * 60 * 60 * 1000,
-      'all': Infinity
+      '1s': 60 * 1000,      // Last 60 seconds
+      '1m': 60 * 60 * 1000, // Last hour
+      '1h': 24 * 60 * 60 * 1000, // Last 24 hours
+      '1d': 7 * 24 * 60 * 1000   // Last week
     };
 
-    const cutoff = now - ranges[timeRange];
-    const filtered = timeRange === 'all' ? chartData : chartData.filter(p => (p.timestamp || now) >= cutoff);
+    const range = ranges[timeRange] || ranges['1h'];
+    const startTime = now - range;
 
-    // Enhance with OHLC data for candlestick charts
-    return filtered.map((point, index) => {
-      const basePrice = point.YES || 50;
-      const volatility = 2; // Price volatility range
+    // Determine number of data points based on timeframe
+    const dataPoints = {
+      '1s': 60,   // 60 points (1 per second)
+      '1m': 60,   // 60 points (1 per minute)
+      '1h': 48,   // 48 points (30 min intervals)
+      '1d': 56    // 56 points (3 hour intervals)
+    };
 
-      // Generate realistic OHLC values
-      const open = index > 0 ? (filtered[index - 1]?.YES || basePrice) : basePrice;
-      const close = basePrice;
-      const high = Math.min(100, Math.max(open, close) + Math.random() * volatility);
-      const low = Math.max(0, Math.min(open, close) - Math.random() * volatility);
+    const numPoints = dataPoints[timeRange] || 48;
+    const interval = range / numPoints;
 
-      return {
-        ...point,
-        open,
-        high,
-        low,
-        close
-      };
-    });
+    // Generate realistic price movement
+    const data = [];
+    let currentYesPrice = yesPrice / 100; // Convert to odds (0-1)
+
+    for (let i = 0; i < numPoints; i++) {
+      const timestamp = startTime + (i * interval);
+      const date = new Date(timestamp);
+
+      // Add realistic price volatility
+      const volatility = 0.02; // 2% volatility
+      const randomChange = (Math.random() - 0.5) * volatility;
+      currentYesPrice = Math.max(0.1, Math.min(0.9, currentYesPrice + randomChange));
+
+      // Generate volume with realistic patterns (higher volume during price changes)
+      const baseVolume = 500 + Math.random() * 1000;
+      const volumeMultiplier = 1 + Math.abs(randomChange) * 50;
+      const volume = baseVolume * volumeMultiplier;
+
+      // Format time based on timeframe
+      let timeLabel;
+      if (timeRange === '1s') {
+        timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      } else if (timeRange === '1m') {
+        timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      } else if (timeRange === '1h') {
+        timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      } else {
+        timeLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit' });
+      }
+
+      data.push({
+        date: timeLabel,
+        time: timeLabel,
+        timestamp: timestamp,
+        YES: currentYesPrice,
+        NO: 1 - currentYesPrice,
+        volume: volume,
+        // Candlestick data for candle chart
+        open: currentYesPrice - (Math.random() - 0.5) * 0.01,
+        high: currentYesPrice + Math.random() * 0.02,
+        low: currentYesPrice - Math.random() * 0.02,
+        close: currentYesPrice
+      });
+    }
+
+    return data;
   };
+
 
   // Use placeholder data if market not found to show layout
   const displayMarket = market || {
@@ -592,7 +626,7 @@ export function MarketPage() {
                       <div className="flex items-center justify-between gap-4 mb-4">
                         {/* Time Range Buttons - LEFT */}
                         <div className="flex items-center gap-2">
-                          {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+                          {(['1s', '1m', '1h', '1d'] as const).map((range) => (
                             <button
                               key={range}
                               onClick={() => setTimeRange(range)}
@@ -642,12 +676,9 @@ export function MarketPage() {
                       <div className="h-[500px] bg-[#0a0a0a] relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <ComposedChart
-                            data={getFilteredData().length > 0 ? getFilteredData().map(d => ({
-                              ...d,
-                              volume: Math.random() * 1000 + 500 // Simulated volume data
-                            })) : [
-                              { date: 'Start', YES: 50, volume: 500 },
-                              { date: 'Now', YES: yesPrice, volume: 800 }
+                            data={getFilteredData().length > 0 ? getFilteredData() : [
+                              { date: new Date(Date.now() - 3600000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), YES: 0.50, volume: 500 },
+                              { date: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), YES: yesPrice / 100, volume: 800 }
                             ]}
                             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                           >
@@ -676,16 +707,16 @@ export function MarketPage() {
                               dy={10}
                             />
 
-                            {/* Left Y-Axis for Price (Percentage) */}
+                            {/* Left Y-Axis for Odds */}
                             <YAxis
                               yAxisId="left"
                               stroke="transparent"
                               style={{ fontSize: '10px' }}
-                              domain={[0, 100]}
+                              domain={[0, 1]}
                               axisLine={false}
                               tickLine={false}
                               tick={{ fill: '#666666' }}
-                              tickFormatter={(value) => `$${value}`}
+                              tickFormatter={(value) => value.toFixed(2)}
                               dx={-5}
                             />
 
@@ -745,10 +776,11 @@ export function MarketPage() {
                               />
                             )}
 
+
                             {/* Reference Line - Dotted horizontal line at current price */}
                             <ReferenceLine
                               yAxisId="left"
-                              y={yesPrice}
+                              y={yesPrice / 100}
                               stroke="#3a4a2a"
                               strokeDasharray="3 3"
                               strokeWidth={1}
@@ -831,7 +863,7 @@ export function MarketPage() {
                 <div>
                   <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[344px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                     <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
-                      {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
+                      {['Positions', 'Open Orders', 'Trade History', 'Order History'].map((tab) => (
                         <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
                           {tab}
                         </button>
@@ -1022,9 +1054,6 @@ export function MarketPage() {
                       )}
                       {activeTab === 'order-history' && (
                         <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
-                      )}
-                      {(activeTab === 'twap' || activeTab === 'funding-history') && (
-                        <div className="text-center py-12 text-gray-500 text-sm">Coming soon</div>
                       )}
                     </div>
                   </div>
@@ -1466,74 +1495,9 @@ export function MarketPage() {
                     </div>
                   </div>
 
+
                   <div className="px-3 pb-3">
                     <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
-                  </div>
-
-                  <div className="px-3 pb-4 border-b border-[#A4E977]">
-                    <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={takeProfitStopLoss}
-                        onChange={(e) => setTakeProfitStopLoss(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-700 bg-black"
-                      />
-                      <span>Take Profit / Stop Loss</span>
-                      <span className="text-gray-600">ⓘ</span>
-                    </label>
-
-                    {takeProfitStopLoss && (
-                      <div className="mt-3 space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10px] text-gray-500 mb-1 block">TP Price</label>
-                            <div className="relative">
-                              <input
-                                type="number"
-                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                                placeholder="0"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-gray-500 mb-1 block">Gain</label>
-                            <div className="relative">
-                              <input
-                                type="number"
-                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                                placeholder="0"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10px] text-gray-500 mb-1 block">SL Price</label>
-                            <div className="relative">
-                              <input
-                                type="number"
-                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                                placeholder="0"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">¢</span>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-gray-500 mb-1 block">Loss</label>
-                            <div className="relative">
-                              <input
-                                type="number"
-                                className="w-full bg-black border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-[#A4E977] focus:outline-none pr-6"
-                                placeholder="0"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1596,7 +1560,7 @@ export function MarketPage() {
 
                 <div className="h-[400px] bg-[#0a0a0a] relative">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={getFilteredData().length > 0 ? getFilteredData().map(d => ({ ...d, volume: Math.random() * 1000 + 500 })) : [{ time: new Date().toLocaleTimeString(), YES: yesPrice, NO: noPrice, volume: 0 }]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <ComposedChart data={getFilteredData().length > 0 ? getFilteredData() : [{ time: new Date().toLocaleTimeString(), YES: yesPrice / 100, NO: noPrice / 100, volume: 0 }]} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorYesMobile" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#A4E977" stopOpacity={0.3} />
@@ -1605,10 +1569,10 @@ export function MarketPage() {
                       </defs>
                       <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} opacity={0.3} />
                       <XAxis dataKey="time" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} axisLine={false} tickLine={false} />
-                      <YAxis yAxisId="left" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} domain={[0, 100]} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                      <YAxis yAxisId="left" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} domain={[0, 1]} axisLine={false} tickLine={false} tickFormatter={(value) => value.toFixed(2)} />
                       <YAxis yAxisId="right" orientation="right" stroke="transparent" tick={{ fontSize: 10, fill: '#666666' }} axisLine={false} tickLine={false} hide={true} />
                       <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px', padding: '8px 12px' }} labelStyle={{ color: '#888888', fontSize: '11px' }} itemStyle={{ color: '#A4E977', fontWeight: '600' }} />
-                      <ReferenceLine yAxisId="left" y={yesPrice} stroke="#3a4a2a" strokeDasharray="3 3" strokeWidth={1} />
+                      <ReferenceLine yAxisId="left" y={yesPrice / 100} stroke="#3a4a2a" strokeDasharray="3 3" strokeWidth={1} />
                       {chartType === 'area' && <Area yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={3} fillOpacity={1} fill="url(#colorYesMobile)" dot={false} />}
                       {chartType === 'line' && <Line yAxisId="left" type="monotone" dataKey="YES" stroke="#A4E977" strokeWidth={3} dot={false} activeDot={{ r: 5, fill: '#A4E977', stroke: '#0a0a0a', strokeWidth: 2 }} />}
                     </ComposedChart>
@@ -1694,7 +1658,7 @@ export function MarketPage() {
           {activeMobilePanel === 'positions' && (
             <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ minHeight: '500px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
               <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f] overflow-x-auto scrollbar-hide">
-                {['Positions', 'Open Orders', 'TWAP', 'Trade History', 'Funding History', 'Order History'].map((tab) => (
+                {['Positions', 'Open Orders', 'Trade History', 'Order History'].map((tab) => (
                   <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-[10px] font-medium transition-colors whitespace-nowrap ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
                     {tab}
                   </button>
@@ -1749,14 +1713,8 @@ export function MarketPage() {
                 {activeTab === 'open-orders' && (
                   <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
                 )}
-                {activeTab === 'twap' && (
-                  <div className="text-center py-12 text-gray-500 text-sm">No TWAP orders</div>
-                )}
                 {activeTab === 'trade-history' && (
                   <div className="text-center py-12 text-gray-500 text-sm">No trade history</div>
-                )}
-                {activeTab === 'funding-history' && (
-                  <div className="text-center py-12 text-gray-500 text-sm">No funding history</div>
                 )}
                 {activeTab === 'order-history' && (
                   <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
@@ -1917,30 +1875,6 @@ export function MarketPage() {
                   />
                 </div>
               )}
-
-              {/* Take Profit / Stop Loss */}
-              <div className="px-3 pb-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-400 mb-2 block">Take Profit</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 mb-2 block">Stop Loss</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      className="w-full bg-black border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-[#A4E977] focus:outline-none"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-              </div>
 
               <div className="px-3 pb-3">
                 <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
