@@ -1216,25 +1216,11 @@ export function MarketPage() {
                     <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
                   </div>
 
-                  {/* One-Click Trading Toggle */}
-                  <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">One-Click Trading</span>
-                    <button
-                      onClick={() => setOneClickTrading(!oneClickTrading)}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'
-                        }`}
-                    >
-                      <div
-                        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                      />
-                    </button>
-                  </div>
 
                   <div className="p-3 border-b border-[#A4E977]">
                     {/* Order Type Tabs */}
                     <div className="flex gap-2 mb-3">
-                      {(['market', 'limit', 'pro'] as const).map((type) => (
+                      {(['market', 'limit'] as const).map((type) => (
                         <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                           {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                         </button>
@@ -1286,27 +1272,6 @@ export function MarketPage() {
                       </div>
                     )}
 
-                    {/* Leverage Selector */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs text-gray-400">Leverage</label>
-                        <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
-                      </div>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 5, 10].map((lev) => (
-                          <button
-                            key={lev}
-                            onClick={() => setLeverage(lev)}
-                            className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev
-                              ? 'bg-[#A4E977] text-black'
-                              : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'
-                              }`}
-                          >
-                            {lev}x
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
 
                   <div className="p-3">
@@ -1347,23 +1312,16 @@ export function MarketPage() {
                       <div className="flex justify-between text-[10px]">
                         <span className="text-gray-500">Est. Shares:</span>
                         <span className="text-white font-medium">
-                          {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
+                          {amount && yesPrice ? (parseFloat(amount) / (yesPrice / 100)).toFixed(2) : '0.00'}
                         </span>
                       </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-gray-500">Total Cost:</span>
                         <span className="text-white font-medium">
-                          ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                          ${amount ? parseFloat(amount).toFixed(2) : '0.00'}
                         </span>
                       </div>
-                      {leverage > 1 && (
-                        <div className="flex justify-between text-[10px]">
-                          <span className="text-gray-500">Liq. Price:</span>
-                          <span className="text-red-400 font-medium">
-                            {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
-                          </span>
-                        </div>
-                      )}
+
                     </div>
                   </div>
 
@@ -1382,40 +1340,6 @@ export function MarketPage() {
                     </div>
                   )}
 
-                  <div className="px-3 pb-3">
-                    <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={sliderValue}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        setSliderValue(val);
-                        const maxAmount = parseFloat(balance) || 0;
-                        setAmount(((maxAmount * val) / 100).toFixed(2));
-                      }}
-                      className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
-                      style={{
-                        background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div className="flex justify-between mt-2">
-                      {[0, 25, 50, 75, 100].map((val) => (
-                        <button
-                          key={val}
-                          onClick={() => {
-                            setSliderValue(val);
-                            const maxAmount = parseFloat(balance) || 0;
-                            setAmount(((maxAmount * val) / 100).toFixed(2));
-                          }}
-                          className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
-                        >
-                          {val}%
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="px-3 pb-3">
                     <div className="flex items-center justify-between text-xs">
@@ -1438,15 +1362,8 @@ export function MarketPage() {
                         <span className="text-gray-500">Potential Profit:</span>
                         <span className="text-[#A4E977] font-medium">
                           ${amount && yesPrice
-                            ? ((parseFloat(amount) * leverage) * ((100 - yesPrice) / yesPrice)).toFixed(2)
+                            ? (parseFloat(amount) * ((100 - yesPrice) / yesPrice)).toFixed(2)
                             : '0.00'}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-gray-500">Max Loss:</span>
-                        <span className="text-red-400 font-medium">
-                          -${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
                         </span>
                       </div>
 
@@ -1762,45 +1679,17 @@ export function MarketPage() {
                 <button onClick={() => setTradeType('sell')} className={`flex-1 py-2 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
               </div>
 
-              {/* One-Click Trading Toggle */}
-              <div className="px-3 py-2 border-b border-[#A4E977]/30 flex items-center justify-between">
-                <span className="text-xs text-gray-400">One-Click Trading</span>
-                <button
-                  onClick={() => setOneClickTrading(!oneClickTrading)}
-                  className={`relative w-[75px] h-3.5 rounded-full transition-colors flex items-center ${oneClickTrading ? 'bg-[#A4E977]' : 'bg-[#2a2a2a]'}`}
-                >
-                  <div className={`w-3 h-3 rounded-full bg-white transition-transform ${oneClickTrading ? 'translate-x-[51px] ml-[7.5px]' : 'ml-[7.5px]'}`} />
-                </button>
-              </div>
 
               <div className="p-3 border-b border-[#A4E977]">
                 {/* Order Type Tabs */}
                 <div className="flex gap-2 mb-3">
-                  {(['market', 'limit', 'pro'] as const).map((type) => (
+                  {(['market', 'limit'] as const).map((type) => (
                     <button key={type} onClick={() => setOrderType(type)} className={`px-5 py-1 text-xs font-medium rounded-full transition-colors text-center ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                     </button>
                   ))}
                 </div>
 
-                {/* Leverage Selector */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs text-gray-400">Leverage</label>
-                    <span className="text-xs text-[#A4E977] font-semibold">{leverage}x</span>
-                  </div>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 5, 10].map((lev) => (
-                      <button
-                        key={lev}
-                        onClick={() => setLeverage(lev)}
-                        className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${leverage === lev ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-500 hover:text-gray-300 border border-[#2a2a2a]'}`}
-                      >
-                        {lev}x
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               <div className="p-3">
@@ -1841,23 +1730,15 @@ export function MarketPage() {
                   <div className="flex justify-between text-[10px]">
                     <span className="text-gray-500">Est. Shares:</span>
                     <span className="text-white font-medium">
-                      {amount && yesPrice ? ((parseFloat(amount) * leverage) / (yesPrice / 100)).toFixed(2) : '0.00'}
+                      {amount && yesPrice ? (parseFloat(amount) / (yesPrice / 100)).toFixed(2) : '0.00'}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px]">
                     <span className="text-gray-500">Total Cost:</span>
                     <span className="text-white font-medium">
-                      ${amount ? (parseFloat(amount) * leverage).toFixed(2) : '0.00'}
+                      ${amount ? parseFloat(amount).toFixed(2) : '0.00'}
                     </span>
                   </div>
-                  {leverage > 1 && (
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-gray-500">Liq. Price:</span>
-                      <span className="text-red-400 font-medium">
-                        {yesPrice ? ((yesPrice / 100) * (1 - 1 / leverage) * 100).toFixed(2) : '0.00'}¢
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -1876,40 +1757,6 @@ export function MarketPage() {
                 </div>
               )}
 
-              <div className="px-3 pb-3">
-                <label className="text-xs text-gray-400 mb-2 block">Amount ({sliderValue}%)</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={sliderValue}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    setSliderValue(val);
-                    const maxAmount = parseFloat(balance) || 0;
-                    setAmount(((maxAmount * val) / 100).toFixed(2));
-                  }}
-                  className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer slider-thumb"
-                  style={{
-                    background: `linear-gradient(to right, #A4E977 0%, #A4E977 ${sliderValue}%, #1a1a1a ${sliderValue}%, #1a1a1a 100%)`
-                  }}
-                />
-                <div className="flex justify-between mt-2">
-                  {[0, 25, 50, 75, 100].map((val) => (
-                    <button
-                      key={val}
-                      onClick={() => {
-                        setSliderValue(val);
-                        const maxAmount = parseFloat(balance) || 0;
-                        setAmount(((maxAmount * val) / 100).toFixed(2));
-                      }}
-                      className={`text-[10px] font-medium transition-colors ${sliderValue === val ? 'text-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}
-                    >
-                      {val}%
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div className="px-3 pb-3">
                 <div className="flex items-center justify-between text-xs">
