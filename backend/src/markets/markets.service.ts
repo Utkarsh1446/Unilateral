@@ -45,9 +45,14 @@ export class MarketsService {
         walletAddress: string,
         imageUrl?: string
     ) {
-        const ADMIN_WALLET = "0x9f4c1f7eaa0b729b798f81be84b25fdf9f66a0bf".toLowerCase();
+        // Get admin wallets from environment variable (comma-separated)
+        const ADMIN_WALLETS = (process.env.ADMIN_WALLETS || "0x9f4c1f7eaa0b729b798f81be84b25fdf9f66a0bf")
+            .toLowerCase()
+            .split(',')
+            .map(addr => addr.trim());
+
         const normalizedAddress = walletAddress.toLowerCase();
-        const isAdmin = normalizedAddress === ADMIN_WALLET;
+        const isAdmin = ADMIN_WALLETS.includes(normalizedAddress);
 
         console.log(`Creating market request for: ${normalizedAddress} (Is Admin: ${isAdmin})`);
 
