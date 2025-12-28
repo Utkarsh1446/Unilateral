@@ -1160,6 +1160,49 @@ export function MarketPage() {
                   )}
                 </div>
 
+                {/* Related Markets Panel */}
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-white">Related Markets</h3>
+                      <button
+                        onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto">
+                      {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
+                        <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {relatedMarketsExpanded && (
+                    <div className="overflow-y-auto flex-1 p-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                      <div className="space-y-2">
+                        {relatedMarkets.map((market: any, index: number) => (
+                          <div
+                            key={index}
+                            onClick={() => navigate(`/market/${market.id}`)}
+                            className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
+                          >
+                            {market.image_url && (
+                              <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{market.description}</div>
+                            </div>
+                            <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* RIGHT COLUMN: Trading Panel */}
@@ -1366,56 +1409,9 @@ export function MarketPage() {
                     </div>
                   </div>
 
+
                   <div className="px-3 pb-3">
                     <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
-                  </div>
-
-                  {/* Related Markets Section - Sticky at Bottom, Expands Upward */}
-                  <div className="sticky bottom-0 bg-[#0a0a0a] border-t border-[#A4E977]/30 mt-auto mb-1">
-                    {/* Expanded Content - Positioned Above */}
-                    {relatedMarketsExpanded && (
-                      <div className="absolute bottom-full left-0 right-0 bg-[#0a0a0a] border border-[#A4E977]/30 rounded-t-lg mb-0 z-10 shadow-xl">
-                        <div className="max-h-[180px] overflow-y-auto scrollbar-hide p-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                          <div className="space-y-2">
-                            {relatedMarkets.map((market: any, index: number) => (
-                              <div
-                                key={index}
-                                onClick={() => navigate(`/market/${market.id}`)}
-                                className="flex items-center gap-3 p-2 rounded hover:bg-black cursor-pointer transition-colors"
-                              >
-                                {market.image_url && (
-                                  <img src={market.image_url} alt="" className="w-8 h-8 rounded object-cover" />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs text-white truncate">{market.description}</div>
-                                </div>
-                                <div className="text-sm font-bold text-[#A4E977]">{market.outcomePrices?.[0] || '50'}%</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Header - Always Visible at Bottom */}
-                    <div className="px-3 pt-3 pb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-white">Related Markets</h3>
-                        <button
-                          onClick={() => setRelatedMarketsExpanded(!relatedMarketsExpanded)}
-                          className="text-gray-400 hover:text-white transition-colors"
-                        >
-                          <svg className={`w-4 h-4 transition-transform ${relatedMarketsExpanded ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="flex gap-2 overflow-x-auto">
-                        {['All', 'Crypto', 'Politics', 'Sports'].map((cat) => (
-                          <button key={cat} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${cat === 'All' ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>{cat}</button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
