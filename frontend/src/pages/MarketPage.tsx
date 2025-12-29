@@ -1073,9 +1073,6 @@ export function MarketPage() {
                         >
                           {showDepthChart ? 'Table' : 'Depth'}
                         </button>
-                        <button className="text-xs text-gray-400 hover:text-white flex items-center gap-1">
-                          Others <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                        </button>
                       </div>
                     </div>
                     <div className="flex gap-1">

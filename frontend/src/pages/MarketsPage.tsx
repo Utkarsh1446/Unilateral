@@ -49,7 +49,7 @@ export function MarketsPage() {
           <div className="flex gap-6">
             {/* Left Sidebar */}
             <div className="w-[200px] flex-shrink-0">
-              <div className="bg-[#A4E977] rounded-lg p-4 mb-4">
+              <div className="bg-[#A4E977] rounded-lg p-4 mb-4" style={{ border: '1px solid #A4E977' }}>
                 <button
                   onClick={() => navigate('/create-market')}
                   className="w-full py-2.5 bg-black text-[#A4E977] rounded-lg hover:bg-gray-900 transition-colors text-sm font-semibold"
@@ -59,7 +59,7 @@ export function MarketsPage() {
               </div>
 
               {/* Categories */}
-              <div className="bg-[#0f0f0f] rounded-lg border border-[rgba(140,180,130,0.35)] p-4">
+              <div className="bg-[#0f0f0f] rounded-lg p-4" style={{ border: '1px solid #A4E977' }}>
                 <h3 className="text-sm font-semibold text-white mb-3">Categories</h3>
                 <div className="space-y-1">
                   {categories.map((category) => (
@@ -89,7 +89,8 @@ export function MarketsPage() {
                     placeholder="Search markets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-[#0f0f0f] border border-[rgba(140,180,130,0.35)] rounded-lg focus:border-[#A4E977] outline-none transition-colors text-sm text-white placeholder-gray-500"
+                    className="w-full pl-11 pr-4 py-3 bg-[#0f0f0f] rounded-lg focus:border-[#A4E977] outline-none transition-colors text-sm text-white placeholder-gray-500"
+                    style={{ border: '1px solid #A4E977' }}
                   />
                 </div>
               </div>
@@ -201,7 +202,7 @@ export function MarketsPage() {
 
                   {/* Empty State */}
                   {filteredMarkets.length === 0 && (
-                    <div className="text-center py-16 bg-[#0a0a0a] rounded-lg border border-[rgba(140,180,130,0.35)]">
+                    <div className="text-center py-16 bg-[#0a0a0a] rounded-lg" style={{ border: '1px solid #A4E977' }}>
                       <p className="text-gray-400 mb-2">No markets found</p>
                       <button
                         onClick={() => {

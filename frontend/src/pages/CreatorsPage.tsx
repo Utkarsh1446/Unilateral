@@ -91,68 +91,36 @@ export function CreatorsPage() {
 
   return (
     <>
-      <div className="bg-muted/20 min-h-screen">
-        <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 md:py-6">
+      <div className="bg-black min-h-screen text-white pt-[58px]">
+        <div className="max-w-[1920px] mx-auto px-6 py-6">
           <div className="flex gap-6">
-            {/* Left Sidebar - Hidden on mobile */}
-            <div className="hidden lg:block w-64 flex-shrink-0">
-              <div className="bg-background rounded-xl border border-foreground/10 p-4 sticky top-6">
-                {/* Become Creator Button */}
+            {/* Left Sidebar */}
+            <div className="w-[200px] flex-shrink-0">
+              <div className="bg-[#A4E977] rounded-lg p-4 mb-4" style={{ border: '1px solid #A4E977' }}>
                 <button
                   onClick={() => navigate('/become-creator')}
-                  className="w-full py-2.5 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity text-sm mb-6"
-                  style={{ fontWeight: 600 }}
+                  className="w-full py-2.5 bg-black text-[#A4E977] rounded-lg hover:bg-gray-900 transition-colors text-sm font-semibold"
                 >
                   + Become a Creator
                 </button>
+              </div>
 
-                {/* Categories */}
-                <div className="mb-6">
-                  <h3 className="text-xs text-muted-foreground mb-3 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>
-                    Categories
-                  </h3>
-                  <div className="space-y-1">
-                    {categories.map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => setSelectedCategory(category)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === category
-                          ? 'bg-foreground/5 text-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                          }`}
-                        style={{ fontWeight: selectedCategory === category ? 600 : 400 }}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Sort Options */}
-                <div>
-                  <h3 className="text-xs text-muted-foreground mb-3 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>
-                    Sort By
-                  </h3>
-                  <div className="space-y-1">
-                    {[
-                      { value: 'volume', label: 'Volume' },
-                      { value: 'price', label: 'Share Price' },
-                      { value: 'holders', label: 'Holders' },
-                      { value: 'markets', label: 'Active Markets' },
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => setSortBy(option.value)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${sortBy === option.value
-                          ? 'bg-foreground/5 text-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                          }`}
-                        style={{ fontWeight: sortBy === option.value ? 600 : 400 }}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
+              {/* Categories */}
+              <div className="bg-[#0f0f0f] rounded-lg p-4" style={{ border: '1px solid #A4E977' }}>
+                <h3 className="text-sm font-semibold text-white mb-3">Categories</h3>
+                <div className="space-y-1">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedCategory === category
+                        ? 'bg-[#A4E977]/20 text-[#A4E977] font-medium'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                        }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -160,17 +128,17 @@ export function CreatorsPage() {
             {/* Main Content */}
             <div className="flex-1">
               {/* Mobile Category Filters - Horizontal Scroll */}
-              <div className="lg:hidden mb-4 -mx-4 px-4">
+              <div className="lg:hidden mb-4 -mx-6 px-6">
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {categories.map((category) => (
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`flex-shrink-0 px-4 py-2 rounded-full text-xs transition-all ${selectedCategory === category
-                        ? 'bg-foreground text-background'
-                        : 'bg-background border border-foreground/10 text-muted-foreground'
+                      className={`flex-shrink-0 px-4 py-2 rounded-full text-xs transition-all font-semibold ${selectedCategory === category
+                        ? 'bg-[#A4E977] text-black'
+                        : 'bg-[#1a1a1a] border text-gray-400 hover:text-white'
                         }`}
-                      style={{ fontWeight: selectedCategory === category ? 600 : 400 }}
+                      style={{ borderColor: selectedCategory === category ? '#A4E977' : 'rgba(140, 180, 130, 0.35)' }}
                     >
                       {category}
                     </button>
@@ -179,37 +147,40 @@ export function CreatorsPage() {
               </div>
 
               {/* Search Bar */}
-              <div className="mb-4 md:mb-6">
+              <div className="mb-6">
+
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search creators..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 md:py-2.5 bg-background border border-foreground/10 rounded-lg focus:border-foreground/30 outline-none transition-colors text-sm"
+                    className="w-full pl-11 pr-4 py-3 bg-[#0f0f0f] rounded-lg focus:border-[#A4E977] outline-none transition-colors text-sm text-white placeholder-gray-500"
+                    style={{ border: '1px solid #A4E977' }}
                   />
                 </div>
               </div>
 
               {/* Creators Grid */}
               {loading ? (
-                <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>
+                <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-[#A4E977]" /></div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {sortedCreators.map((creator) => {
                     const isPositive = parseFloat(creator.priceChange) > 0;
                     return (
                       <Link
                         key={creator.id}
                         to={`/creator/${creator.id}`}
-                        className="block bg-background rounded-2xl border-2 border-foreground/20 p-2 hover:shadow-lg hover:border-foreground/40 transition-all group active:scale-[0.98]"
+                        className="block bg-[#0f0f0f] rounded-lg hover:shadow-lg transition-all group active:scale-[0.98]"
+                        style={{ border: '1px solid #A4E977' }}
                       >
                         {/* Inner Card */}
-                        <div className="border border-foreground/10 rounded-xl p-4 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 min-h-[260px] flex flex-col">
+                        <div className="p-4 min-h-[280px] flex flex-col">
                           {/* Category Badge - Top Right */}
                           <div className="flex justify-end mb-2">
-                            <div className="px-1.5 py-0.5 bg-background/80 border border-foreground/10 rounded text-[8px] uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                            <div className="px-2 py-0.5 bg-[#1a1a1a] border rounded text-[9px] uppercase tracking-wider font-semibold text-gray-400" style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}>
                               {creator.category}
                             </div>
                           </div>
@@ -217,7 +188,7 @@ export function CreatorsPage() {
                           {/* Large Avatar - Center */}
                           <div className="flex-1 flex items-center justify-center mb-3">
                             <div className="relative">
-                              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-foreground/20 group-hover:scale-105 transition-transform bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                              <div className="w-20 h-20 rounded-full overflow-hidden border-2 group-hover:scale-105 transition-transform bg-gradient-to-br from-[#A4E977]/20 to-[#A4E977]/10 flex items-center justify-center" style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}>
                                 {creator.profileImage ? (
                                   <img
                                     src={creator.profileImage.replace('_normal', '')}
@@ -229,13 +200,13 @@ export function CreatorsPage() {
                                     }}
                                   />
                                 ) : null}
-                                <span className={`text-2xl font-bold text-foreground/50 ${creator.profileImage ? 'hidden' : ''}`}>
+                                <span className={`text-2xl font-bold text-gray-500 ${creator.profileImage ? 'hidden' : ''}`}>
                                   {creator.avatar}
                                 </span>
                               </div>
                               {creator.verified && (
-                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-background">
-                                  <BadgeCheck className="w-3.5 h-3.5 text-white" />
+                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#A4E977] rounded-full flex items-center justify-center border-2 border-black">
+                                  <BadgeCheck className="w-3.5 h-3.5 text-black" />
                                 </div>
                               )}
                             </div>
@@ -243,46 +214,46 @@ export function CreatorsPage() {
 
                           {/* Name Section */}
                           <div className="text-center mb-3">
-                            <h3 className="text-base mb-0.5" style={{ fontWeight: 700 }}>{creator.name}</h3>
-                            <div className="text-xs text-muted-foreground">@{creator.handle}</div>
+                            <h3 className="text-base font-bold text-white mb-0.5">{creator.name}</h3>
+                            <div className="text-xs text-gray-500">@{creator.handle}</div>
                           </div>
 
                           {/* Stats Bar - Holders, Price, Dividend */}
-                          <div className="grid grid-cols-3 gap-2 mb-2.5 pb-2.5 border-b border-foreground/10">
+                          <div className="grid grid-cols-3 gap-2 mb-2.5 pb-2.5 border-b" style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}>
                             <div className="text-center">
-                              <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
+                              <div className="text-[9px] text-gray-500 mb-0.5 uppercase tracking-wider font-semibold">
                                 Holders
                               </div>
-                              <div className="text-xs" style={{ fontWeight: 700 }}>{creator.holders}</div>
+                              <div className="text-xs font-bold text-white">{creator.holders}</div>
                             </div>
                             <div className="text-center">
-                              <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
+                              <div className="text-[9px] text-gray-500 mb-0.5 uppercase tracking-wider font-semibold">
                                 Price
                               </div>
-                              <div className="text-xs" style={{ fontWeight: 700 }}>${creator.sharePrice}</div>
+                              <div className="text-xs font-bold text-white">${creator.sharePrice}</div>
                             </div>
                             <div className="text-center">
-                              <div className="text-[8px] text-muted-foreground mb-0.5 uppercase" style={{ letterSpacing: '0.05em' }}>
+                              <div className="text-[9px] text-gray-500 mb-0.5 uppercase tracking-wider font-semibold">
                                 Dividend
                               </div>
-                              <div className="text-xs" style={{ fontWeight: 700 }}>{creator.dividend}%</div>
+                              <div className="text-xs font-bold text-white">{creator.dividend}%</div>
                             </div>
                           </div>
 
                           {/* Price Change - Bottom */}
-                          <div className="bg-background/80 border border-foreground/10 rounded-lg p-2">
+                          <div className="bg-[#1a1a1a] border rounded-lg p-2" style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}>
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="text-[8px] text-muted-foreground mb-0.5 uppercase tracking-wider" style={{ letterSpacing: '0.05em' }}>
+                                <div className="text-[9px] text-gray-500 mb-0.5 uppercase tracking-wider font-semibold">
                                   Share Price
                                 </div>
-                                <div className="text-lg" style={{ fontWeight: 700 }}>
+                                <div className="text-lg font-bold text-white">
                                   ${creator.sharePrice}
                                 </div>
                               </div>
-                              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${isPositive ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                              <div className={`flex items-center gap-1 px-2 py-1 rounded ${isPositive ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-red-500/20 text-red-400'}`}>
                                 {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                                <span className="text-xs" style={{ fontWeight: 700 }}>{isPositive ? '+' : ''}{creator.priceChange}%</span>
+                                <span className="text-xs font-bold">{isPositive ? '+' : ''}{creator.priceChange}%</span>
                               </div>
                             </div>
                           </div>
@@ -295,15 +266,14 @@ export function CreatorsPage() {
 
               {/* Empty State */}
               {!loading && sortedCreators.length === 0 && (
-                <div className="text-center py-16 bg-background rounded-xl border border-foreground/10">
-                  <p className="text-muted-foreground mb-2">No creators found</p>
+                <div className="text-center py-16 bg-[#0f0f0f] rounded-lg" style={{ border: '1px solid #A4E977' }}>
+                  <p className="text-gray-400 mb-2">No creators found</p>
                   <button
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedCategory('All Creators');
                     }}
-                    className="text-sm text-foreground hover:opacity-60 transition-opacity"
-                    style={{ fontWeight: 500 }}
+                    className="text-sm text-[#A4E977] hover:opacity-60 transition-opacity font-medium"
                   >
                     Clear filters
                   </button>
