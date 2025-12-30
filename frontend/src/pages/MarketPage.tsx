@@ -574,38 +574,38 @@ export function MarketPage() {
 
         {/* Mobile Tab Navigation - Only visible on mobile */}
         <div className="lg:hidden pb-3">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2 justify-center mx-3">
+          <div className="flex gap-1 bg-[#0a0a0a] border border-[rgba(140,180,130,0.35)] rounded-lg p-2 mx-3">
             <button
               onClick={() => setActiveMobilePanel('chart')}
-              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors flex items-center justify-center ${activeMobilePanel === 'chart' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Chart
             </button>
             <button
               onClick={() => setActiveMobilePanel('orderbook')}
-              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors flex items-center justify-center ${activeMobilePanel === 'orderbook' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
-              Order Book
+              Orders
             </button>
             <button
               onClick={() => setActiveMobilePanel('positions')}
-              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors flex items-center justify-center ${activeMobilePanel === 'positions' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Positions
             </button>
             <button
               onClick={() => setActiveMobilePanel('related')}
-              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors flex items-center justify-center ${activeMobilePanel === 'related' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
-              Related Markets
+              Related
             </button>
             <button
               onClick={() => setActiveMobilePanel('trading')}
-              className={`px-6 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-colors flex items-center justify-center ${activeMobilePanel === 'trading' ? 'bg-[#A4E977] text-black' : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
                 }`}
             >
               Trade
@@ -673,7 +673,7 @@ export function MarketPage() {
                         </div>
                       </div>
 
-                      <div className="h-[370px] bg-[#0a0a0a] relative">
+                      <div className="h-[395px] bg-[#0a0a0a] relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <ComposedChart
                             data={getFilteredData().length > 0 ? getFilteredData() : [
@@ -861,10 +861,10 @@ export function MarketPage() {
 
                 {/* Positions and Trade History Tabs */}
                 <div>
-                  <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[344px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl h-[319px] flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                     <div className="flex border-b border-[rgba(140,180,130,0.35)] bg-[#0f0f0f]">
                       {['Positions', 'Open Orders', 'Trade History', 'Order History'].map((tab) => (
-                        <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-3 py-2 text-xs font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
+                        <button key={tab} onClick={() => setActiveTab(tab.toLowerCase().replace(' ', '-'))} className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === tab.toLowerCase().replace(' ', '-') ? 'text-white border-b-2 border-[#A4E977]' : 'text-gray-500 hover:text-gray-300'}`}>
                           {tab}
                         </button>
                       ))}
@@ -878,12 +878,12 @@ export function MarketPage() {
                             placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="px-3 py-1.5 text-xs bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                            className="px-4 py-2.5 text-sm bg-[#0f0f0f] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                           />
                           <select
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value as any)}
-                            className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                            className="px-4 py-2.5 text-sm bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                           >
                             <option value="all">All Types</option>
                             <option value="buy">Buy Only</option>
@@ -892,7 +892,7 @@ export function MarketPage() {
                           <select
                             value={filterOutcome}
                             onChange={(e) => setFilterOutcome(e.target.value as any)}
-                            className="px-3 py-1.5 text-xs bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
+                            className="px-4 py-2.5 text-sm bg-[#1a1a1a] border border-[#2a2a2a] rounded focus:border-[#A4E977] focus:outline-none text-white"
                           >
                             <option value="all">All Outcomes</option>
                             <option value="yes">YES Only</option>
@@ -908,46 +908,46 @@ export function MarketPage() {
                               <table className="w-full">
                                 <thead>
                                   <tr className="border-b border-gray-800">
-                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Size</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Entry Price</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Current Price</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">P&L %</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Liq. Price</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Actions</th>
+                                    <th className="text-left text-sm font-medium text-gray-400 pb-3">Outcome</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Size</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Entry Price</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Current Price</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">P&L</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">P&L %</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Liq. Price</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Actions</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {parseFloat(positions[0]) > 0 && (
                                     <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
                                       <td className="py-3">
-                                        <span className="text-xs font-semibold text-[#A4E977]">YES</span>
+                                        <span className="text-sm font-semibold text-[#A4E977]">YES</span>
                                       </td>
-                                      <td className="text-right text-xs text-white">
+                                      <td className="text-right text-sm text-white">
                                         {parseFloat(positions[0]).toFixed(2)}
                                       </td>
-                                      <td className="text-right text-xs text-gray-300">
+                                      <td className="text-right text-sm text-gray-300">
                                         {(yesPrice * 0.95).toFixed(2)}¢
                                       </td>
-                                      <td className="text-right text-xs text-white font-medium">
+                                      <td className="text-right text-sm text-white font-medium">
                                         {yesPrice}.00¢
                                       </td>
-                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      <td className="text-right text-sm text-[#A4E977] font-medium">
                                         +${((parseFloat(positions[0]) * (yesPrice / 100)) * 0.05).toFixed(2)}
                                       </td>
-                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      <td className="text-right text-sm text-[#A4E977] font-medium">
                                         +5.26%
                                       </td>
-                                      <td className="text-right text-xs text-red-400">
+                                      <td className="text-right text-sm text-red-400">
                                         {(yesPrice * 0.80).toFixed(2)}¢
                                       </td>
                                       <td className="text-right">
                                         <div className="flex gap-1 justify-end">
-                                          <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                          <button className="px-3 py-1.5 text-xs font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
                                             Close
                                           </button>
-                                          <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                          <button className="px-3 py-1.5 text-xs font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
                                             Edit
                                           </button>
                                         </div>
@@ -957,32 +957,32 @@ export function MarketPage() {
                                   {parseFloat(positions[1]) > 0 && (
                                     <tr className="border-b border-gray-800/50 hover:bg-gray-900/30">
                                       <td className="py-3">
-                                        <span className="text-xs font-semibold text-red-400">NO</span>
+                                        <span className="text-sm font-semibold text-red-400">NO</span>
                                       </td>
-                                      <td className="text-right text-xs text-white">
+                                      <td className="text-right text-sm text-white">
                                         {parseFloat(positions[1]).toFixed(2)}
                                       </td>
-                                      <td className="text-right text-xs text-gray-300">
+                                      <td className="text-right text-sm text-gray-300">
                                         {(noPrice * 0.95).toFixed(2)}¢
                                       </td>
-                                      <td className="text-right text-xs text-white font-medium">
+                                      <td className="text-right text-sm text-white font-medium">
                                         {noPrice}.00¢
                                       </td>
-                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      <td className="text-right text-sm text-[#A4E977] font-medium">
                                         +${((parseFloat(positions[1]) * (noPrice / 100)) * 0.05).toFixed(2)}
                                       </td>
-                                      <td className="text-right text-xs text-[#A4E977] font-medium">
+                                      <td className="text-right text-sm text-[#A4E977] font-medium">
                                         +5.26%
                                       </td>
-                                      <td className="text-right text-xs text-red-400">
+                                      <td className="text-right text-sm text-red-400">
                                         {(noPrice * 0.80).toFixed(2)}¢
                                       </td>
                                       <td className="text-right">
                                         <div className="flex gap-1 justify-end">
-                                          <button className="px-2 py-1 text-[10px] font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                                          <button className="px-3 py-1.5 text-xs font-medium bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">
                                             Close
                                           </button>
-                                          <button className="px-2 py-1 text-[10px] font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
+                                          <button className="px-3 py-1.5 text-xs font-medium bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors">
                                             Edit
                                           </button>
                                         </div>
@@ -993,7 +993,7 @@ export function MarketPage() {
                               </table>
                             </div>
                           ) : (
-                            <div className="text-center py-12 text-gray-500 text-sm">No positions found</div>
+                            <div className="text-center py-12 text-gray-500 text-base">No positions found</div>
                           )}
                         </div>
                       )}
@@ -1004,39 +1004,39 @@ export function MarketPage() {
                               <table className="w-full">
                                 <thead>
                                   <tr className="border-b border-gray-800">
-                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Type</th>
-                                    <th className="text-left text-xs font-medium text-gray-400 pb-3">Outcome</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Amount</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Price</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Total</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Time</th>
-                                    <th className="text-right text-xs font-medium text-gray-400 pb-3">Tx Hash</th>
+                                    <th className="text-left text-sm font-medium text-gray-400 pb-3">Type</th>
+                                    <th className="text-left text-sm font-medium text-gray-400 pb-3">Outcome</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Amount</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Price</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Total</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Time</th>
+                                    <th className="text-right text-sm font-medium text-gray-400 pb-3">Tx Hash</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {recentTrades.slice(0, 10).map((trade, i) => (
                                     <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-900/30">
                                       <td className="py-3">
-                                        <span className={`text-xs font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
+                                        <span className={`text-sm font-semibold ${trade.type === 'Buy' ? 'text-[#A4E977]' : 'text-red-400'}`}>
                                           {trade.type}
                                         </span>
                                       </td>
-                                      <td className="text-xs text-gray-300">
+                                      <td className="text-sm text-gray-300">
                                         {trade.outcomeIndex === 0 ? 'YES' : 'NO'}
                                       </td>
-                                      <td className="text-right text-xs text-white">
+                                      <td className="text-right text-sm text-white">
                                         {trade.amountOut}
                                       </td>
-                                      <td className="text-right text-xs text-gray-300">
+                                      <td className="text-right text-sm text-gray-300">
                                         {(trade.price * 100).toFixed(2)}¢
                                       </td>
-                                      <td className="text-right text-xs text-white font-medium">
+                                      <td className="text-right text-sm text-white font-medium">
                                         ${trade.amountIn}
                                       </td>
-                                      <td className="text-right text-xs text-gray-400">
+                                      <td className="text-right text-sm text-gray-400">
                                         {new Date(trade.timestamp).toLocaleTimeString()}
                                       </td>
-                                      <td className="text-right text-xs text-gray-500 font-mono">
+                                      <td className="text-right text-sm text-gray-500 font-mono">
                                         {trade.txHash.slice(0, 6)}...{trade.txHash.slice(-4)}
                                       </td>
                                     </tr>
@@ -1045,15 +1045,15 @@ export function MarketPage() {
                               </table>
                             </div>
                           ) : (
-                            <div className="text-center py-12 text-gray-500 text-sm">No trades yet</div>
+                            <div className="text-center py-12 text-gray-500 text-base">No trades yet</div>
                           )}
                         </div>
                       )}
                       {activeTab === 'open-orders' && (
-                        <div className="text-center py-12 text-gray-500 text-sm">No open orders</div>
+                        <div className="text-center py-12 text-gray-500 text-base">No open orders</div>
                       )}
                       {activeTab === 'order-history' && (
-                        <div className="text-center py-12 text-gray-500 text-sm">No order history</div>
+                        <div className="text-center py-12 text-gray-500 text-base">No order history</div>
                       )}
                     </div>
                   </div>
@@ -1062,7 +1062,7 @@ export function MarketPage() {
 
               {/* MIDDLE COLUMN: Order Book + Related Markets */}
               <div className="flex flex-col gap-3 h-full">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '440px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '465px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-base font-semibold text-white">Order Book</h3>
@@ -1161,7 +1161,7 @@ export function MarketPage() {
                 </div>
 
                 {/* Related Markets Panel */}
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '344px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '319px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-semibold text-white">Related Markets</h3>
@@ -1207,8 +1207,8 @@ export function MarketPage() {
 
               {/* RIGHT COLUMN: Trading Panel */}
               <div className="flex flex-col h-full">
-                <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[794px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
-                  <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
+                <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[796px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                  <div className="flex border-b border-gray-800 py-2.5 px-2 bg-[#0f0f0f]">
                     <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
                     <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
                   </div>
@@ -1216,9 +1216,9 @@ export function MarketPage() {
 
                   <div className="p-3 border-b border-[#A4E977]">
                     {/* Order Type Tabs */}
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex gap-2 mb-3 items-center">
                       {(['market', 'limit'] as const).map((type) => (
-                        <button key={type} onClick={() => setOrderType(type)} className={`px-5 py-2 text-sm font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                        <button key={type} onClick={() => setOrderType(type)} className={`px-4 lg:px-5 py-1.5 lg:py-2 text-xs lg:text-sm font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                           {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                         </button>
                       ))}
@@ -1272,14 +1272,14 @@ export function MarketPage() {
                   </div>
 
                   <div className="p-3">
-                    <div className="grid grid-cols-2 gap-3 mx-3">
-                      <button onClick={() => setSelectedOutcome(0)} className={`p-3.5 rounded-full border-2 transition-all flex items-center justify-between gap-2 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
-                        <span className="text-base font-medium text-gray-400">Yes</span>
-                        <span className={`text-base font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
+                    <div className="grid grid-cols-2 gap-2 lg:gap-3 mx-3">
+                      <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 lg:p-3.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 lg:gap-2 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                        <span className="text-sm lg:text-base font-medium text-gray-400">Yes</span>
+                        <span className={`text-sm lg:text-base font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
                       </button>
-                      <button onClick={() => setSelectedOutcome(1)} className={`p-3.5 rounded-full border-2 transition-all flex items-center justify-between gap-2 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
-                        <span className="text-base font-medium text-gray-400">No</span>
-                        <span className={`text-base font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
+                      <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 lg:p-3.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 lg:gap-2 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                        <span className="text-sm lg:text-base font-medium text-gray-400">No</span>
+                        <span className={`text-sm lg:text-base font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
                       </button>
                     </div>
                   </div>
@@ -1287,17 +1287,17 @@ export function MarketPage() {
                   <div className="px-3 pb-3">
                     <label className="text-sm text-gray-400 mb-2 block">Order Size</label>
                     <div className="relative mb-2">
-                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-4 py-3.5 text-base text-white focus:border-[#A4E977] focus:outline-none pr-20" placeholder="$0.00" />
-                      <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 text-sm font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
+                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 lg:px-4 py-2.5 lg:py-3.5 text-sm lg:text-base text-white focus:border-[#A4E977] focus:outline-none pr-16 lg:pr-20" placeholder="$0.00" />
+                      <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 lg:px-4 py-1 lg:py-1.5 text-xs lg:text-sm font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
                     </div>
 
                     {/* Quick Order Buttons */}
-                    <div className="grid grid-cols-4 gap-2 mb-3">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
                       {[10, 25, 50, 100].map((val) => (
                         <button
                           key={val}
                           onClick={() => setAmount(val.toString())}
-                          className="py-2.5 text-sm font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
+                          className="py-2 lg:py-2.5 text-xs lg:text-sm font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
                         >
                           ${val}
                         </button>
