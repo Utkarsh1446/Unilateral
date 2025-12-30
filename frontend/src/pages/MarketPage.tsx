@@ -673,7 +673,7 @@ export function MarketPage() {
                         </div>
                       </div>
 
-                      <div className="h-[500px] bg-[#0a0a0a] relative">
+                      <div className="h-[370px] bg-[#0a0a0a] relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <ComposedChart
                             data={getFilteredData().length > 0 ? getFilteredData() : [
@@ -1062,30 +1062,30 @@ export function MarketPage() {
 
               {/* MIDDLE COLUMN: Order Book + Related Markets */}
               <div className="flex flex-col gap-3 h-full">
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '572px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '440px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="px-3 py-3 border-b border-[#A4E977] flex-shrink-0">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">Order Book</h3>
+                      <h3 className="text-base font-semibold text-white">Order Book</h3>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setShowDepthChart(!showDepthChart)}
-                          className={`text-xs px-2 py-1 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
+                          className={`text-sm px-3 py-1.5 rounded transition-colors ${showDepthChart ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a]'}`}
                         >
                           {showDepthChart ? 'Table' : 'Depth'}
                         </button>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
-                      <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
+                    <div className="flex gap-2">
+                      <button onClick={() => setSelectedOutcome(0)} className={`flex-1 px-3 py-2 text-sm font-medium rounded-full transition-colors ${selectedOutcome === 0 ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'bg-black text-gray-400 hover:text-white'}`}>Yes</button>
+                      <button onClick={() => setSelectedOutcome(1)} className={`flex-1 px-3 py-2 text-sm font-medium rounded-full transition-colors ${selectedOutcome === 1 ? 'bg-red-500/20 text-red-400' : 'bg-black text-gray-400 hover:text-white'}`}>No</button>
                     </div>
                   </div>
 
                   {/* Market Depth Chart or Order Book Table */}
                   {showDepthChart ? (
-                    <div className="px-3 py-4 flex-1 overflow-auto">
+                    <div className="px-3 py-4 flex-1 overflow-hidden">
                       <div className="text-xs text-gray-400 mb-3 text-center">Market Depth Visualization</div>
-                      <div className="relative h-[300px] bg-[#1a1a1a] rounded">
+                      <div className="relative h-[240px] bg-[#1a1a1a] rounded">
                         <svg className="w-full h-full" viewBox="0 0 400 300">
                           <path d="M 0,300 L 0,200 L 50,180 L 100,160 L 150,140 L 200,150 L 200,300 Z" fill="rgba(164, 233, 119, 0.2)" stroke="#A4E977" strokeWidth="2" />
                           <path d="M 200,150 L 250,140 L 300,160 L 350,180 L 400,200 L 400,300 L 200,300 Z" fill="rgba(239, 68, 68, 0.2)" stroke="#EF4444" strokeWidth="2" />
@@ -1161,7 +1161,7 @@ export function MarketPage() {
                 </div>
 
                 {/* Related Markets Panel */}
-                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl flex flex-col" style={{ height: '344px', borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="p-4 flex-shrink-0 border-b border-[rgba(140,180,130,0.2)]">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-semibold text-white">Related Markets</h3>
@@ -1207,10 +1207,10 @@ export function MarketPage() {
 
               {/* RIGHT COLUMN: Trading Panel */}
               <div className="flex flex-col h-full">
-                <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[926px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
+                <div className="border rounded-lg bg-[#0a0a0a] flex flex-col shadow-xl h-[794px] overflow-y-auto" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
                   <div className="flex border-b border-gray-800 py-1.5 px-2 bg-[#0f0f0f]">
-                    <button onClick={() => setTradeType('buy')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
-                    <button onClick={() => setTradeType('sell')} className={`flex-1 py-2.5 text-xs font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
+                    <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'buy' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Buy</button>
+                    <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 text-sm font-semibold transition-colors rounded-full ${tradeType === 'sell' ? 'text-black bg-[#A4E977] mx-1 my-0.5' : 'text-gray-500 hover:text-gray-300'}`}>Sell</button>
                   </div>
 
 
@@ -1218,7 +1218,7 @@ export function MarketPage() {
                     {/* Order Type Tabs */}
                     <div className="flex gap-2 mb-3">
                       {(['market', 'limit'] as const).map((type) => (
-                        <button key={type} onClick={() => setOrderType(type)} className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
+                        <button key={type} onClick={() => setOrderType(type)} className={`px-5 py-2 text-sm font-medium rounded-full transition-colors ${orderType === type ? 'bg-[#A4E977] text-black' : 'text-gray-500 hover:text-gray-300 bg-[#1a1a1a] border border-[#2a2a2a]'}`}>
                           {type.charAt(0).toUpperCase() + type.slice(1)}{type === 'pro' && ' ▼'}
                         </button>
                       ))}
@@ -1273,31 +1273,31 @@ export function MarketPage() {
 
                   <div className="p-3">
                     <div className="grid grid-cols-2 gap-3 mx-3">
-                      <button onClick={() => setSelectedOutcome(0)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
-                        <span className="text-sm font-medium text-gray-400">Yes</span>
-                        <span className={`text-sm font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
+                      <button onClick={() => setSelectedOutcome(0)} className={`p-3.5 rounded-full border-2 transition-all flex items-center justify-between gap-2 ${selectedOutcome === 0 ? 'bg-[#A4E977]/10 border-[#A4E977]' : 'bg-black border-[#2a2a2a] hover:border-[#A4E977]/50'}`}>
+                        <span className="text-base font-medium text-gray-400">Yes</span>
+                        <span className={`text-base font-bold ${selectedOutcome === 0 ? 'text-[#A4E977]' : 'text-gray-300'}`}>{yesPrice}.00¢</span>
                       </button>
-                      <button onClick={() => setSelectedOutcome(1)} className={`p-2.5 rounded-full border-2 transition-all flex items-center justify-between gap-1 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
-                        <span className="text-sm font-medium text-gray-400">No</span>
-                        <span className={`text-sm font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
+                      <button onClick={() => setSelectedOutcome(1)} className={`p-3.5 rounded-full border-2 transition-all flex items-center justify-between gap-2 ${selectedOutcome === 1 ? 'bg-red-500/10 border-red-500' : 'bg-black border-[#2a2a2a] hover:border-red-500/50'}`}>
+                        <span className="text-base font-medium text-gray-400">No</span>
+                        <span className={`text-base font-bold ${selectedOutcome === 1 ? 'text-red-400' : 'text-gray-300'}`}>{noPrice}.00¢</span>
                       </button>
                     </div>
                   </div>
 
                   <div className="px-3 pb-3">
-                    <label className="text-xs text-gray-400 mb-2 block">Order Size</label>
+                    <label className="text-sm text-gray-400 mb-2 block">Order Size</label>
                     <div className="relative mb-2">
-                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none pr-16" placeholder="$0.00" />
-                      <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
+                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-4 py-3.5 text-base text-white focus:border-[#A4E977] focus:outline-none pr-20" placeholder="$0.00" />
+                      <button onClick={() => setAmount(balance)} className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 text-sm font-semibold text-gray-400 hover:text-white transition-colors">MAX</button>
                     </div>
 
                     {/* Quick Order Buttons */}
-                    <div className="grid grid-cols-4 gap-1 mb-3">
+                    <div className="grid grid-cols-4 gap-2 mb-3">
                       {[10, 25, 50, 100].map((val) => (
                         <button
                           key={val}
                           onClick={() => setAmount(val.toString())}
-                          className="py-1.5 text-xs font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
+                          className="py-2.5 text-sm font-medium rounded bg-[#1a1a1a] text-gray-500 hover:text-gray-300 hover:bg-[#222222] border border-[#2a2a2a] transition-colors"
                         >
                           ${val}
                         </button>
@@ -1305,14 +1305,14 @@ export function MarketPage() {
                     </div>
 
                     {/* Position Size Calculator */}
-                    <div className="bg-[#0f0f0f] rounded p-2 space-y-1">
-                      <div className="flex justify-between text-[10px]">
+                    <div className="bg-[#0f0f0f] rounded p-3 space-y-2">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-500">Est. Shares:</span>
                         <span className="text-white font-medium">
                           {amount && yesPrice ? (parseFloat(amount) / (yesPrice / 100)).toFixed(2) : '0.00'}
                         </span>
                       </div>
-                      <div className="flex justify-between text-[10px]">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-500">Total Cost:</span>
                         <span className="text-white font-medium">
                           ${amount ? parseFloat(amount).toFixed(2) : '0.00'}
@@ -1325,12 +1325,12 @@ export function MarketPage() {
                   {/* Limit Price - Only for Limit orders */}
                   {orderType === 'limit' && (
                     <div className="px-3 pb-3">
-                      <label className="text-xs text-gray-400 mb-2 block">Limit Price</label>
+                      <label className="text-sm text-gray-400 mb-2 block">Limit Price</label>
                       <input
                         type="number"
                         value={limitPrice}
                         onChange={(e) => setLimitPrice(e.target.value)}
-                        className="w-full bg-black border border-gray-700 rounded px-3 py-2.5 text-sm text-white focus:border-[#A4E977] focus:outline-none"
+                        className="w-full bg-black border border-gray-700 rounded px-4 py-3.5 text-base text-white focus:border-[#A4E977] focus:outline-none"
                         placeholder="0.50"
                         step="0.01"
                       />
@@ -1339,16 +1339,16 @@ export function MarketPage() {
 
 
                   <div className="px-3 pb-3">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-400">Available to Trade</span>
-                      <span className="text-white font-medium">${parseFloat(balance).toFixed(2)}</span>
+                      <span className="text-white font-semibold">${parseFloat(balance).toFixed(2)}</span>
                     </div>
                   </div>
 
                   <div className="px-3 pb-3">
-                    <div className="flex items-center justify-between text-sm mb-3">
-                      <span className="text-gray-300 font-medium">Potential Payout</span>
-                      <span className="text-white font-bold">${calculatePotentialPayout()}</span>
+                    <div className="flex items-center justify-between text-base mb-3">
+                      <span className="text-gray-300 font-semibold">Potential Payout</span>
+                      <span className="text-white font-bold text-lg">${calculatePotentialPayout()}</span>
                     </div>
 
                     {/* Risk/Reward Calculator */}
@@ -1411,7 +1411,7 @@ export function MarketPage() {
 
 
                   <div className="px-3 pb-3">
-                    <button className="w-full py-3 rounded-full font-semibold text-sm transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
+                    <button className="w-full py-4 rounded-full font-bold text-base transition-colors bg-[#A4E977] hover:bg-[#8FD65E] text-black">Connect to Trade</button>
                   </div>
                 </div>
               </div>
