@@ -44,11 +44,11 @@ export function MarketsPage() {
 
   return (
     <>
-      <div className="bg-black min-h-screen text-white pt-[58px]">
-        <div className="max-w-[1920px] mx-auto px-6 py-6">
+      <div className="bg-black min-h-screen text-white pt-[58px] overflow-x-hidden">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex gap-6">
-            {/* Left Sidebar */}
-            <div className="w-[200px] flex-shrink-0">
+            {/* Left Sidebar - Hidden on mobile */}
+            <div className="hidden lg:block w-[200px] flex-shrink-0">
               <div className="bg-[#A4E977] rounded-lg p-4 mb-4" style={{ border: '1px solid #A4E977' }}>
                 <button
                   onClick={() => navigate('/create-market')}
@@ -79,7 +79,36 @@ export function MarketsPage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0 w-full">
+              {/* Mobile "Create Market" Button */}
+              <div className="lg:hidden mb-4">
+                <button
+                  onClick={() => navigate('/create-market')}
+                  className="w-full py-3 bg-[#A4E977] text-black rounded-lg hover:bg-[#93d666] transition-colors text-sm font-semibold"
+                >
+                  Create Market
+                </button>
+              </div>
+
+              {/* Mobile Category Filters - Horizontal Scroll */}
+              <div className="lg:hidden mb-4 -mx-4 sm:-mx-6 px-4 sm:px-6">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`flex-shrink-0 px-4 py-2 rounded-full text-xs transition-all font-semibold ${selectedCategory === category
+                        ? 'bg-[#A4E977] text-black'
+                        : 'bg-[#1a1a1a] border text-gray-400 hover:text-white'
+                        }`}
+                      style={{ borderColor: selectedCategory === category ? '#A4E977' : 'rgba(140, 180, 130, 0.35)' }}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Search Bar */}
               <div className="mb-6">
                 <div className="relative">
@@ -103,7 +132,7 @@ export function MarketsPage() {
               ) : (
                 <>
                   {/* Markets Grid */}
-                  <div className="flex flex-wrap gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                     {filteredMarkets.map((market) => {
                       const yesOutcome = market.outcomes?.find((o: any) => o.name === 'Yes');
                       const yesPrice = yesOutcome ? Math.round(Number(yesOutcome.current_price) * 100) : 50;
@@ -117,10 +146,9 @@ export function MarketsPage() {
                           className="block group"
                         >
                           <div
-                            className="bg-[#171717] rounded-3xl p-5 hover:shadow-lg hover:shadow-[#35A921]/20 transition-all duration-200"
+                            className="bg-[#171717] rounded-3xl p-4 sm:p-5 hover:shadow-lg hover:shadow-[#35A921]/20 transition-all duration-200"
                             style={{
-                              width: '375px',
-                              height: '192px',
+                              minHeight: '192px',
                               border: '1px solid rgba(211, 211, 211, 0.2)'
                             }}
                           >
@@ -145,16 +173,17 @@ export function MarketsPage() {
                             </div>
 
                             {/* Percentage Display - Aligned with title start */}
-                            <div className="mb-3 ml-[52px]">
-                              <span className="text-3xl font-bold text-[#35A921]">{yesPrice}% Chances</span>
+                            <div className="mb-3 ml-0 sm:ml-[52px]">
+                              <span className="text-2xl sm:text-3xl font-bold text-[#35A921]">{yesPrice}% Chances</span>
                             </div>
 
                             {/* YES/NO Buttons */}
-                            <div className="flex gap-3 mb-3 ml-[52px]">
+                            <div className="flex gap-2 sm:gap-3 mb-3 ml-0 sm:ml-[52px]">
                               <button
-                                className="bg-[#35A921] text-white hover:bg-[#2d8f1c] transition-colors"
+                                className="flex-1 sm:flex-none bg-[#35A921] text-white hover:bg-[#2d8f1c] transition-colors"
                                 style={{
-                                  width: '150px',
+                                  minWidth: '100px',
+                                  maxWidth: '150px',
                                   height: '36px',
                                   borderRadius: '9999px',
                                   fontFamily: 'Inter',
@@ -166,9 +195,10 @@ export function MarketsPage() {
                                 YES
                               </button>
                               <button
-                                className="bg-[#1f1f1f] text-white hover:bg-[#2a2a2a] transition-colors"
+                                className="flex-1 sm:flex-none bg-[#1f1f1f] text-white hover:bg-[#2a2a2a] transition-colors"
                                 style={{
-                                  width: '150px',
+                                  minWidth: '100px',
+                                  maxWidth: '150px',
                                   height: '36px',
                                   borderRadius: '9999px',
                                   border: '1px solid rgba(211, 211, 211, 0.2)',
@@ -183,7 +213,7 @@ export function MarketsPage() {
                             </div>
 
                             {/* Footer - Volume Left, Market by Right */}
-                            <div className="flex items-center justify-between text-xs ml-[52px]">
+                            <div className="flex items-center justify-between text-xs ml-0 sm:ml-[52px]">
                               <div className="text-gray-400">
                                 ${volume} Volume
                               </div>

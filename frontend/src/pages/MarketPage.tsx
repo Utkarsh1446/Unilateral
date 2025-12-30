@@ -1425,16 +1425,16 @@ export function MarketPage() {
           {activeMobilePanel === 'chart' && (
             <div className="border rounded-lg overflow-hidden bg-[#0a0a0a] shadow-xl" style={{ borderColor: 'rgba(140, 180, 130, 0.35)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)' }}>
               <div className="p-3 bg-[#0a0a0a]">
-                <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                   {/* Time Range Buttons */}
                   <div className="flex items-center gap-1 flex-wrap">
-                    {(['5m', '15m', '1h', '5h', '1d', '1w', 'all'] as const).map((range) => (
+                    {(['5M', '15M', '1H', '5H', '1D', '1W', 'ALL'] as const).map((range) => (
                       <button
                         key={range}
-                        onClick={() => setTimeRange(range)}
-                        className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${timeRange === range ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                        onClick={() => setTimeRange(range === '5M' ? '1s' : range === '15M' ? '1m' : range === '1H' ? '1h' : '1d')}
+                        className={`px-2 py-1 text-[10px] font-medium rounded transition-colors ${timeRange === (range === '5M' ? '1s' : range === '15M' ? '1m' : range === '1H' ? '1h' : '1d') ? 'bg-[#A4E977]/20 text-[#A4E977]' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
                       >
-                        {range.toUpperCase()}
+                        {range}
                       </button>
                     ))}
                   </div>
@@ -1470,6 +1470,28 @@ export function MarketPage() {
                       </svg>
                     </button>
                   </div>
+                </div>
+
+                {/* Buy and Sell Action Buttons */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => {
+                      setTradeType('buy');
+                      setActiveMobilePanel('trading');
+                    }}
+                    className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-[#A4E977] text-black hover:bg-[#A4E977]/90 transition-colors"
+                  >
+                    Buy
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTradeType('sell');
+                      setActiveMobilePanel('trading');
+                    }}
+                    className="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-red-500 text-white hover:bg-red-500/90 transition-colors"
+                  >
+                    Sell
+                  </button>
                 </div>
 
                 <div className="h-[400px] bg-[#0a0a0a] relative">

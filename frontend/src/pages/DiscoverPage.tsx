@@ -103,14 +103,14 @@ export function DiscoverPage() {
 
     return (
         <>
-            <div className="bg-muted/20 min-h-screen">
+            <div className="bg-black min-h-screen text-white pt-[58px] overflow-x-hidden">
                 <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-4 md:py-6">
                     {/* Header */}
                     <div className="mb-6">
-                        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+                        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
                             Discover Markets
                         </h1>
-                        <p className="text-muted-foreground">
+                        <p className="text-gray-400">
                             Fast market analytics with advanced filtering
                         </p>
                     </div>
@@ -119,33 +119,33 @@ export function DiscoverPage() {
                     <div className="flex flex-wrap gap-3 mb-6">
                         <button
                             onClick={() => setQuickFilter('trending')}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${quickFilter === 'trending'
-                                    ? 'bg-foreground text-background shadow-lg'
-                                    : 'bg-background border border-foreground/10 text-foreground hover:border-foreground/30'
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${quickFilter === 'trending'
+                                ? 'bg-[#A4E977] text-black shadow-lg'
+                                : 'bg-[#0a0a0a] border text-white hover:border-[#A4E977]/50'
                                 }`}
-                            style={{ fontWeight: 600 }}
+                            style={{ fontWeight: 600, borderColor: quickFilter === 'trending' ? '#A4E977' : 'rgba(140, 180, 130, 0.35)' }}
                         >
                             <TrendingUp className="w-4 h-4" />
                             Trending
                         </button>
                         <button
                             onClick={() => setQuickFilter('expiring')}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${quickFilter === 'expiring'
-                                    ? 'bg-foreground text-background shadow-lg'
-                                    : 'bg-background border border-foreground/10 text-foreground hover:border-foreground/30'
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${quickFilter === 'expiring'
+                                ? 'bg-[#A4E977] text-black shadow-lg'
+                                : 'bg-[#0a0a0a] border text-white hover:border-[#A4E977]/50'
                                 }`}
-                            style={{ fontWeight: 600 }}
+                            style={{ fontWeight: 600, borderColor: quickFilter === 'expiring' ? '#A4E977' : 'rgba(140, 180, 130, 0.35)' }}
                         >
                             <Clock className="w-4 h-4" />
                             Expiring Soon
                         </button>
                         <button
                             onClick={() => setQuickFilter('new')}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${quickFilter === 'new'
-                                    ? 'bg-foreground text-background shadow-lg'
-                                    : 'bg-background border border-foreground/10 text-foreground hover:border-foreground/30'
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${quickFilter === 'new'
+                                ? 'bg-[#A4E977] text-black shadow-lg'
+                                : 'bg-[#0a0a0a] border text-white hover:border-[#A4E977]/50'
                                 }`}
-                            style={{ fontWeight: 600 }}
+                            style={{ fontWeight: 600, borderColor: quickFilter === 'new' ? '#A4E977' : 'rgba(140, 180, 130, 0.35)' }}
                         >
                             <Sparkles className="w-4 h-4" />
                             New Markets
@@ -156,13 +156,14 @@ export function DiscoverPage() {
                     <div className="flex flex-col md:flex-row gap-3 mb-6">
                         {/* Search */}
                         <div className="flex-1 relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                             <input
                                 type="text"
                                 placeholder="Search markets..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-background border border-foreground/10 rounded-xl focus:border-foreground/30 outline-none transition-colors text-sm"
+                                className="w-full pl-11 pr-4 py-3 bg-[#0a0a0a] border rounded-lg focus:border-[#A4E977] outline-none transition-colors text-sm text-white placeholder-gray-500"
+                                style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}
                             />
                         </div>
 
@@ -170,7 +171,8 @@ export function DiscoverPage() {
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as SortOption)}
-                            className="px-4 py-3 bg-background border border-foreground/10 rounded-xl focus:border-foreground/30 outline-none transition-colors text-sm font-medium"
+                            className="px-4 py-3 bg-[#0a0a0a] border rounded-lg focus:border-[#A4E977] outline-none transition-colors text-sm font-medium text-white"
+                            style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}
                         >
                             <option value="volume-high">Volume: High to Low</option>
                             <option value="volume-low">Volume: Low to High</option>
@@ -182,12 +184,13 @@ export function DiscoverPage() {
                         {/* Advanced Filters Button */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="flex items-center gap-2 px-4 py-3 bg-background border border-foreground/10 rounded-xl hover:border-foreground/30 transition-colors text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-3 bg-[#0a0a0a] border rounded-lg hover:border-[#A4E977]/50 transition-colors text-sm font-semibold text-white"
+                            style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}
                         >
                             <SlidersHorizontal className="w-4 h-4" />
                             Filters
                             {(filters.categories.length > 0 || filters.expiringDays) && (
-                                <span className="ml-1 px-2 py-0.5 bg-foreground text-background rounded-full text-xs">
+                                <span className="ml-1 px-2 py-0.5 bg-[#A4E977] text-black rounded-full text-xs">
                                     {filters.categories.length + (filters.expiringDays ? 1 : 0)}
                                 </span>
                             )}
@@ -206,7 +209,7 @@ export function DiscoverPage() {
                     {/* Loading State */}
                     {loading ? (
                         <div className="flex justify-center py-20">
-                            <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+                            <Loader2 className="animate-spin w-8 h-8 text-[#A4E977]" />
                         </div>
                     ) : (
                         <>
@@ -242,8 +245,8 @@ export function DiscoverPage() {
 
                             {/* Empty State */}
                             {sortedMarkets.length === 0 && (
-                                <div className="text-center py-16 bg-background rounded-xl border border-foreground/10">
-                                    <p className="text-muted-foreground mb-2">No markets found</p>
+                                <div className="text-center py-16 bg-[#0a0a0a] rounded-lg border" style={{ borderColor: 'rgba(140, 180, 130, 0.35)' }}>
+                                    <p className="text-gray-400 mb-2">No markets found</p>
                                     <button
                                         onClick={() => {
                                             setSearchQuery('');
@@ -254,7 +257,7 @@ export function DiscoverPage() {
                                                 expiringDays: undefined
                                             });
                                         }}
-                                        className="text-sm text-foreground hover:opacity-60 transition-opacity"
+                                        className="text-sm text-[#A4E977] hover:opacity-60 transition-opacity"
                                         style={{ fontWeight: 500 }}
                                     >
                                         Clear filters

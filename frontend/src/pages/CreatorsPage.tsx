@@ -91,11 +91,11 @@ export function CreatorsPage() {
 
   return (
     <>
-      <div className="bg-black min-h-screen text-white pt-[58px]">
-        <div className="max-w-[1920px] mx-auto px-6 py-6">
+      <div className="bg-black min-h-screen text-white pt-[58px] overflow-x-hidden">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex gap-6">
-            {/* Left Sidebar */}
-            <div className="w-[200px] flex-shrink-0">
+            {/* Left Sidebar - Hidden on mobile */}
+            <div className="hidden lg:block w-[200px] flex-shrink-0">
               <div className="bg-[#A4E977] rounded-lg p-4 mb-4" style={{ border: '1px solid #A4E977' }}>
                 <button
                   onClick={() => navigate('/become-creator')}
@@ -126,9 +126,19 @@ export function CreatorsPage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0 w-full">
+              {/* Mobile "Become a Creator" Button */}
+              <div className="lg:hidden mb-4">
+                <button
+                  onClick={() => navigate('/become-creator')}
+                  className="w-full py-3 bg-[#A4E977] text-black rounded-lg hover:bg-[#93d666] transition-colors text-sm font-semibold"
+                >
+                  + Become a Creator
+                </button>
+              </div>
+
               {/* Mobile Category Filters - Horizontal Scroll */}
-              <div className="lg:hidden mb-4 -mx-6 px-6">
+              <div className="lg:hidden mb-4 -mx-4 sm:-mx-6 px-4 sm:px-6">
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {categories.map((category) => (
                     <button
