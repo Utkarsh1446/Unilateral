@@ -1,5 +1,5 @@
 import { Search, ChevronDown, LogOut, User, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import { useState, useEffect, useRef } from 'react';
 
@@ -14,6 +14,7 @@ interface SearchResult {
 
 export function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { account, isConnecting, connectWallet, disconnectWallet } = useWallet();
   const [showWalletMenu, setShowWalletMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,6 +110,19 @@ export function Navbar() {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
+  // Helper function to check if a route is active
+  const isActive = (path: string) => {
+    if (path === '/markets') {
+      // Markets is active for /markets and /market/:id routes
+      return location.pathname === '/markets' || location.pathname.startsWith('/market/');
+    }
+    if (path === '/btc-markets') {
+      // BTC Markets is active for /btc-markets and /btc-market/:id routes
+      return location.pathname === '/btc-markets' || location.pathname.startsWith('/btc-market/');
+    }
+    return location.pathname === path;
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black backdrop-blur-md border-b border-[#A4E977]/20">
       <div className="max-w-[1920px] mx-auto px-6 py-3">
@@ -131,28 +145,28 @@ export function Navbar() {
             <div className="hidden md:flex items-center gap-6">
               <button
                 onClick={() => navigate('/markets')}
-                className="text-[#A4E977] hover:text-white transition-colors"
+                className={`${isActive('/markets') ? 'text-[#A4E977]' : 'text-gray-400'} hover:text-white transition-colors`}
                 style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 Markets
               </button>
               <button
                 onClick={() => navigate('/btc-markets')}
-                className="text-gray-400 hover:text-white transition-colors"
+                className={`${isActive('/btc-markets') ? 'text-[#A4E977]' : 'text-gray-400'} hover:text-white transition-colors`}
                 style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 Quick Markets
               </button>
               <button
                 onClick={() => navigate('/creators')}
-                className="text-gray-400 hover:text-white transition-colors"
+                className={`${isActive('/creators') ? 'text-[#A4E977]' : 'text-gray-400'} hover:text-white transition-colors`}
                 style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 Creators
               </button>
               <button
                 onClick={() => navigate('/how-it-works')}
-                className="text-gray-400 hover:text-white transition-colors"
+                className={`${isActive('/how-it-works') ? 'text-[#A4E977]' : 'text-gray-400'} hover:text-white transition-colors`}
                 style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400 }}
               >
                 How it works
